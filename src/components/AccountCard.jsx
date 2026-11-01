@@ -5,8 +5,8 @@ import { deviceName, directLogin, loginStatus, startLogin, submitCode } from '..
 const field = 'w-full rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2.5 text-base outline-none focus:ring-2 focus:ring-primary'
 const primaryBtn = 'min-h-10 shrink-0 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary shadow-btn disabled:opacity-40'
 
-// Sign in with just an email: Nudgy emails a link and a code that confirm this device.
-// While waiting, it checks every few seconds in case the link was opened on another device.
+// Sign in with just an email, no password. If the server asks for a code (REQUIRE_SIGNUP_CODE=true), Nudgy emails a
+// link and a code, and while waiting checks every few seconds in case the link was opened on another device.
 export default function AccountCard({ variant = 'sync' }) {
   const { account, setAccount, signOut } = useStore()
   const [email, setEmail] = useState('')
@@ -14,6 +14,8 @@ export default function AccountCard({ variant = 'sync' }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  // Logging in with an email that has no account: offer to sign up with it, right here.
+  const [unknownEmail, setUnknownEmail] = useState(false)
   // The server's demo code, when it has one (no email service connected). Shown so nobody has to dig in a terminal.
   const [demoCode, setDemoCode] = useState('')
 
@@ -31,12 +33,38 @@ export default function AccountCard({ variant = 'sync' }) {
     return () => clearInterval(id)
   }, [pendingId]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Switching between sign up and log in keeps the typed email but drops the old message.
+  useEffect(() => {
+    setError('')
+    setUnknownEmail(false)
+  }, [variant])
+
+  async function signUp() {
+    const started = await startLogin(email.trim())
+    if (started.email) return setAccount({ email: started.email })
+    if (started.demoCode) { setDemoCode(started.demoCode); setCode(started.demoCode) }
+    setPendingId(started.pendingId)
+  }
+
+  async function signUpInstead() {
+    setError('')
+    setUnknownEmail(false)
+    setBusy(true)
+    try {
+      await signUp()
+    } catch (err) {
+      setError(err.message)
+    }
+    setBusy(false)
+  }
+
   async function send(e) {
     e.preventDefault()
     setError('')
+    setUnknownEmail(false)
     setBusy(true)
     try {
-      // Logging in needs only the email. Signing up (and syncing a new device from the Me page) sends the code.
+      // Logging in tries the email alone; signing up (and syncing from the Me page) goes through signUp.
       if (variant === 'login') {
         try {
           const s = await directLogin(email.trim())
@@ -44,13 +72,14 @@ export default function AccountCard({ variant = 'sync' }) {
           return setBusy(false)
         } catch (err) {
           // The server may be set to ask for a code on login too; otherwise the error is real.
+          if (err.status === 404) {
+            setUnknownEmail(true)
+            return setBusy(false)
+          }
           if (err.status !== 403) throw err
         }
       }
-      const started = await startLogin(email.trim())
-      if (started.email) { setAccount({ email: started.email }); return setBusy(false) }
-      if (started.demoCode) { setDemoCode(started.demoCode); setCode(started.demoCode) }
-      setPendingId(started.pendingId)
+      await signUp()
     } catch (err) {
       setError(err.message)
     }
@@ -92,10 +121,10 @@ export default function AccountCard({ variant = 'sync' }) {
         {pendingId
           ? `I emailed ${email.trim()} a link and a code. Open the link (on any device) or type the code here.`
           : variant === 'signup'
-            ? 'Enter your email and I will send you a code to confirm it. No password, ever.'
+            ? "Enter your email and you're in. No password, ever."
             : variant === 'login'
               ? 'Enter the email you signed up with and your list comes straight back.'
-              : 'Same tasks, chat and points on your phone and laptop. No password: I email you to confirm each device.'}
+              : 'Same tasks, chat and points on your phone and laptop. No password, ever.'}
       </p>
       {pendingId ? (
         <form onSubmit={check} className="mt-3 flex gap-2">
@@ -112,11 +141,17 @@ export default function AccountCard({ variant = 'sync' }) {
         </form>
       ) : (
         <form onSubmit={send} className="mt-3 flex gap-2">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" aria-label="Email" autoComplete="email" className={field} />
-          <button type="submit" disabled={busy || !email.trim()} className={primaryBtn}>{variant === 'login' ? (busy ? 'Logging in…' : 'Log in') : busy ? 'Sending…' : 'Email me'}</button>
+          <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setUnknownEmail(false) }} placeholder="you@example.com" aria-label="Email" autoComplete="email" className={field} />
+          <button type="submit" disabled={busy || !email.trim()} className={primaryBtn}>{variant === 'signup' ? (busy ? 'Signing up…' : 'Sign up') : busy ? 'Logging in…' : 'Log in'}</button>
         </form>
       )}
       {pendingId && demoCode && <p className="mt-2 text-xs text-ink/55">Demo mode: no email is sent. Use code <span className="font-semibold text-ink">{demoCode}</span>.</p>}
+      {unknownEmail && (
+        <div className="mt-3">
+          <p className="text-sm text-ink/70">I don't know {email.trim()} yet. New here?</p>
+          <button type="button" onClick={signUpInstead} disabled={busy} className={`${primaryBtn} mt-2`}>Sign me up with this email</button>
+        </div>
+      )}
       {error && <p className="mt-2 text-sm text-accent">{error}</p>}
       {pendingId && (
         <button type="button" onClick={() => { setPendingId(null); setCode(''); setError('') }} className="mt-2 text-xs font-semibold text-ink/50 hover:text-ink">

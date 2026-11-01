@@ -5,7 +5,7 @@ import Mascot from '../components/Mascot.jsx'
 import AccountCard from '../components/AccountCard.jsx'
 import { Button, Card } from '../components/ui.jsx'
 
-// After the name: are you new (sign up) or coming back (log in)? Both end the same way, an emailed code with no
+// After the name: are you new (sign up) or coming back (log in)? Both end the same way, just an email with no
 // password, but a returning user's saved list and name replace what's on this device. If an account has no name
 // yet (someone who skipped it), the one question comes here.
 export default function LoginPage() {
