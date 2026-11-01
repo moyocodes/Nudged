@@ -39,3 +39,4 @@
 - Email reminders: tasks 15 minutes past due and not ticked or snoozed are emailed once per due time, whether or not the app is open, with fixed copy so no model call. Render's free plan sleeps and stops the timer, so an outside cron can wake it through /api/cron/reminders with CRON_SECRET.
 - Hourly email reminders: an overdue task is emailed again every hour until it is ticked or snoozed, stopping 24 hours after it was due.
 - Reminder email timing: hourly was too much, so the first email goes when due or when a snooze ends, then gaps double from 10 minutes (10, 20, 40, 80...), stopping after 24 hours.
+- Quiet hours for reminder emails: the app saves its timezone with the account, and the server sends nothing during that person's sleep hours. Whatever is still undone arrives in one email when they wake.
