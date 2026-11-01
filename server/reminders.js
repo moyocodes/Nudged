@@ -1,18 +1,20 @@
 // Email reminders for people who aren't looking at the app. Every few minutes: tasks past due that weren't ticked
-// or snoozed go out in one email per account. The copy is fixed, so this never calls the model.
+// or snoozed go out in one email per account, again every hour until they're acted on, for up to a day. The copy is fixed, so this never calls the model.
 // A free Render service sleeps and stops the timer, so an outside cron can wake it through /api/cron/reminders.
 import { store } from './db.js'
 
 const CHECK_EVERY_MS = 5 * 60 * 1000
 const GRACE_MS = 15 * 60 * 1000 // time to tick it in the app first
-const TOO_OLD_MS = 24 * 60 * 60 * 1000 // no emails about long-gone tasks
+const REPEAT_MS = 60 * 60 * 1000
+const TOO_OLD_MS = 24 * 60 * 60 * 1000 // stop nagging about long-gone tasks
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
-const reminderKey = (task) => `${task.id}|${task.due}`
+// One key per hourly round, so each round goes out once.
+const reminderKey = (task, now) => `${task.id}|${task.due}|${Math.floor((now - new Date(task.due).getTime() - GRACE_MS) / REPEAT_MS)}`
 
 export function tasksToEmail(tasks, emailed, now = Date.now()) {
   return (tasks ?? []).filter((t) => {
-    if (t.done || !t.due || emailed.has(reminderKey(t))) return false
+    if (t.done || !t.due || emailed.has(reminderKey(t, now))) return false
     if (t.snoozedUntil && new Date(t.snoozedUntil).getTime() > now) return false
     const age = now - new Date(t.due).getTime()
     return age >= GRACE_MS && age <= TOO_OLD_MS
@@ -55,7 +57,7 @@ export async function runReminders({ db = store, send = sendReminder, now = Date
         const tasks = tasksToEmail(state?.tasks, await db.emailedReminders(email), now)
         if (!tasks.length) continue
         await send(email, tasks)
-        await db.markRemindersEmailed(email, tasks.map(reminderKey))
+        await db.markRemindersEmailed(email, tasks.map((t) => reminderKey(t, now)))
         sent++
       } catch (err) {
         console.error('[reminders] failed for one account:', err.message) // tried again next check

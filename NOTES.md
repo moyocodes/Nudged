@@ -37,3 +37,4 @@
 - Login to signup continuity: logging in with an unknown email now offers a one-tap "Sign me up with this email" that keeps what was typed, where before it was a dead-end message. The sign-up copy and button stopped promising a code.
 - Sound preferences sync: voice, volume, mute, alarm, music, ambient and whether each was already asked now follow the account, so a new device doesn't ask again. Browsers still hold audio until the first tap or click there.
 - Email reminders: tasks 15 minutes past due and not ticked or snoozed are emailed once per due time, whether or not the app is open, with fixed copy so no model call. Render's free plan sleeps and stops the timer, so an outside cron can wake it through /api/cron/reminders with CRON_SECRET.
+- Hourly email reminders: an overdue task is emailed again every hour until it is ticked or snoozed, stopping 24 hours after it was due.
