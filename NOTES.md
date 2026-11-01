@@ -46,3 +46,4 @@
 - Onboarding setup: new users confirm their sleep hours, 12am to 7am by default, and accept the terms in a modal before entering the app.
 - Fullscreen chat: the X refocused the box, which reopened it on phones. It now closes, fits above the keyboard and restores the scroll. Fields are 16px on touch screens so iPhones stop zooming.
 - Voice lag: only cancel speech that is really playing and load voices early, since Chrome can stall a speak right after a cancel.
+- Home screen pitch: a punny line above the install button.
