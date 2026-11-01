@@ -4,6 +4,7 @@
 // Email goes through Resend when RESEND_API_KEY is set; otherwise the link and code are logged here.
 import crypto from 'node:crypto'
 import { store } from './db.js'
+import { sendDoneEmail, sendLoginEmail } from './reminders.js'
 
 const CODE_TTL_MS = 15 * 60 * 1000
 const RESEND_GAP_MS = 60 * 1000
@@ -82,6 +83,9 @@ async function deviceFor(req) {
   return session ? store.deviceBySession(session) : null
 }
 
+// A login email goes out only for a device this account hasn't used before.
+const isNewDevice = async (deviceId, email) => (await store.deviceById(deviceId))?.email !== email
+
 // Signs a device in: a fresh session, saved hashed, handed back as the cookie.
 async function signIn(req, res, deviceId, email, deviceName) {
   const session = token()
@@ -108,8 +112,11 @@ export function mountAuth(app) {
     // Hackathon demo: no code to enter, the device is signed in straight away (new accounts get a welcome email). Set REQUIRE_SIGNUP_CODE=true to confirm by email.
     if (process.env.REQUIRE_SIGNUP_CODE !== 'true') {
       const isNew = !(await store.userExists(email))
+      const newDevice = await isNewDevice(deviceId, email)
       const signedIn = await signIn(req, res, deviceId, email, deviceName)
-      if (isNew) sendWelcome(email) // not awaited: the email can't hold up or break signing up
+      // Not awaited: the email can't hold up or break signing up.
+      if (isNew) sendWelcome(email)
+      else if (newDevice) sendLoginEmail(email, String(deviceName ?? 'A device').slice(0, 60))
       return res.json(signedIn)
     }
     if (await store.recentPending(email, Date.now() - RESEND_GAP_MS)) return res.status(429).json({ error: 'Email sent less than a minute ago. Check your inbox (and spam).' })
@@ -144,7 +151,10 @@ export function mountAuth(app) {
     loginTries.set(email, [...recent, now])
 
     if (!(await store.userExists(email))) return res.status(404).json({ error: "I don't know that email. Sign up instead?" })
-    res.json(await signIn(req, res, deviceId, email, deviceName))
+    const newDevice = await isNewDevice(deviceId, email)
+    const signedIn = await signIn(req, res, deviceId, email, deviceName)
+    if (newDevice) sendLoginEmail(email, String(deviceName ?? 'A device').slice(0, 60))
+    res.json(signedIn)
   }))
 
   // Step 2a: the link in the email. It may be opened on another device, so it confirms the waiting device,
@@ -229,6 +239,21 @@ export function mountAuth(app) {
   }))
 
   // Sync: the whole saved state per account, last write wins.
+  // Finishing a reminder sends one note. Capped, since the app is the only thing vouching for the title.
+  const doneEmails = new Map()
+  app.post('/api/task-done', safe(async (req, res) => {
+    const device = await deviceFor(req)
+    if (!device) return res.status(401).json({ error: 'Signed out' })
+    const title = String(req.body?.title ?? '').trim().slice(0, 200)
+    if (!title) return res.status(400).json({ error: 'No title' })
+    const recent = (doneEmails.get(device.email) ?? []).filter((t) => Date.now() - t < 3600000)
+    if (recent.length < 20) {
+      doneEmails.set(device.email, [...recent, Date.now()])
+      sendDoneEmail(device.email, title)
+    }
+    res.json({ ok: true })
+  }))
+
   app.get('/api/sync', safe(async (req, res) => {
     const device = await deviceFor(req)
     if (!device) return res.status(401).json({ error: 'Signed out' })

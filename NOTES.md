@@ -41,3 +41,4 @@
 - Reminder email timing: hourly was too much, so the first email goes when due or when a snooze ends, then gaps double from 10 minutes (10, 20, 40, 80...), stopping after 24 hours.
 - Quiet hours for reminder emails: the app saves its timezone with the account, and the server sends nothing during that person's sleep hours. Whatever is still undone arrives in one email when they wake.
 - Reminder email defaults: quiet hours default to 12am to 7am, and after a snooze the email gaps start at the snooze length.
+- Login and done emails: a new device login emails the open list, and finishing a reminder sends a short well-done note capped at 20 an hour. Neither blocks the action.

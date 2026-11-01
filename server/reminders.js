@@ -79,6 +79,67 @@ async function sendReminder(to, tasks) {
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
 }
 
+const dueText = (task, timeZone) => {
+  if (!task.due) return ''
+  try {
+    return new Date(task.due).toLocaleString('en-GB', { timeZone: timeZone || 'UTC', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+  } catch {
+    return ''
+  }
+}
+
+// Logging in on a new device: says so, and lists everything still open. Never blocks the login.
+export async function sendLoginEmail(to, deviceName) {
+  if (!process.env.RESEND_API_KEY) return
+  try {
+    const url = process.env.APP_URL || 'https://getnudged.chat'
+    const { state } = (await store.getState(to)) ?? {}
+    const open = (state?.tasks ?? []).filter((t) => !t.done)
+    const line = (t) => [t.title, dueText(t, state?.timeZone)].filter(Boolean).join(' · ')
+    const list = open.length
+      ? `Here's what's still on your list:<ul style="margin:12px 0 0;padding-left:20px">${open.map((t) => `<li style="font-weight:600">${escapeHtml(line(t))}</li>`).join('')}</ul>`
+      : "Your list is empty. Suspiciously tidy."
+    const html = reminderHtml(url, []).replace(/<h1[\s\S]*?<\/h1>/, '<h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">New login, same you? 👀</h1>').replace(/<tr><td style="padding:16px 32px 0[\s\S]*?<\/td><\/tr>/, () => `<tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">You just logged in on ${escapeHtml(deviceName)}.<br><br>${list}<br><br><span style="font-size:13px;opacity:.6">Not you? Open Nudgy and check your account.</span></td></tr>`)
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+        to,
+        subject: 'New Nudgy login, and your list',
+        html,
+        text: `You just logged in on ${deviceName}.\n\n${open.length ? `Still on your list:\n${open.map((t) => `- ${line(t)}`).join('\n')}` : 'Your list is empty.'}\n\nOpen Nudgy: ${url}`,
+      }),
+    })
+    if (!r.ok) console.error('[auth] login email failed:', r.status, await r.text())
+  } catch (err) {
+    console.error('[auth] login email failed:', err.message)
+  }
+}
+
+// Seeing a reminder through to the end gets a little well-done note. Never blocks anything.
+export async function sendDoneEmail(to, title) {
+  if (!process.env.RESEND_API_KEY) return
+  try {
+    const url = process.env.APP_URL || 'https://getnudged.chat'
+    const html = reminderHtml(url, []).replace(/<h1[\s\S]*?<\/h1>/, '<h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">Done and dusted! 🎉</h1>').replace(/<tr><td style="padding:16px 32px 0[\s\S]*?<\/td><\/tr>/, () => `<tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">You saw <strong>${escapeHtml(title)}</strong> through to the end. That one's off my list for now. My finger needed the rest.</td></tr>`)
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+        to,
+        subject: `Done: ${title}`,
+        html,
+        text: `Done and dusted! You saw "${title}" through to the end. That one's off my list for now.\n\nOpen Nudgy: ${url}`,
+      }),
+    })
+    if (!r.ok) console.error('[reminders] done email failed:', r.status, await r.text())
+  } catch (err) {
+    console.error('[reminders] done email failed:', err.message)
+  }
+}
+
 let running = false
 export async function runReminders({ db = store, send = sendReminder, now = Date.now() } = {}) {
   if (running) return 0

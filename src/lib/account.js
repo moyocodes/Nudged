@@ -40,6 +40,7 @@ export const submitCode = (pendingId, code) => call('/api/auth/code', { method: 
 export const directLogin = (email) => call('/api/auth/login', { method: 'POST', body: { email, deviceId: deviceId(), deviceName: deviceName() } })
 export const loginStatus = () => call(`/api/auth/status?deviceId=${encodeURIComponent(deviceId())}`)
 export const logout = () => call('/api/auth/logout', { method: 'POST' })
+export const taskDone = (title) => call('/api/task-done', { method: 'POST', body: { title } })
 export const pullState = () => call('/api/sync')
 export const pushState = (state) => call('/api/sync', { method: 'PUT', body: { state } })
 export const uploadImage = (key, data) => call(`/api/images/${encodeURIComponent(key)}`, { method: 'PUT', body: { data } })
