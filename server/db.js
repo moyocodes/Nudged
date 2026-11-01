@@ -47,6 +47,13 @@ const SCHEMA = [
     updated_at BIGINT NOT NULL,
     PRIMARY KEY (email, image_key)
   )`,
+  // Which task reminders were already emailed, so each one goes out once.
+  `CREATE TABLE IF NOT EXISTS emailed_reminders (
+    email VARCHAR(200) NOT NULL,
+    reminder_key VARCHAR(200) NOT NULL,
+    sent_at BIGINT NOT NULL,
+    PRIMARY KEY (email, reminder_key)
+  )`,
 ]
 
 async function mysqlStore(url) {
@@ -95,6 +102,11 @@ async function mysqlStore(url) {
       run('INSERT INTO images (email, image_key, mime, data, updated_at) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE mime = VALUES(mime), data = VALUES(data), updated_at = VALUES(updated_at)', [email, key, mime, data, Date.now()]),
     putState: (email, state) =>
       run('INSERT INTO user_state (email, state, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE state = VALUES(state), updated_at = VALUES(updated_at)', [email, JSON.stringify(state), Date.now()]),
+    allStates: async () => (await pool.query('SELECT email, state FROM user_state'))[0].map((r) => ({ email: r.email, state: JSON.parse(r.state) })),
+    emailedReminders: async (email) => new Set((await pool.query('SELECT reminder_key FROM emailed_reminders WHERE email = ?', [email]))[0].map((r) => r.reminder_key)),
+    async markRemindersEmailed(email, keys) {
+      for (const key of keys) await run('INSERT IGNORE INTO emailed_reminders (email, reminder_key, sent_at) VALUES (?, ?, ?)', [email, key, Date.now()])
+    },
   }
 }
 
@@ -117,6 +129,7 @@ const PG_SCHEMA = [
     email VARCHAR(200) NOT NULL, image_key VARCHAR(100) NOT NULL, mime VARCHAR(40) NOT NULL, data TEXT NOT NULL,
     updated_at BIGINT NOT NULL, PRIMARY KEY (email, image_key)
   )`,
+  `CREATE TABLE IF NOT EXISTS emailed_reminders (email VARCHAR(200) NOT NULL, reminder_key VARCHAR(200) NOT NULL, sent_at BIGINT NOT NULL, PRIMARY KEY (email, reminder_key))`,
 ]
 
 export async function pgStore(url, Pool) {
@@ -168,6 +181,11 @@ export async function pgStore(url, Pool) {
     },
     putState: (email, state) =>
       run('INSERT INTO user_state (email, state, updated_at) VALUES ($1, $2, $3) ON CONFLICT (email) DO UPDATE SET state = EXCLUDED.state, updated_at = EXCLUDED.updated_at', [email, JSON.stringify(state), Date.now()]),
+    allStates: async () => (await pool.query('SELECT email, state FROM user_state')).rows.map((r) => ({ email: r.email, state: JSON.parse(r.state) })),
+    emailedReminders: async (email) => new Set((await pool.query('SELECT reminder_key FROM emailed_reminders WHERE email = $1', [email])).rows.map((r) => r.reminder_key)),
+    async markRemindersEmailed(email, keys) {
+      for (const key of keys) await run('INSERT INTO emailed_reminders (email, reminder_key, sent_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [email, key, Date.now()])
+    },
   }
 }
 
@@ -176,7 +194,7 @@ function fileStore() {
   const file = process.env.NUDGY_DB || path.join(import.meta.dirname, 'data', 'db.json')
   let db
   try { db = JSON.parse(fs.readFileSync(file, 'utf8')) } catch { db = {} }
-  db = { users: db.users ?? {}, devices: db.devices ?? {}, pending: db.pending ?? {}, data: db.data ?? {}, images: db.images ?? {} }
+  db = { users: db.users ?? {}, devices: db.devices ?? {}, pending: db.pending ?? {}, data: db.data ?? {}, images: db.images ?? {}, emailed: db.emailed ?? {} }
   const save = () => { fs.mkdirSync(path.dirname(file), { recursive: true }); fs.writeFileSync(file, JSON.stringify(db)) }
   const device = (id) => { const d = db.devices[id]; return d && { id, email: d.email, name: d.name, confirmedAt: d.confirmedAt, lastSeen: d.lastSeen } }
   console.log('[db] using the JSON file (set DATABASE_URL for Postgres or MySQL)')
@@ -204,6 +222,9 @@ function fileStore() {
     async putImage(email, key, mime, data) { db.images[`${email}|${key}`] = { mime, data: data.toString('base64') }; save() },
     getState: async (email) => db.data[email] ?? null,
     async putState(email, state) { db.data[email] = { state, updatedAt: Date.now() }; save() },
+    allStates: async () => Object.entries(db.data).map(([email, d]) => ({ email, state: d.state })),
+    emailedReminders: async (email) => new Set(db.emailed[email] ?? []),
+    async markRemindersEmailed(email, keys) { db.emailed[email] = [...(db.emailed[email] ?? []), ...keys]; save() },
   }
 }
 

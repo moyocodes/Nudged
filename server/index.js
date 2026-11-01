@@ -6,6 +6,7 @@ import express from 'express'
 import OpenAI from 'openai'
 import { WebSocket, WebSocketServer } from 'ws'
 import { mountAuth } from './auth.js'
+import { mountReminders } from './reminders.js'
 import { findInPhoto } from './sam.js'
 import { BADGE_IDS, badgePrompt, generateImage } from './image.js'
 
@@ -13,6 +14,7 @@ const app = express()
 // Synced state carries small photo thumbnails, so allow more than the 100kb default.
 app.use(express.json({ limit: '2mb' }))
 mountAuth(app)
+mountReminders(app)
 
 // Created on first request, not at startup.
 let client
