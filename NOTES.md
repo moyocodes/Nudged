@@ -43,3 +43,4 @@
 - Reminder email defaults: quiet hours default to 12am to 7am, and after a snooze the email gaps start at the snooze length.
 - Login and done emails: a new device login emails the open list, and finishing a reminder sends a short well-done note capped at 20 an hour. Neither blocks the action.
 - Nudge timing: app nudges now double from 10 minutes or from the snooze length, a new snooze resets them, and each reminder shows a countdown. Snoozes are 30, 60 or 90 minutes, repeats can run every 10 minutes up to 12 times a day, and nudges wait while the mic is on or Nudgy is thinking.
+- Onboarding setup: new users confirm their sleep hours, 12am to 7am by default, and accept the terms in a modal before entering the app.

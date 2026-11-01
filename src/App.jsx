@@ -37,14 +37,14 @@ function Page({ children }) {
 }
 
 export default function App() {
-  const { name, account, introSeen, setIntroSeen } = useStore()
+  const { name, account, termsAcceptedAt, introSeen, setIntroSeen } = useStore()
   const location = useLocation()
   // Welcome and login are the only pages open to everyone.
   const onboarding = location.pathname === '/welcome' || location.pathname === '/login'
 
-  // Everything else needs an account. Logged out: welcome. Logged in but no name yet: the name step on /login.
+  // Everything else needs an account. Logged out: welcome. Logged in but no name or terms yet: those steps on /login.
   if (!account && !onboarding) return <Navigate to="/welcome" replace />
-  if (account && !name && !onboarding) return <Navigate to="/login" replace />
+  if (account && (!name || !termsAcceptedAt) && !onboarding) return <Navigate to="/login" replace />
   // Already in: the welcome page isn't for you.
   if (account && name && location.pathname === '/welcome') return <Navigate to="/" replace />
 

@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { DEFAULT_SCHEDULE, nextOccurrence } from './schedule.js'
 import { applyAccent } from './themes.js'
-import { logout, pullState, pushState, uploadImage } from './account.js'
+import { logout, pullState, pushState, taskDone, uploadImage } from './account.js'
 import { isEarly, isOverdue } from './format.js'
 import { snoozeLine } from './phrases.js'
 import { SNOOZE_OPTIONS } from './nudges.js'
@@ -56,6 +56,8 @@ export function StoreProvider({ children }) {
   const [streakDay, setStreakDay] = usePersisted('streakDay', null)
   const [theme, setTheme] = usePersisted('theme', 'chill')
   const [schedule, setSchedule] = usePersisted('schedule', DEFAULT_SCHEDULE)
+  // When this person accepted the terms in onboarding; null until then.
+  const [termsAcceptedAt, setTermsAcceptedAt] = usePersisted('termsAcceptedAt', null)
   // The welcome intro plays once per visit (tab session), not once ever.
   const [introSeen, setIntroSeenState] = useState(() => {
     try { return sessionStorage.getItem('nudgy:introSeen') === '1' } catch { return false }
@@ -122,8 +124,8 @@ export function StoreProvider({ children }) {
   // Signed-in account: { email } for this device, or null. The session itself is an HTTP-only cookie. See lib/account.js.
   const [account, setAccount] = usePersisted('account', null)
   // timeZone lets the server keep reminder emails out of this person's sleep hours.
-  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, rundownMode, buddyName, voiceOn, volume, muted, soundAsked, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
-  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, rundownMode: setRundownMode, buddyName: setBuddyName, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
+  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, rundownMode, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
+  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, rundownMode: setRundownMode, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
   const [hydrated, setHydrated] = useState(false)
 
   // On sign-in: the account's saved state wins if there is one; otherwise this device's state seeds it.
@@ -215,6 +217,7 @@ export function StoreProvider({ children }) {
     } else {
       setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, done: true, proof } : t)))
     }
+    if (account) taskDone(task.title).catch(() => {})
     const earned = POINTS_PER_TASK + (proof ? PROOF_BONUS : 0)
     setPoints((p) => p + earned)
     // What kind of finish it was decides which lines Nudgy picks.
@@ -252,7 +255,7 @@ export function StoreProvider({ children }) {
   // It's free. The third snooze on the same task earns the joke crash screen.
   function snoozeTask(id, minutes = 60) {
     setNudges((ps) => ps.filter((p) => p.taskId !== id))
-    updateTask(id, { snoozedUntil: new Date(Date.now() + minutes * 60000).toISOString() })
+    updateTask(id, { snoozedUntil: new Date(Date.now() + minutes * 60000).toISOString(), snoozeMinutes: minutes })
     const count = (snoozes[id] ?? 0) + 1
     if (count < 3) say(snoozeLine(count > 1, name || 'friend', Date.now(), snoozeLabel(minutes)))
     setSnoozes((s) => ({ ...s, [id]: count >= 3 ? 0 : count }))
@@ -277,7 +280,7 @@ export function StoreProvider({ children }) {
         name, setName, tasks, addTasks, completeTask, reopenTask, updateTask, deleteTask,
         nudges, setNudges, points, streak, setStreak,
         celebration, setCelebration, resetDemo, theme, setTheme, accents, setAccent,
-        account, setAccount, signOut, hydrated, replaceTasks: setTasks, replacePoints: setPoints, spendPoints, aboutTaskId, setAboutTaskId,
+        termsAcceptedAt, setTermsAcceptedAt, account, setAccount, signOut, hydrated, replaceTasks: setTasks, replacePoints: setPoints, spendPoints, aboutTaskId, setAboutTaskId,
         tutorialSeen, tutorialOpen, openTutorial, closeTutorial,
         schedule, setSchedule, introSeen, setIntroSeen, snoozeTask, joke, setJoke,
         buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, rundownMode, setRundownMode, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
