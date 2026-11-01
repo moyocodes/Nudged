@@ -36,6 +36,17 @@ async function sendEmail(to, link, code) {
 }
 
 // A welcome note for new accounts. It never blocks signing up: if it can't be sent, the failure is only logged.
+// The email wears the app's look: cream page, white card, Geist-ish type, purple button and the mascot icon.
+const welcomeHtml = (url) => `<!doctype html><html><body style="margin:0;background:#faf6f0;padding:32px 16px;font-family:Geist,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#1b1726">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border-radius:20px;border:1px solid #ece6dc">
+<tr><td style="padding:32px 32px 8px"><a href="${url}"><img src="${url}/icon-192.png" width="56" height="56" alt="Nudgy" style="display:block;border-radius:14px;border:0"></a></td></tr>
+<tr><td style="padding:8px 32px 0"><h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">Welcome aboard! 👋</h1></td></tr>
+<tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">I'm Nudgy, and I'll poke you about the things you'd rather not forget.<br><br>Tell me what's on your plate and I'll keep track. No judgement, just gentle nudges.</td></tr>
+<tr><td style="padding:24px 32px 0"><a href="${url}" style="display:inline-block;background:#5b4be8;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:999px">Set your first reminder</a></td></tr>
+<tr><td style="padding:24px 32px 32px;font-size:13px;line-height:1.5;color:#1b1726;opacity:.6">You're all signed in, so just pick up where you left off.<br><a href="${url}" style="color:#5b4be8;text-decoration:underline">${url.replace(/^https?:\/\//, '')}</a></td></tr>
+</table></td></tr></table></body></html>`
+
 async function sendWelcome(to) {
   if (!process.env.RESEND_API_KEY) return console.log(`[auth] no RESEND_API_KEY, so no welcome email for ${to}`)
   try {
@@ -46,7 +57,8 @@ async function sendWelcome(to) {
         from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
         to,
         subject: 'Welcome to Nudgy',
-        text: "Welcome aboard! I'm Nudgy, and I'll nudge you about the things you'd rather not forget.\n\nTell me what's on your plate and I'll keep track. No judgement, just gentle pokes.\n\nYour account is signed in and synced, so there's nothing to confirm.",
+        html: welcomeHtml(process.env.APP_URL || 'https://getnudged.chat'),
+        text: `Welcome aboard! I'm Nudgy, and I'll nudge you about the things you'd rather not forget.\n\nTell me what's on your plate and I'll keep track. No judgement, just gentle pokes.\n\nYou're all signed in, so just pick up where you left off.\n\nSet your first reminder: ${process.env.APP_URL || 'https://getnudged.chat'}`,
       }),
     })
     if (!r.ok) console.error('[auth] welcome email failed:', r.status, await r.text())
