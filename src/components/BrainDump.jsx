@@ -5,6 +5,7 @@ import { ArrowIcon, MicIcon } from './Icons.jsx'
 import { friendlyDue } from '../lib/format.js'
 import { getVolume } from '../lib/volume.js'
 import { useStore } from '../lib/store.jsx'
+import { holdNudges } from '../lib/nudges.js'
 
 const canRecord = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
 
@@ -23,6 +24,10 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
   const [interim, setInterim] = useState('')
   const [listening, setListening] = useState(false)
   const [micError, setMicError] = useState('')
+  useEffect(() => {
+    holdNudges(listening || thinking > 0)
+    return () => holdNudges(false)
+  }, [listening, thinking])
   const [focused, setFocused] = useState(false)
   const [picking, setPicking] = useState(false)
   const [full, setFull] = useState(false)
@@ -35,15 +40,29 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
 
   useEffect(() => () => { stopRef.current?.() }, [])
 
-  // Full screen: lock the page behind it, and Esc closes it.
+  // Full screen: lock the page behind it, and Esc closes it. It fits the visible area above the phone keyboard.
+  // Closing drops the keyboard and puts the page back where it was, since phones leave it shifted otherwise.
+  const [viewport, setViewport] = useState(null)
   useEffect(() => {
     if (!full) return
+    const scrollY = window.scrollY
     document.body.style.overflow = 'hidden'
     const esc = (e) => e.key === 'Escape' && setFull(false)
     window.addEventListener('keydown', esc)
+    const vv = window.visualViewport
+    const fit = () => vv && setViewport({ top: vv.offsetTop, height: vv.height })
+    fit()
+    vv?.addEventListener('resize', fit)
+    vv?.addEventListener('scroll', fit)
     return () => {
       document.body.style.overflow = ''
       window.removeEventListener('keydown', esc)
+      vv?.removeEventListener('resize', fit)
+      vv?.removeEventListener('scroll', fit)
+      setViewport(null)
+      inputRef.current?.blur()
+      window.scrollTo(0, scrollY)
+      setTimeout(() => window.scrollTo(0, scrollY), 350) // again once the keyboard has gone
     }
   }, [full])
 
@@ -98,9 +117,10 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
     <>
     <section
       ref={boxRef}
+      style={full && viewport ? { top: viewport.top, height: viewport.height, bottom: 'auto', paddingTop: 'max(0.75rem, env(safe-area-inset-top))' } : undefined}
       className={
         full
-          ? 'fixed inset-0 z-[60] flex flex-col bg-surface p-4 pt-3'
+          ? 'fixed inset-x-0 top-0 bottom-0 z-[60] mx-auto flex max-w-2xl flex-col bg-surface p-4 pt-3 shadow-card sm:rounded-b-3xl'
           : 'relative rounded-3xl bg-surface p-3 shadow-card border-[length:var(--bw)] border-line focus-within:border-primary/40'
       }
     >
@@ -111,7 +131,12 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
         {full && <span className="font-display text-xl">Brain dump</span>}
         <button
           type="button"
-          onClick={() => { setFull((f) => !f); inputRef.current?.focus({ preventScroll: true }) }}
+          onClick={() => {
+            // Refocusing on close would reopen it on a phone, where focusing the box goes full screen.
+            if (full) return setFull(false)
+            setFull(true)
+            inputRef.current?.focus({ preventScroll: true })
+          }}
           aria-label={full ? 'Close full screen' : 'Open full screen'}
           title={full ? 'Close (Esc)' : 'Full screen'}
           className="grid h-8 w-8 place-items-center rounded-full text-ink/40 hover:bg-ink/5 hover:text-ink"
