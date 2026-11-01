@@ -126,7 +126,7 @@ function Features() {
           <h3 className="mt-3 font-semibold">Coins, and what they're for</h3>
           <ul className="mt-2 space-y-1 text-sm text-ink/60">
             <li><span className="font-semibold text-ink">+10</span> for every task, <span className="font-semibold text-ink">+15</span> more with photo proof</li>
-            <li>Snoozing is free: <span className="font-semibold text-ink">30 min</span>, <span className="font-semibold text-ink">1 hour</span> or <span className="font-semibold text-ink">2 hours</span>, and coins are never taken for ignoring a nudge</li>
+            <li>Snoozing is free: <span className="font-semibold text-ink">30 min</span>, <span className="font-semibold text-ink">1 hour</span> or <span className="font-semibold text-ink">90 min</span>, and coins are never taken for ignoring a nudge</li>
             <li><span className="font-semibold text-ink">5</span> coins to play the nudge-break game</li>
           </ul>
         </div>

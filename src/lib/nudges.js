@@ -1,19 +1,18 @@
 // Making a nudge: ask the server for a model-written line, fall back to a canned one.
-// When nudges are due: dated tasks at their due time, then faster and faster until Done or Snooze
+// When nudges are due: dated tasks at their due time, then further and further apart until Done or Snooze
 // (the tone tops out at level 4); undated tasks once a day at check-in. Sleep hours and snoozes are respected.
-import { canNudge } from './schedule.js'
+import { canNudge, nextNudgeTime } from './schedule.js'
 
 export const MAX_LEVEL = 4
-// Ignored nudges come faster: 10 min after the first, then every 5 until Done or Snooze.
-const RENUDGE_MS = [10, 5].map((m) => m * 60 * 1000)
-const renudgeAfter = (count) => RENUDGE_MS[Math.min(count - 1, RENUDGE_MS.length - 1)]
+// Ignored nudges come at doubling gaps: 10, 20, 40, 80 min. After a snooze, the gaps start at the snooze length.
+const FIRST_GAP_MS = 10 * 60 * 1000
 // Only the first few nudges per task are model-written; after that the stern canned lines rotate (no cost).
 export const MODEL_NUDGES = 3
 // How long a task can be snoozed for. Snoozing never costs coins.
 export const SNOOZE_OPTIONS = [
   { label: '30 min', minutes: 30 },
   { label: '1 hour', minutes: 60 },
-  { label: '2 hours', minutes: 120 },
+  { label: '90 min', minutes: 90 },
 ]
 
 const BACKUP_LINES = {
@@ -46,7 +45,8 @@ export async function makeNudge(task, level, name, count = 0, buddy = 'Nudgy') {
       body: JSON.stringify({ name: who, buddy, title: task.title, level, due: task.due ? localIso(new Date(task.due)) : null, now: localIso(new Date()) }),
     })
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText)
-    text = (await r.json()).text
+    const json = await r.json()
+    text = json.text
   } catch (err) {
     console.warn('[nudge] using backup line:', err.message)
     text = BACKUP_LINES[level](who, task.title)
@@ -61,6 +61,29 @@ function at(date, hhmm) {
   return d
 }
 
+// For a dated task: when the clock started (due, or the end of a snooze), the first gap, and the nudges since.
+function nudgeClock(t, mine) {
+  const snoozed = t.snoozedUntil && new Date(t.snoozedUntil) > new Date(t.due)
+  const start = new Date(snoozed ? t.snoozedUntil : t.due).getTime()
+  const gap = snoozed && t.snoozeMinutes ? t.snoozeMinutes * 60000 : FIRST_GAP_MS
+  return { start, gap, sent: mine.filter((p) => new Date(p.at).getTime() >= start).length }
+}
+
+// When this task's next nudge is due, for the countdown on its card. Sleep hours still push low-priority ones to wake-up.
+export function nextNudgeAt(t, nudges, schedule, now = new Date()) {
+  if (t.done) return null
+  if (!t.due) return nextNudgeTime(t, schedule, now)
+  const mine = nudges.filter((p) => p.taskId === t.id)
+  const { start, gap, sent } = nudgeClock(t, mine)
+  const when = sent ? new Date(mine[mine.length - 1].at).getTime() + gap * 2 ** (sent - 1) : start
+  return nextNudgeTime({ ...t, due: new Date(when).toISOString() }, schedule, now)
+}
+
+// While the mic is on or Nudgy is thinking, nudges wait and go out at the next check once it's over.
+let held = false
+export const holdNudges = (on) => { held = on }
+export const nudgesHeld = () => held
+
 // Tasks that should be nudged right now, most urgent first.
 export function dueNudges(tasks, nudges, schedule, now = new Date()) {
   return tasks
@@ -70,7 +93,10 @@ export function dueNudges(tasks, nudges, schedule, now = new Date()) {
       const mine = nudges.filter((p) => p.taskId === t.id)
       const last = mine.length ? new Date(mine[mine.length - 1].at) : null
       if (t.due) {
-        return new Date(t.due) <= now && (!last || now - last >= renudgeAfter(mine.length))
+        // The clock starts at the due time, or restarts when a snooze ends. Gaps double with each nudge since then.
+        const { start, gap, sent } = nudgeClock(t, mine)
+        // Measured from the last nudge, so reopening the app after a while can't fire a catch-up burst.
+        return start <= now.getTime() && (!sent || now - last >= gap * 2 ** (sent - 1))
       }
       const checkIn = at(now, schedule.checkIn)
       return now >= checkIn && (!last || last < checkIn)

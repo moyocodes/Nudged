@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import { friendlyDue, isEarly, isOverdue } from '../lib/format.js'
 import { canNudge, describeRepeat, formatClock, nextOccurrence } from '../lib/schedule.js'
+import { nextNudgeAt } from '../lib/nudges.js'
 import { PriorityBadge, ProofBadge } from './ui.jsx'
 import DatePicker from './DatePicker.jsx'
 import RepeatPicker from './RepeatPicker.jsx'
@@ -149,6 +150,30 @@ function AskRow({ task, onPick }) {
   )
 }
 
+const countdown = (ms) => {
+  const secs = Math.ceil(ms / 1000)
+  const days = Math.floor(secs / 86400)
+  const hours = Math.floor((secs % 86400) / 3600)
+  const mins = Math.floor((secs % 3600) / 60)
+  if (days) return `${days}d ${hours}h`
+  if (hours) return `${hours}h ${mins}m`
+  return `${mins}m ${String(secs % 60).padStart(2, '0')}s`
+}
+
+// Ticks once a second, so only this line re-renders.
+function NextNudge({ task }) {
+  const { nudges, schedule } = useStore()
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+  const when = nextNudgeAt(task, nudges, schedule, now)
+  if (!when) return null
+  const left = when - now
+  return <span className="block text-xs tabular-nums text-ink/50">{left > 0 ? `Next nudge in ${countdown(left)}` : 'Nudge coming any moment'}</span>
+}
+
 export default function TaskCard({ task }) {
   const { completeTask, reopenTask, deleteTask, nudges, schedule, aboutTaskId, setAboutTaskId } = useStore()
   const [editing, setEditing] = useState(false)
@@ -220,6 +245,7 @@ export default function TaskCard({ task }) {
             </Link>
           )}
         </div>
+        {!task.done && <NextNudge task={task} />}
       </div>
       <div className="-mr-2 flex shrink-0 items-center">
       {/* Once a task is done, a bin pops out beside it so it can be cleared in one tap. */}

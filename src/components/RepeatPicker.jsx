@@ -1,4 +1,4 @@
-import { describeRepeat } from '../lib/schedule.js'
+import { MAX_REPEATS_PER_DAY, describeRepeat } from '../lib/schedule.js'
 
 // Repeat controls for a task: off, daily, weekdays or picked days, at one or more times.
 // Works in slots ([{ days, time }]); here every time shares the same days. Slots with
@@ -7,6 +7,8 @@ import { describeRepeat } from '../lib/schedule.js'
 const ALL = [0, 1, 2, 3, 4, 5, 6]
 const WEEKDAYS = [1, 2, 3, 4, 5]
 const LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+// 10 minutes is the shortest allowed; schedule.js also stops at 12 times a day.
+const INTERVALS = [[null, 'Once'], [10, '10 min'], [30, '30 min'], [60, '1 hour'], [120, '2 hours'], [240, '4 hours']]
 
 const chip = (active) =>
   `rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${active ? 'bg-primary text-on-primary' : 'bg-ink/5 text-ink/70 hover:bg-ink/10'}`
@@ -18,7 +20,9 @@ export default function RepeatPicker({ value, defaultTime, onChange }) {
   const key = days.join('')
   const mode = !value ? 'off' : !sameDays ? 'mixed' : key === '0123456' ? 'daily' : key === '12345' ? 'weekdays' : 'custom'
 
-  const build = (d, t) => (d.length && t.length ? t.map((time) => ({ days: d, time })) : null)
+  const every = value?.[0]?.every ?? null
+  // An interval needs a single start time; adding a second time goes back to set times.
+  const build = (d, t, e = every) => (d.length && t.length ? t.map((time) => ({ days: d, time, ...(e && t.length === 1 ? { every: e } : {}) })) : null)
   // Turning repeat on defaults to the same time every day.
   const startTimes = times.length ? times : [defaultTime || '09:00']
 
@@ -81,6 +85,15 @@ export default function RepeatPicker({ value, defaultTime, onChange }) {
               + Add a time
             </button>
           </div>
+          {times.length === 1 && (
+            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Repeat every">
+              <span className="text-xs text-ink/60">Then every</span>
+              {INTERVALS.map(([minutes, label]) => (
+                <button key={label} type="button" aria-pressed={every === minutes} onClick={() => onChange(build(days, times, minutes))} className={chip(every === minutes)}>{label}</button>
+              ))}
+              {every && <span className="basis-full text-xs text-ink/50">Up to {MAX_REPEATS_PER_DAY} times a day, from the time above.</span>}
+            </div>
+          )}
         </>
       )}
     </div>

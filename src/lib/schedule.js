@@ -1,11 +1,11 @@
 // When Nudgy is allowed to nudge. Plain functions with no browser APIs, so the nudge agent
 // on the server can import the same rules later.
 //
-// settings = { sleepStart: '23:00', sleepEnd: '07:00', checkIn: '10:00' }
+// settings = { sleepStart: '00:00', sleepEnd: '07:00', checkIn: '10:00' }
 // - Undated tasks get nudged once a day at checkIn.
 // - During sleep hours only medium and high priority tasks may nudge; low waits until sleepEnd.
 
-export const DEFAULT_SCHEDULE = { sleepStart: '23:00', sleepEnd: '07:00', checkIn: '10:00' }
+export const DEFAULT_SCHEDULE = { sleepStart: '00:00', sleepEnd: '07:00', checkIn: '10:00' }
 
 const minutes = (hhmm) => {
   const [h, m] = hhmm.split(':').map(Number)
@@ -53,6 +53,22 @@ export function nextNudgeTime(task, schedule, now = new Date()) {
 }
 
 // Recurring tasks: repeat = [{ days: [0-6, Sunday first], time: 'HH:mm' }, ...].
+// A slot can also have every: minutes, repeating from its time. Strict limits: at least 10 minutes apart, 12 times a day.
+export const MIN_REPEAT_MINUTES = 10
+export const MAX_REPEATS_PER_DAY = 12
+function slotTimes(day, slot) {
+  const first = at(day, slot.time)
+  if (!slot.every) return [first]
+  const gap = Math.max(MIN_REPEAT_MINUTES, slot.every) * 60000
+  const times = []
+  for (let i = 0; i < MAX_REPEATS_PER_DAY; i++) {
+    const when = new Date(first.getTime() + i * gap)
+    if (when.getDate() !== first.getDate()) break
+    times.push(when)
+  }
+  return times
+}
+
 // The next slot strictly after `from`, looking up to a week ahead.
 export function nextOccurrence(repeat, from = new Date()) {
   if (!repeat?.length) return null
@@ -61,8 +77,9 @@ export function nextOccurrence(repeat, from = new Date()) {
     const day = new Date(from.getFullYear(), from.getMonth(), from.getDate() + offset)
     for (const slot of repeat) {
       if (!slot.days.includes(day.getDay())) continue
-      const when = at(day, slot.time)
-      if (when > from && (!best || when < best)) best = when
+      for (const when of slotTimes(day, slot)) {
+        if (when > from && (!best || when < best)) best = when
+      }
     }
     if (best) return best
   }
@@ -75,10 +92,11 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export function describeRepeat(repeat) {
   if (!repeat?.length) return ''
   return repeat
-    .map(({ days, time }) => {
+    .map(({ days, time, every }) => {
       const key = [...days].sort().join('')
       const label = key === '0123456' ? 'Daily' : key === '12345' ? 'Weekdays' : key === '06' ? 'Weekends' : [...days].sort().map((d) => DAY_NAMES[d]).join(', ')
-      return `${label} ${formatClock(time)}`
+      const often = every ? `, every ${every < 60 ? `${every} min` : every === 60 ? 'hour' : `${every / 60} hours`}` : ''
+      return `${label} ${formatClock(time)}${often}`
     })
     .join(' · ')
 }

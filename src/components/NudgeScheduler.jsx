@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../lib/store.jsx'
-import { MAX_LEVEL, dueNudges, makeNudge, notify } from '../lib/nudges.js'
+import { MAX_LEVEL, dueNudges, makeNudge, notify, nudgesHeld } from '../lib/nudges.js'
 import { ALARM_MS, playAlarm } from '../lib/alarm.js'
 
 // While the app is open, checks once a minute for a nudge that's due and sends at most one per check,
@@ -13,7 +13,7 @@ export default function NudgeScheduler() {
 
   useEffect(() => {
     async function tick() {
-      if (busy.current) return
+      if (busy.current || nudgesHeld()) return
       const { name, tasks, nudges, schedule, buddyName } = latest.current
       const task = dueNudges(tasks, nudges, schedule)[0]
       if (!task) return

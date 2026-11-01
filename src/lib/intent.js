@@ -78,6 +78,7 @@ export function snoozeMinutes(text, bare = false) {
   const t = String(text).toLowerCase().trim()
   const only = (re) => bare && new RegExp(`^(${re})[.!\\s]*$`).test(t)
   if (/\b(30|thirty)\s*(m|mins?|minutes?)\b|half( an)? hour/.test(t) || only('30|thirty')) return 30
+  if (/\b(90|ninety)\s*(m|mins?|minutes?)\b|\b(an? )?hour and a half\b/.test(t) || only('90|ninety')) return 90
   if (/\b(2|two)\s*(h|hrs?|hours?)\b/.test(t) || only('2|two')) return 120
   if (/\b(1|one|an?)\s*(h|hrs?|hours?)\b|\bhour\b/.test(t) || only('1|one')) return 60
   return null

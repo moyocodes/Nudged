@@ -366,7 +366,7 @@ export default function HomePage() {
         // Nudgy asks how long, unless the message already said.
         const minutes = snoozeMinutes(text)
         if (minutes) { snoozeTask(task.id, minutes); said.push(`Snoozed "${task.title}" for ${snoozeName(minutes)}.`) }
-        else { setPendingSnooze(task.id); said.push(`How long should I snooze "${task.title}"? 30 min, 1 hour or 2 hours?`) }
+        else { setPendingSnooze(task.id); said.push(`How long should I snooze "${task.title}"? 30 min, 1 hour or 90 min?`) }
       }
       if (a.type === 'update') {
         const changes = {}
@@ -405,7 +405,7 @@ export default function HomePage() {
   const [pendingQuestion, setPendingQuestion] = useState(null)
   // A snooze waiting on "how long?", answered by the next message with no model call.
   const [pendingSnooze, setPendingSnooze] = useState(null)
-  const snoozeName = (m) => (m === 30 ? '30 minutes' : m === 60 ? 'an hour' : `${m / 60} hours`)
+  const snoozeName = (m) => (m === 30 ? '30 minutes' : m === 60 ? 'an hour' : m === 90 ? '90 minutes' : `${m / 60} hours`)
   async function handleDump(text) {
     setPendingQuestion(null)
     setThinking((n) => n + 1)
