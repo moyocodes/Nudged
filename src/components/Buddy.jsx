@@ -5,6 +5,8 @@ import Mascot from './Mascot.jsx'
 import { getVolume } from '../lib/volume.js'
 
 const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
+// Browsers load voices lazily, which delays the first line. Asking early warms them up.
+if (canSpeak) window.speechSynthesis.getVoices()
 
 // Nudgy as an on-screen buddy: pops up from the corner, talks in a bubble (mouth moving),
 // and reads the line aloud with the browser's own voice when sound is on. No model calls.
@@ -19,11 +21,15 @@ export default function Buddy() {
     // How long the bubble stays up: long enough to read it all, and then some (it used to vanish ~2s after the words).
     const stayMs = Math.min(20000, 6000 + buddy.text.length * 70)
     let hideTimer
+    let startTimer
     setTalking(true)
 
     // Out loud only with the user's permission ("Talk out loud"). Sound off still wins.
     if (voiceOn && canSpeak && !muted) {
-      window.speechSynthesis.cancel()
+      const synth = window.speechSynthesis
+      // Only cancel a line that's really playing: Chrome can stall a speak() right after a cancel(), so give it a beat then.
+      const interrupting = synth.speaking || synth.pending
+      if (interrupting) synth.cancel()
       const line = new SpeechSynthesisUtterance(buddy.text)
       line.rate = 1.05
       line.pitch = 1.25
@@ -32,7 +38,12 @@ export default function Buddy() {
         setTalking(false)
         hideTimer = setTimeout(() => setBuddy(null), 5000)
       }
-      window.speechSynthesis.speak(line)
+      const start = () => {
+        synth.resume()
+        synth.speak(line)
+      }
+      if (interrupting) startTimer = setTimeout(start, 60)
+      else start()
     } else {
       const quiet = setTimeout(() => setTalking(false), speakMs)
       hideTimer = setTimeout(() => setBuddy(null), stayMs)
@@ -40,6 +51,7 @@ export default function Buddy() {
     }
     return () => {
       clearTimeout(hideTimer)
+      clearTimeout(startTimer)
       if (canSpeak) window.speechSynthesis.cancel()
     }
   }, [buddy]) // eslint-disable-line react-hooks/exhaustive-deps
