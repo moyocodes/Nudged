@@ -48,6 +48,7 @@ export default function AccountCard({ variant = 'sync' }) {
         }
       }
       const started = await startLogin(email.trim())
+      if (started.email) { setAccount({ email: started.email }); return setBusy(false) }
       if (started.demoCode) { setDemoCode(started.demoCode); setCode(started.demoCode) }
       setPendingId(started.pendingId)
     } catch (err) {

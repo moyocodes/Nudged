@@ -35,6 +35,26 @@ async function sendEmail(to, link, code) {
   if (!r.ok) throw new Error(`Email failed: ${r.status} ${await r.text()}`)
 }
 
+// A welcome note for new accounts. It never blocks signing up: if it can't be sent, the failure is only logged.
+async function sendWelcome(to) {
+  if (!process.env.RESEND_API_KEY) return console.log(`[auth] no RESEND_API_KEY, so no welcome email for ${to}`)
+  try {
+    const r = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+        to,
+        subject: 'Welcome to Nudgy',
+        text: "Welcome aboard! I'm Nudgy, and I'll nudge you about the things you'd rather not forget.\n\nTell me what's on your plate and I'll keep track. No judgement, just gentle pokes.\n\nYour account is signed in and synced, so there's nothing to confirm.",
+      }),
+    })
+    if (!r.ok) console.error('[auth] welcome email failed:', r.status, await r.text())
+  } catch (err) {
+    console.error('[auth] welcome email failed:', err.message)
+  }
+}
+
 const readCookie = (req, name) =>
   (req.get('cookie') ?? '').split(';').map((c) => c.trim().split('=')).find(([k]) => k === name)?.[1]
 
@@ -73,6 +93,13 @@ export function mountAuth(app) {
     const email = String(req.body?.email ?? '').trim().toLowerCase()
     const { deviceId, deviceName } = req.body ?? {}
     if (!validEmail(email) || typeof deviceId !== 'string' || deviceId.length > 100) return res.status(400).json({ error: 'Check that email' })
+    // Hackathon demo: no code to enter, the device is signed in straight away (new accounts get a welcome email). Set REQUIRE_SIGNUP_CODE=true to confirm by email.
+    if (process.env.REQUIRE_SIGNUP_CODE !== 'true') {
+      const isNew = !(await store.userExists(email))
+      const signedIn = await signIn(req, res, deviceId, email, deviceName)
+      if (isNew) sendWelcome(email) // not awaited: the email can't hold up or break signing up
+      return res.json(signedIn)
+    }
     if (await store.recentPending(email, Date.now() - RESEND_GAP_MS)) return res.status(429).json({ error: 'Email sent less than a minute ago. Check your inbox (and spam).' })
 
     const id = token()
