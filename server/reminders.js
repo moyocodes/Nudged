@@ -14,8 +14,10 @@ const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', 
 // The clock starts when the task is due, or restarts when its snooze ends.
 const startOf = (task) => Math.max(new Date(task.due).getTime(), task.snoozedUntil ? new Date(task.snoozedUntil).getTime() : 0)
 // Rounds fall at 0, 10, 30, 70, 150... minutes. One key per round, so each goes out once.
+// After a snooze the gaps start at the snooze length, the same as the app's nudges.
 const roundKey = (task, now) => {
-  const round = Math.floor(Math.log2((now - startOf(task)) / 60000 / FIRST_GAP_MIN + 1))
+  const firstGap = startOf(task) > new Date(task.due).getTime() && task.snoozeMinutes ? task.snoozeMinutes : FIRST_GAP_MIN
+  const round = Math.floor(Math.log2((now - startOf(task)) / 60000 / firstGap + 1))
   return `${task.id}|${startOf(task)}|${round}`
 }
 
@@ -31,7 +33,7 @@ export function nightFor(schedule, timeZone, now) {
   try {
     const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(now).map((p) => [p.type, p.value]))
     const nowMin = Number(parts.hour) * 60 + Number(parts.minute)
-    const start = minutesOf(schedule?.sleepStart ?? '23:00')
+    const start = minutesOf(schedule?.sleepStart ?? '00:00')
     const end = minutesOf(schedule?.sleepEnd ?? '07:00')
     const asleep = start < end ? nowMin >= start && nowMin < end : nowMin >= start || nowMin < end
     const sinceWaking = (nowMin - end + 1440) % 1440
