@@ -2,6 +2,7 @@
 // When nudges are due: dated tasks at their due time, then further and further apart until Done or Snooze
 // (the tone tops out at level 4); undated tasks once a day at check-in. Sleep hours and snoozes are respected.
 import { canNudge, nextNudgeTime } from './schedule.js'
+import { showModel } from '../components/ModelTag.jsx'
 
 export const MAX_LEVEL = 4
 // Ignored nudges come at doubling gaps: 10, 20, 40, 80 min. After a snooze, the gaps start at the snooze length.
@@ -47,6 +48,7 @@ export async function makeNudge(task, level, name, count = 0, buddy = 'Nudgy') {
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText)
     const json = await r.json()
     text = json.text
+    showModel(json.via)
   } catch (err) {
     console.warn('[nudge] using backup line:', err.message)
     text = BACKUP_LINES[level](who, task.title)

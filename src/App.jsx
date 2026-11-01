@@ -10,6 +10,7 @@ import Intro from './components/Intro.jsx'
 import Joke from './components/Joke.jsx'
 import Buddy from './components/Buddy.jsx'
 import NudgeScheduler from './components/NudgeScheduler.jsx'
+import ModelTag from './components/ModelTag.jsx'
 import Permissions from './components/Permissions.jsx'
 import AmbientPlayer from './components/AmbientPlayer.jsx'
 import OnboardingPage from './pages/OnboardingPage.jsx'
@@ -77,6 +78,7 @@ export default function App() {
       {!onboarding && <Nav />}
       {!onboarding && <NudgeScheduler />}
       <AmbientPlayer />
+      <ModelTag />
       <Celebration />
       <Tutorial />
       <Joke />

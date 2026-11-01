@@ -12,6 +12,7 @@ import SoundPicker from '../components/SoundPicker.jsx'
 import TaskCard from '../components/TaskCard.jsx'
 import Story from '../components/Story.jsx'
 import Mascot from '../components/Mascot.jsx'
+import { showModel } from '../components/ModelTag.jsx'
 import { BellIcon, ChevronIcon, TrophyIcon } from '../components/Icons.jsx'
 import { SNOOZE_OPTIONS } from '../lib/nudges.js'
 
@@ -474,7 +475,8 @@ export default function HomePage() {
         }),
       })
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText)
-      const { reply, followup, actions = [], tasks: found } = await r.json()
+      const { reply, followup, actions = [], tasks: found, via } = await r.json()
+      showModel(via)
       if (actions.some((a) => a.type === 'undo')) {
         addChat({ from: 'you', text: said })
         return undoLast()

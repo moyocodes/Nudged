@@ -1,6 +1,7 @@
 // Asks the server (Muse Image) for this user's own version of a badge, then shrinks it so it stays small
 // in storage and sync. Called only when the user taps "Create my badge".
 import { guessPhrase } from './proof.js'
+import { showModel } from '../components/ModelTag.jsx'
 
 const hex = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
 
@@ -36,5 +37,6 @@ export async function makeBadgeArt(badgeId, context, { fresh = false } = {}) {
   const r = await fetch('/api/badge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ badge: badgeId, context, fresh }) })
   const json = await r.json().catch(() => ({}))
   if (!r.ok) throw new Error(json.error || "Couldn't draw that just now.")
+  showModel(json.via)
   return shrink(json.image)
 }

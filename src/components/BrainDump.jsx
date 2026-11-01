@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { startTranscribing } from '../lib/museTranscribe.js'
+import { showModel } from './ModelTag.jsx'
 import { Button } from './ui.jsx'
 import { ArrowIcon, MicIcon } from './Icons.jsx'
 import { friendlyDue } from '../lib/format.js'
@@ -97,6 +98,7 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
         onPartial: setInterim,
         onFinal: (phrase) => {
           setInterim('')
+          showModel('Muse Voice Transcribe')
           const joined = `${textRef.current} ${phrase}`.replace(/\s+/g, ' ').trimStart()
           if (SEND_PHRASE.test(phrase)) submit(joined.replace(SEND_PHRASE, ''))
           else setText(joined)
