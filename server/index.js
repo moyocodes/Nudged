@@ -68,6 +68,8 @@ const extractCache = new Map()
 
 // What the user calls their Nudgy ("Moyo's Nudgy"): plain words only, so it can't smuggle instructions in.
 const cleanBuddy = (b) => String(b ?? '').replace(/["\\\n\r]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24)
+// Which host serves an open-weights model, read from its base URL, for the "via" label the app shows.
+const hostOf = (url) => (/baseten/.test(url) ? 'Baseten' : /fireworks/.test(url) ? 'Fireworks' : /modal/.test(url) ? 'Modal' : 'open weights')
 const withBuddy = (prompt, buddy) => (buddy && buddy !== 'Nudgy' ? prompt.replace('You are Nudgy', `You are Nudgy, whom the user calls "${buddy}"`) : prompt)
 
 // Models are bad at weekday arithmetic, so when the text mentions a day or date we hand over a calendar.
@@ -131,6 +133,41 @@ function cleanRepeat(repeat) {
   return slots.length ? slots : null
 }
 
+// The router: Muse Glimmer on Fireworks, serverless and paid per token. On with ROUTER_API_KEY and ROUTER_MODEL.
+// It sorts each chat message: plain chat ("hey", "thanks") is answered here; anything that might add, change
+// or finish a reminder goes to Muse Spark. When unsure, or if the call fails, it's Muse Spark as before.
+const ROUTER_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy (never flirty, mean or medical). Sort the user's message.
+Return ONLY JSON: {"route":"chat","reply":str} or {"route":"spark"}.
+- chat: greetings, thanks, small talk, questions about you, with nothing to remember, add, change, finish, snooze or delete. reply: one witty sentence using their name.
+- spark: anything else, including anything that might be a task, plan, date, time or update. When unsure, spark.`
+
+let routerClient
+const routerEnabled = () => !!process.env.ROUTER_API_KEY && !!process.env.ROUTER_MODEL
+
+async function routeMessage(text, name, buddy, recent) {
+  routerClient ??= new OpenAI({ baseURL: process.env.ROUTER_BASE_URL || 'https://api.fireworks.ai/inference/v1', apiKey: process.env.ROUTER_API_KEY })
+  try {
+    const r = await routerClient.chat.completions.create({
+      model: process.env.ROUTER_MODEL,
+      messages: [
+        { role: 'system', content: withBuddy(ROUTER_PROMPT, buddy) },
+        { role: 'user', content: `name: ${name || 'friend'}\n${recent ? `recent chat:\n${recent}\n` : ''}text: ${text}` },
+      ],
+      max_tokens: 1000,
+      reasoning_effort: 'low',
+    })
+    console.log(`[usage] step=router model=${process.env.ROUTER_MODEL} input_tokens=${r.usage?.prompt_tokens} output_tokens=${r.usage?.completion_tokens}`)
+    const out = r.choices?.[0]?.message?.content ?? ''
+    const json = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1))
+    console.log(`[router] ${json.route}`)
+    if (json.route !== 'chat' || typeof json.reply !== 'string' || !json.reply.trim()) return null
+    return { reply: json.reply.trim().slice(0, 300), followup: '', actions: [], tasks: [], via: `Muse Glimmer · ${hostOf(process.env.ROUTER_BASE_URL || 'fireworks')}` }
+  } catch (err) {
+    console.error('[router]', err.message)
+    return null
+  }
+}
+
 app.post('/api/extract', async (req, res) => {
   const { text, now, name, history, reminders, selected } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
@@ -159,6 +196,17 @@ app.post('/api/extract', async (req, res) => {
   const key = `${String(now).slice(0, 10)}|${name}|${buddy}|${recent}|${list.join(';')}|${pick}|${text.trim().toLowerCase()}`
   if (extractCache.has(key)) return res.json(extractCache.get(key))
 
+  // Muse Glimmer reads the message first. Plain chat gets its reply right there; anything that might be a
+  // reminder goes on to Muse Spark. Skipped while a question is waiting or a reminder is selected, since the
+  // answer then edits the list.
+  if (routerEnabled() && !pick && !list.some((l) => l.includes('[asked:'))) {
+    const routed = await routeMessage(text.trim(), name, buddy, recent)
+    if (routed) {
+      extractCache.set(key, routed)
+      return res.json(routed)
+    }
+  }
+
   try {
     const r = await getClient().responses.create({
       model,
@@ -174,7 +222,7 @@ app.post('/api/extract', async (req, res) => {
       throw new Error(`Model returned no JSON (status ${r.status}${r.incomplete_details ? `, ${r.incomplete_details.reason}` : ''})`)
     }
     const json = JSON.parse(r.output_text.slice(r.output_text.indexOf('{'), r.output_text.lastIndexOf('}') + 1))
-    const result = { reply: String(json.reply ?? ''), followup: typeof json.followup === 'string' ? json.followup.slice(0, 200) : '', actions: cleanActions(json.actions, listCount), tasks: (Array.isArray(json.tasks) ? json.tasks : []).map(cleanTask).filter(Boolean) }
+    const result = { reply: String(json.reply ?? ''), followup: typeof json.followup === 'string' ? json.followup.slice(0, 200) : '', actions: cleanActions(json.actions, listCount), tasks: (Array.isArray(json.tasks) ? json.tasks : []).map(cleanTask).filter(Boolean), via: 'Muse Spark' }
     extractCache.set(key, result)
     res.json(result)
   } catch (err) {
@@ -189,7 +237,7 @@ app.post('/api/proof', async (req, res) => {
   const what = typeof phrase === 'string' ? phrase.trim().slice(0, 80) : ''
   if (!what || typeof image !== 'string') return res.status(400).json({ error: 'Need a photo and what to look for' })
   try {
-    res.json(await findInPhoto({ image, phrase: what }))
+    res.json({ ...(await findInPhoto({ image, phrase: what })), via: 'SAM 3.1' })
   } catch (err) {
     console.error('[proof]', err.message)
     res.status(502).json({ error: err.message })
@@ -238,13 +286,13 @@ app.post('/api/badge', async (req, res) => {
   const { badge, context, fresh } = req.body ?? {}
   if (!BADGE_IDS.includes(badge)) return res.status(400).json({ error: 'Unknown badge' })
   const brief = badgePrompt(badge, context)
-  if (!fresh && badgeCache.has(brief)) return res.json({ image: badgeCache.get(brief) })
+  if (!fresh && badgeCache.has(brief)) return res.json({ image: badgeCache.get(brief), via: 'Muse Spark + Muse Image' })
   if (!takeImageSlot()) return res.status(429).json({ error: "That's all the badge art for today. Try again tomorrow." })
   try {
     const prompt = await writeArtPrompt(brief)
     const image = `data:image/png;base64,${(await generateImage(prompt)).toString('base64')}`
     badgeCache.set(brief, image)
-    res.json({ image })
+    res.json({ image, via: 'Muse Spark + Muse Image' })
   } catch (err) {
     console.error('[badge]', err.message)
     res.status(502).json({ error: "Couldn't draw that just now. Try again in a bit." })
@@ -285,7 +333,7 @@ app.post('/api/nudge', async (req, res) => {
   const input = `name: ${name || 'friend'}\ntask: ${title}\nlevel: ${level}\n${due ? `due: ${due}\nnow: ${now}` : 'no due time'}`
   if (openEnabled()) {
     try {
-      return res.json({ text: await openNudge(withBuddy(NUDGE_PROMPT, buddy), input), engine: 'open' })
+      return res.json({ text: await openNudge(withBuddy(NUDGE_PROMPT, buddy), input), engine: 'open', via: `Muse Spark Open · ${hostOf(process.env.OPEN_BASE_URL)}` })
     } catch (err) {
       console.error('[nudge] open model failed, using Muse Spark:', err.message)
     }
@@ -306,7 +354,7 @@ app.post('/api/nudge', async (req, res) => {
     console.log(`[usage] model=${model} input_tokens=${r.usage?.input_tokens} output_tokens=${r.usage?.output_tokens}`)
     const text = r.output_text?.trim().replace(/^"|"$/g, '')
     if (!text) throw new Error(`Model returned no text (status ${r.status}${r.incomplete_details ? `, ${r.incomplete_details.reason}` : ''})`)
-    res.json({ text, engine: 'spark' })
+    res.json({ text, engine: 'spark', via: 'Muse Spark' })
   } catch (err) {
     console.error('[nudge]', err.message)
     res.status(502).json({ error: err.message })

@@ -48,6 +48,7 @@ Model output is never trusted blindly. The server drops tasks with no title, tur
    - `VOICE_MODEL_NAME`: defaults to `muse-voice-transcribe-1.0`
    - `SAM_MODEL_NAME` and `IMAGE_MODEL_NAME`: for photo proof and badge art
    - `NUDGE_ENGINE=open` plus `OPEN_BASE_URL`, `OPEN_API_KEY`, `OPEN_MODEL` (optional): nudges from Muse Spark Open
+   - `ROUTER_API_KEY` and `ROUTER_MODEL` (optional): Muse Glimmer on Fireworks reads each chat message first. Plain chat ("hey", "thanks") gets its reply from Glimmer; anything that might be a reminder goes to Muse Spark. Off, unsure or failing, everything goes to Muse Spark.
    - `DATABASE_URL` (optional): Postgres (`postgresql://…`) or MySQL (`mysql://…`). Without it, data goes in `server/data/db.json`.
    - `RESEND_API_KEY` (optional): sends real confirmation emails. Without it, the link and code are printed in the server terminal (and the demo code is 123456).
 3. `npm run dev` starts Express (port 3001) and Vite (port 5173).
@@ -67,4 +68,4 @@ NOTES.md                  Dev log, one entry per feature
 
 ## Cost rules
 
-Every model call costs money, so the API is called only when you tap a button or a nudge is actually due, never on page load or while typing. Outputs are capped (1000 tokens for nudges, 2000 for extraction, since Muse Spark's reasoning alone used up the earlier 300 and 800), reasoning effort is low, identical dumps are cached, and the server logs model and token counts per call.
+Every model call costs money, so the API is called only when you tap a button or a nudge is actually due, never on page load or while typing. Outputs are capped (1000 tokens for nudges, 2000 for extraction, since Muse Spark's reasoning alone used up the earlier 300 and 800), reasoning effort is low (Meta's hackathon workshop benchmarks found low scores best on short tasks: higher effort spent more tokens, scored lower, and at max sometimes used the whole budget and returned nothing), identical dumps are cached, and the server logs model and token counts per call.

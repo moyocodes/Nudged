@@ -32,6 +32,10 @@ services:
         value: meta-models/muse-spark-open-1026
       - key: OPEN_API_KEY
         sync: false
+      - key: ROUTER_MODEL
+        sync: false
+      - key: ROUTER_API_KEY
+        sync: false
       - key: DATABASE_URL
         sync: false
       - key: RESEND_API_KEY
