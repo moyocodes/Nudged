@@ -1,27 +1,54 @@
 // Email reminders for people who aren't looking at the app. Every few minutes: tasks past due that weren't ticked or snoozed
-// go out in one email per account when due or when a snooze ends, then 10, 20, 40, 80... minutes apart, for up to a day. The copy is fixed, so this never calls the model.
+// go out in one email per account when due or when a snooze ends, then 10, 20, 40, 80... minutes apart, for up to a day. Nothing during their sleep hours;
+// whatever is still undone arrives together when they wake. The copy is fixed, so this never calls the model.
 // A free Render service sleeps and stops the timer, so an outside cron can wake it through /api/cron/reminders.
 import { store } from './db.js'
 
 const CHECK_EVERY_MS = 5 * 60 * 1000
 const FIRST_GAP_MIN = 10 // then 20, 40, 80... between emails
 const TOO_OLD_MS = 24 * 60 * 60 * 1000 // stop nagging about long-gone tasks
+const WAKE_WINDOW_MIN = 60
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 
 // The clock starts when the task is due, or restarts when its snooze ends.
 const startOf = (task) => Math.max(new Date(task.due).getTime(), task.snoozedUntil ? new Date(task.snoozedUntil).getTime() : 0)
 // Rounds fall at 0, 10, 30, 70, 150... minutes. One key per round, so each goes out once.
-const reminderKey = (task, now) => {
+const roundKey = (task, now) => {
   const round = Math.floor(Math.log2((now - startOf(task)) / 60000 / FIRST_GAP_MIN + 1))
   return `${task.id}|${startOf(task)}|${round}`
 }
 
-export function tasksToEmail(tasks, emailed, now = Date.now()) {
+const minutesOf = (hhmm) => {
+  const [h, m] = String(hhmm).split(':').map(Number)
+  return h * 60 + m
+}
+
+// Where this person's night stands, from the sleep hours and timezone their app saved. Unknown timezone: no quiet hours.
+// morning is their date during the first hour after waking, so the wake-up email goes out once a day.
+export function nightFor(schedule, timeZone, now) {
+  if (!timeZone) return { asleep: false, morning: null }
+  try {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(now).map((p) => [p.type, p.value]))
+    const nowMin = Number(parts.hour) * 60 + Number(parts.minute)
+    const start = minutesOf(schedule?.sleepStart ?? '23:00')
+    const end = minutesOf(schedule?.sleepEnd ?? '07:00')
+    const asleep = start < end ? nowMin >= start && nowMin < end : nowMin >= start || nowMin < end
+    const sinceWaking = (nowMin - end + 1440) % 1440
+    return { asleep, morning: !asleep && sinceWaking < WAKE_WINDOW_MIN ? `${parts.year}-${parts.month}-${parts.day}` : null }
+  } catch {
+    return { asleep: false, morning: null }
+  }
+}
+
+// Keys this email would use up. Waking adds one, so everything still undone is in the morning email.
+const keysFor = (task, now, morning) => [roundKey(task, now), ...(morning ? [`${task.id}|morning|${morning}`] : [])]
+
+export function tasksToEmail(tasks, emailed, now = Date.now(), morning = null) {
   return (tasks ?? []).filter((t) => {
     if (t.done || !t.due) return false
     const age = now - startOf(t)
-    return age >= 0 && age <= TOO_OLD_MS && !emailed.has(reminderKey(t, now))
+    return age >= 0 && age <= TOO_OLD_MS && keysFor(t, now, morning).some((k) => !emailed.has(k))
   })
 }
 
@@ -58,10 +85,12 @@ export async function runReminders({ db = store, send = sendReminder, now = Date
   try {
     for (const { email, state } of await db.allStates()) {
       try {
-        const tasks = tasksToEmail(state?.tasks, await db.emailedReminders(email), now)
+        const { asleep, morning } = nightFor(state?.schedule, state?.timeZone, now)
+        if (asleep) continue
+        const tasks = tasksToEmail(state?.tasks, await db.emailedReminders(email), now, morning)
         if (!tasks.length) continue
         await send(email, tasks)
-        await db.markRemindersEmailed(email, tasks.map((t) => reminderKey(t, now)))
+        await db.markRemindersEmailed(email, tasks.flatMap((t) => keysFor(t, now, morning)))
         sent++
       } catch (err) {
         console.error('[reminders] failed for one account:', err.message) // tried again next check
