@@ -1,23 +1,27 @@
-// Email reminders for people who aren't looking at the app. Every few minutes: tasks past due that weren't ticked
-// or snoozed go out in one email per account, again every hour until they're acted on, for up to a day. The copy is fixed, so this never calls the model.
+// Email reminders for people who aren't looking at the app. Every few minutes: tasks past due that weren't ticked or snoozed
+// go out in one email per account when due or when a snooze ends, then 10, 20, 40, 80... minutes apart, for up to a day. The copy is fixed, so this never calls the model.
 // A free Render service sleeps and stops the timer, so an outside cron can wake it through /api/cron/reminders.
 import { store } from './db.js'
 
 const CHECK_EVERY_MS = 5 * 60 * 1000
-const GRACE_MS = 15 * 60 * 1000 // time to tick it in the app first
-const REPEAT_MS = 60 * 60 * 1000
+const FIRST_GAP_MIN = 10 // then 20, 40, 80... between emails
 const TOO_OLD_MS = 24 * 60 * 60 * 1000 // stop nagging about long-gone tasks
 
 const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
-// One key per hourly round, so each round goes out once.
-const reminderKey = (task, now) => `${task.id}|${task.due}|${Math.floor((now - new Date(task.due).getTime() - GRACE_MS) / REPEAT_MS)}`
+
+// The clock starts when the task is due, or restarts when its snooze ends.
+const startOf = (task) => Math.max(new Date(task.due).getTime(), task.snoozedUntil ? new Date(task.snoozedUntil).getTime() : 0)
+// Rounds fall at 0, 10, 30, 70, 150... minutes. One key per round, so each goes out once.
+const reminderKey = (task, now) => {
+  const round = Math.floor(Math.log2((now - startOf(task)) / 60000 / FIRST_GAP_MIN + 1))
+  return `${task.id}|${startOf(task)}|${round}`
+}
 
 export function tasksToEmail(tasks, emailed, now = Date.now()) {
   return (tasks ?? []).filter((t) => {
-    if (t.done || !t.due || emailed.has(reminderKey(t, now))) return false
-    if (t.snoozedUntil && new Date(t.snoozedUntil).getTime() > now) return false
-    const age = now - new Date(t.due).getTime()
-    return age >= GRACE_MS && age <= TOO_OLD_MS
+    if (t.done || !t.due) return false
+    const age = now - startOf(t)
+    return age >= 0 && age <= TOO_OLD_MS && !emailed.has(reminderKey(t, now))
   })
 }
 
