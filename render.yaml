@@ -23,6 +23,8 @@ services:
         value: sam-3.1
       - key: IMAGE_MODEL_NAME
         value: muse-image-1.0
+      - key: WONDER_MODEL_NAME
+        value: muse-wonder-1.0
       # Nudge lines from Muse Spark Open on Baseten; falls back to Muse Spark if it fails.
       - key: NUDGE_ENGINE
         value: open

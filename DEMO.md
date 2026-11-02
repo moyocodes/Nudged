@@ -10,7 +10,7 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 - Enter a name, skip the tutorial, close the daily rundown.
 - Add one task with **Photo proof** on, due a minute ago: "Buy oat milk". Earn one badge beforehand so "Create my badge" is ready.
 - Log in to sync on the laptop; have your phone logged in to the same email.
-- Sound on for the mic. Each take costs roughly: 2-3 Spark calls, 1 nudge each on Baseten and Modal, 1 SAM 3.1 check, 1 badge (a Spark prompt plus one Muse Image). Rehearse with the UI only, and do one full take.
+- Sound on for the mic. Each take costs roughly: 2-3 Spark calls, 1 nudge each on Baseten and Modal, 1 SAM 3.1 check, 1 badge (a Muse Wonder prompt plus one Muse Image), 1 Plan my day (up to 5 Spark calls). Rehearse with the UI only, and do one full take.
 - Have a real reminder email open in your inbox for the cut at 2:30.
 - Only show what was built during the hackathon. Say so in the first line.
 
@@ -29,6 +29,10 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 - Do: type *"actually move Yinka's to 7 and snooze the dentist"*. Nudgy changes the time, then asks *How long should I snooze it?* Answer *"30 min"*.
 - Say: "One message, several changes, no duplicates. It asks before it snoozes, and snoozing is free."
 
+**1:00 – 1:10 · Plan my day** (agentic, take these 10 seconds from the next parts)
+- Do: with two overdue reminders, tap Plan it. Let the steps fill in, including a refused time, then tap Undo.
+- Say: "Plan my day is an agent. It checks my day and moves things one step at a time. When the server refuses a time, it tries again."
+
 **1:05 – 1:30 · Nudges on open weights, on two hosts** (Muse Spark Open)
 - Do: show the overdue oat milk on Today, with Done and Snooze and the dark model tag: *Muse Spark Open · Baseten*. Open Me, set Nudge voice to Modal. Go to Nudges, tap Nudge me, and let the tag change to *Muse Spark Open · Modal*. Tap Snooze and show 30 min / 1 hour / 90 min.
 - Say: "When something is due, Nudgy nudges with a fresh line, getting louder until it's done. The tag always shows which model did the work. This is Muse Spark Open, an open-weights model, running on Baseten. One switch and the same model runs on Modal, with Muse Spark as the backup."
@@ -37,9 +41,9 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 - Do: tap Done on the oat milk, then Snap it +15, pick a photo, Claim. Confetti, coins go up. Briefly point at "Skip photo".
 - Say: "For errands I can show proof. SAM 3.1 finds the actual oat milk in my photo, so it isn't just a tick. Skip it and you still get the normal coins, just no bonus."
 
-**2:00 – 2:30 · Badge art that is yours** (Muse Spark + Muse Image)
+**2:00 – 2:30 · Badge art that is yours** (Muse Wonder + Muse Image)
 - Do: open Rewards, tap Create my badge. Show the badge that comes back, in the theme colours and with the user's own tasks around the edge.
-- Say: "Muse Spark writes a detailed art prompt from what I actually finished, and Muse Image draws it. Nobody else has this badge."
+- Say: "Muse Wonder writes the art direction from what I actually finished, and Muse Image draws it. Nobody else has this badge."
 
 **2:30 – 2:50 · Built to hold up** (Technical depth)
 - Do: quick cuts: a reminder email in the inbox; a recurring task skipping a missed day; the Render log showing `[usage]` lines.

@@ -1,6 +1,6 @@
 # Nudgy
 
-**Nudgy is the reminder app that nudges back.** Say or type everything on your mind: Muse Spark turns it into reminders, asks follow-up questions, and Nudgy nudges you until it's done, with lines from the open-weights Muse Spark Open on Baseten or Modal. Voice by Muse Voice Transcribe, photo proof checked by SAM 3.1, personal badges drawn by Muse Image from prompts Muse Spark writes.
+**Nudgy is the reminder app that nudges back.** Say or type everything on your mind: Muse Spark turns it into reminders, asks follow-up questions, and Nudgy nudges you until it's done, with lines from the open-weights Muse Spark Open on Baseten or Modal. Voice by Muse Voice Transcribe, photo proof checked by SAM 3.1, personal badges drawn by Muse Image from art direction by Muse Wonder.
 
 Dump everything on your mind, messy, by voice or text. Nudgy turns it into tidy reminders, then nudges you, cheekily and with escalating drama, until each one is done.
 
@@ -15,6 +15,7 @@ Everything in this repo was built from scratch for the Meta Global AI Developer 
 - **Nudges until it's done.** Due reminders get a fresh, model-written line, escalating from Nudge to Shove, until you tap Done or Snooze for 30 min, 1 hour or 90 min (snoozing is free). An overdue reminder has its Done and Snooze buttons on Today as soon as you open the app. Sleep hours hold back low-priority nudges. Nudges show as browser notifications when the tab is in the background.
 - **Emails when you're away.** A reminder emails you when due, then at gaps of 30, 60, 120 and 240 minutes, with no model call. Nothing goes out during sleep hours, and one morning email lists the day's reminders.
 - **Choose the model, see the model.** The Nudge voice setting on the Me page picks who writes your nudges: Muse Spark Open on Baseten, Muse Spark Open on Modal, or Muse Spark on Meta. A tag stays on screen naming the model and host behind the latest call, and each nudge shows its own.
+- **Plan my day.** One tap and an agent works through your list: it checks your day, moves overdue reminders to free times and spreads out clashes. The server refuses past, sleep-hour and clashing times, so it has to try again. Each step shows on screen, and Undo reverses the run.
 - **Daily goals.** Recurring reminders show as a checklist on Today. A missed day is skipped instead of piling up as overdue.
 - **Pics or it didn't happen.** Errands marked as photo proof earn +15 points with a photo, or can be skipped for the normal points.
 - **Rewards.** Points, a daily streak and badges, with personal badge art made by Muse Image.
@@ -31,7 +32,8 @@ Nudgy is always warm and cheeky, and a nudge makes sense on first read. Never fl
 | Turning a dump into reminders and actions | Muse Spark | You press Add tasks / Enter |
 | Nudge lines | Muse Spark Open (open weights) on Baseten or Modal, or Muse Spark, as chosen on the Me page, with Muse Spark as backup | A nudge is actually due, or you tap Nudge me |
 | Photo proof | SAM 3.1 finds the task's object in your photo | You send a proof photo |
-| Personal badge art | Muse Spark writes the art prompt, Muse Image draws it | You tap Create my badge |
+| Plan my day | Muse Spark as an agent, one tool per step, at most 5 calls | You tap Plan it |
+| Personal badge art | Muse Wonder writes the art prompt, Muse Image draws it | You tap Create my badge |
 
 Model output is never trusted blindly. The server drops tasks with no title, turns an unreadable time into a "when?" question, ignores actions that point at reminders that don't exist, and Nudgy's confirmation ("Set: Call mum, today 6 PM") is built from what was really saved, so it can't claim a reminder it didn't make. If a call fails, a local parser and canned nudges keep the app working.
 
@@ -50,7 +52,7 @@ Model output is never trusted blindly. The server drops tasks with no title, tur
    - `MODEL_API_KEY`: your Meta Model API key
    - `MODEL_NAME`: defaults to `muse-spark-1.3`
    - `VOICE_MODEL_NAME`: defaults to `muse-voice-transcribe-1.0`
-   - `SAM_MODEL_NAME` and `IMAGE_MODEL_NAME`: for photo proof and badge art
+   - `SAM_MODEL_NAME`, `IMAGE_MODEL_NAME` and `WONDER_MODEL_NAME`: for photo proof and badge art
    - `NUDGE_ENGINE=open` plus `OPEN_BASE_URL`, `OPEN_API_KEY`, `OPEN_MODEL` (optional): nudges from Muse Spark Open
    - `MODAL_BASE_URL`, `MODAL_API_KEY`, `MODAL_MODEL` (optional): the Modal choice for nudges
    - `ROUTER_API_KEY` and `ROUTER_MODEL` (optional): Muse Glimmer on Fireworks reads each chat message first. Plain chat ("hey", "thanks") gets its reply from Glimmer; anything that might be a reminder goes to Muse Spark. Off, unsure or failing, everything goes to Muse Spark.
