@@ -55,3 +55,5 @@
 - Overdue banner on opening: Done and Snooze only showed after a nudge fired, up to a minute after opening and not at all if the newest nudge's task was finished. The banner now comes from the overdue reminders themselves, with no model call.
 - Baseten model name: OPEN_MODEL had a dated name Baseten no longer lists, so every nudge fell back to Muse Spark without showing an error. It now uses meta-models/muse-spark-open.
 - Baseten model name back to meta-models/muse-spark-open-1026, the name the hackathon asks for. The 404 came from a key without access to it, not from the name, so the earlier change was wrong. A key with the free credits works.
+- Nudge tone: Muse Spark Open slipped in "love" and "gorgeous" on a bare test prompt, so the nudge prompt now rules out pet names and winks by name.
+- Baseten nudges: reasoning used the whole 1000 tokens and cut a line off mid-sentence, so calls now ask for low reasoning and a cut-off line falls back to Muse Spark.

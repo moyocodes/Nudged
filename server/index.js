@@ -301,7 +301,7 @@ app.post('/api/badge', requireSession, async (req, res) => {
 
 // One nudge line for a task that's due. Called by the browser's scheduler (one task per minute at most)
 // or the "Nudge me" button. The browser keeps a canned line as backup if this fails.
-const NUDGE_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy. Punny, never flirty, mean or medical, and never label the person (no "procrastinator" or "lazy"): joke about the task or yourself.
+const NUDGE_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy. Punny, never flirty, mean or medical, and never label the person (no "procrastinator" or "lazy"): joke about the task or yourself. No pet names (love, gorgeous, babe, darling, sweetie) and no winks or kissy emoji.
 Write ONE reminder line, max 20 words, to the user by name about their task. Level 1 is a gentle nudge, 4 is dramatic and over the top. Reply with the line only.`
 
 // Nudge lines can come from an open-weights Meta model (Muse Spark Open or Muse Glimmer) hosted on Modal, Baseten
@@ -318,11 +318,13 @@ async function openNudge(instructions, input) {
     // raise OPEN_MAX_TOKENS only if the log shows finish_reason=length with no text.
     max_tokens: Number(process.env.OPEN_MAX_TOKENS) || 1000,
     temperature: 0.8,
+    reasoning_effort: 'low',
   })
   console.log(`[usage] engine=open model=${process.env.OPEN_MODEL} input_tokens=${r.usage?.prompt_tokens} output_tokens=${r.usage?.completion_tokens}`)
   // Some open models write their reasoning inline; keep only what follows it.
   const text = String(r.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim().replace(/^"|"$/g, '')
-  if (!text) throw new Error(`Open model returned no text (${r.choices?.[0]?.finish_reason ?? 'no reason'})`)
+  // Cut off by the cap means half a line: Muse Spark takes over instead.
+  if (!text || r.choices?.[0]?.finish_reason === 'length') throw new Error(`Open model returned no full line (${r.choices?.[0]?.finish_reason ?? 'no reason'})`)
   return text
 }
 
