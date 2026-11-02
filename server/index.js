@@ -206,12 +206,34 @@ app.post('/api/extract', requireSession, async (req, res) => {
 })
 
 // Photo proof: SAM 3.1 looks for the task's object in the photo. Called once, when a photo is added.
+const PROOF_PROMPT = 'Someone is proving they did a task with a photo. Does the photo show the thing or place named, directly or by clear signs of it such as a sign, a logo or the kind of building? Reply with JSON only: {"match":true} or {"match":false}.'
+async function sparkSeesProof(image, what) {
+  try {
+    const model = process.env.MODEL_NAME
+    const r = await getClient().responses.create({
+      model,
+      instructions: PROOF_PROMPT,
+      input: [{ role: 'user', content: [{ type: 'input_text', text: what }, { type: 'input_image', image_url: image }] }],
+      max_output_tokens: 1000,
+      reasoning: { effort: 'low' },
+    })
+    console.log(`[usage] step=proof model=${model} input_tokens=${r.usage?.input_tokens} output_tokens=${r.usage?.output_tokens}`)
+    return /"match"\s*:\s*true/.test(r.output_text ?? '')
+  } catch (err) {
+    console.error('[proof] second look failed:', err.message)
+    return false
+  }
+}
+
 app.post('/api/proof', requireSession, async (req, res) => {
   const { image, phrase } = req.body ?? {}
   const what = typeof phrase === 'string' ? phrase.trim().slice(0, 80) : ''
   if (!what || typeof image !== 'string') return res.status(400).json({ error: 'Need a photo and what to look for' })
   try {
-    res.json({ ...(await findInPhoto({ image, phrase: what })), via: 'SAM 3.1 · Meta' })
+    const sam = await findInPhoto({ image, phrase: what })
+    if (sam.found !== false) return res.json({ ...sam, via: 'SAM 3.1 · Meta' })
+    // SAM finds things it can outline, so "bank" or "gym" can miss in a photo of one. Muse Spark takes a look before saying no.
+    res.json({ found: await sparkSeesProof(image, what), via: 'SAM 3.1 + Muse Spark · Meta' })
   } catch (err) {
     console.error('[proof]', err.message)
     res.status(502).json({ error: err.message })

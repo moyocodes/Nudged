@@ -42,12 +42,14 @@ export default function ProofPage() {
     if (!file) return
     const url = URL.createObjectURL(file)
     setPhoto(url)
-    saveThumb(url)
     setState('checking')
     let found = null
     try {
       found = (await checkPhoto(await toJpeg(url), phrase.trim() || task.title)).found
     } catch {}
+    // Saved only once it passes, so a rejected photo can't come back as proof on the next visit.
+    if (found === false) updateTask(task.id, { photo: null })
+    else saveThumb(url)
     setNote(found === true ? 'verified' : 'skipped')
     setState(found === false ? 'notfound' : 'found')
     // If they changed what to look for, remember it on the task.

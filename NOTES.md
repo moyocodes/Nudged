@@ -77,3 +77,5 @@
 - Auto model: by default each brain dump, nudge and check-in takes the next model in turn (Baseten, Modal, Meta), so a conversation uses them all and the tag shows each one.
 - Mic status: the model tag and "Connecting…" show the moment the mic is tapped, since connecting takes a moment.
 - Badge loader: while a badge draws, an animation made from Muse Image frames plays with Muse Wonder and Muse Image labels taking turns.
+- Photo proof bypass: the photo was saved before SAM answered, so reopening the page offered the bonus for a rejected photo. It's now saved only after passing.
+- Proof second look: SAM outlines objects, so "bank" failed on a photo of a bank. When SAM says no, Muse Spark looks at the photo before Nudgy rejects it.
