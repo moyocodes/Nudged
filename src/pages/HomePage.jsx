@@ -538,12 +538,15 @@ export default function HomePage() {
   const open = tasks.filter((t) => !t.done)
   const done = tasks.filter((t) => t.done)
   const overdue = open.filter(isOverdue).length
-  const latest = nudges[nudges.length - 1]
-  const latestTask = latest && tasks.find((t) => t.id === latest.taskId)
   const today = new Date().toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' })
   const stats = badgeStats(tasks, streak)
   const next = nextBadge(stats)
   const now = useMinuteClock()
+  // The banner: the newest nudge's task, else the oldest overdue one, so it's there the moment the app opens. Never a model call.
+  const waiting = (t) => t && !t.done && !(t.snoozedUntil && new Date(t.snoozedUntil) > now)
+  const lastNudged = tasks.find((t) => t.id === nudges[nudges.length - 1]?.taskId)
+  const bannerTask = waiting(lastNudged) ? lastNudged : open.filter((t) => waiting(t) && isOverdue(t)).sort((a, b) => new Date(a.due) - new Date(b.due))[0]
+  const bannerNudge = bannerTask && nudges.findLast((p) => p.taskId === bannerTask.id)
   const upcoming = nextDue(tasks, now)
   const rail = { open: open.length, overdue, nudges, tasks, next, stats, onRundown: openStory, upcoming, now, day, onPickDay: pickDay }
 
@@ -605,31 +608,31 @@ export default function HomePage() {
       </section>
 
       <AnimatePresence>
-        {latest && latestTask && !latestTask.done && (
+        {bannerTask && (
           <motion.div
-            key={latest.id}
+            key={bannerNudge?.id ?? bannerTask.id}
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
             className="flex items-center gap-3 rounded-2xl border-[length:var(--bw)] border-line bg-soft/60 px-4 py-3"
           >
             <BellIcon size={18} className="shrink-0 text-primary" />
-            <Link to="/nudges" className="min-w-0 flex-1 text-sm leading-snug">{latest.text}</Link>
+            <Link to="/nudges" className="min-w-0 flex-1 text-sm leading-snug">{bannerNudge?.text ?? `Psst, "${bannerTask.title}" is overdue. Done, or snooze?`}</Link>
             {/* Proof tasks ask first, same as the task card. */}
             {askingProof ? (
               <span className="flex shrink-0 items-center gap-1">
                 <button type="button" onClick={() => setAskingProof(false)} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
                   Not now
                 </button>
-                <button type="button" onClick={() => { completeTask(latestTask.id); setAskingProof(false) }} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
+                <button type="button" onClick={() => { completeTask(bannerTask.id); setAskingProof(false) }} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
                   Skip photo
                 </button>
-                <Link to={`/proof/${latestTask.id}`} className="rounded-full bg-primary px-3 py-1 text-sm font-semibold text-on-primary">Snap +15</Link>
+                <Link to={`/proof/${bannerTask.id}`} className="rounded-full bg-primary px-3 py-1 text-sm font-semibold text-on-primary">Snap +15</Link>
               </span>
             ) : snoozingBanner ? (
               <span className="flex shrink-0 items-center">
                 {SNOOZE_OPTIONS.map((o) => (
-                  <button key={o.minutes} type="button" onClick={() => { snoozeTask(latestTask.id, o.minutes); setSnoozingBanner(false) }} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
+                  <button key={o.minutes} type="button" onClick={() => { snoozeTask(bannerTask.id, o.minutes); setSnoozingBanner(false) }} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
                     {o.label}
                   </button>
                 ))}
@@ -639,7 +642,7 @@ export default function HomePage() {
                 <button type="button" onClick={() => setSnoozingBanner(true)} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/50 hover:bg-ink/5">
                   Snooze
                 </button>
-                <button type="button" onClick={() => (latestTask.physical ? setAskingProof(true) : completeTask(latestTask.id))} className="rounded-full px-2 py-1 text-sm font-semibold text-primary hover:bg-ink/5">
+                <button type="button" onClick={() => (bannerTask.physical ? setAskingProof(true) : completeTask(bannerTask.id))} className="rounded-full px-2 py-1 text-sm font-semibold text-primary hover:bg-ink/5">
                   Done
                 </button>
               </span>
