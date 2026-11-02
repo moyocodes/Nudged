@@ -32,6 +32,13 @@ services:
         value: meta-models/muse-spark-open-1026
       - key: OPEN_API_KEY
         sync: false
+      # Muse Spark Open on Modal, the third Nudge voice choice.
+      - key: MODAL_BASE_URL
+        sync: false
+      - key: MODAL_API_KEY
+        sync: false
+      - key: MODAL_MODEL
+        value: meta-models/Muse-Spark-Open-816B-A42B
       - key: ROUTER_MODEL
         sync: false
       - key: ROUTER_API_KEY

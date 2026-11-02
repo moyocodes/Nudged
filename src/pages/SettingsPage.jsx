@@ -144,7 +144,7 @@ export default function SettingsPage() {
         <h2 className="font-display text-xl">Nudge voice</h2>
         <p className="mb-3 text-sm text-ink/60">Which Meta model writes your nudges.</p>
         <div role="radiogroup" aria-label="Nudge voice" className="flex flex-wrap gap-2">
-          {[['open', 'Muse Spark Open · Baseten'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
+          {[['open', 'Muse Spark Open · Baseten'], ['modal', 'Muse Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
             <button
               key={value}
               type="button"

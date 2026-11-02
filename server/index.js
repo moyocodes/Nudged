@@ -308,11 +308,18 @@ Write ONE reminder line, max 20 words, to the user by name about their task. Lev
 // or Fireworks, through an OpenAI-style chat endpoint. Turned on with NUDGE_ENGINE=open plus OPEN_BASE_URL,
 // OPEN_API_KEY and OPEN_MODEL. If it fails, the nudge falls back to Muse Spark, so a nudge is never lost.
 const openEnabled = () => process.env.NUDGE_ENGINE === 'open' && !!process.env.OPEN_BASE_URL && !!process.env.OPEN_API_KEY && !!process.env.OPEN_MODEL
-let openClient
-async function openNudge(instructions, input) {
-  openClient ??= new OpenAI({ baseURL: process.env.OPEN_BASE_URL, apiKey: process.env.OPEN_API_KEY })
-  const r = await openClient.chat.completions.create({
-    model: process.env.OPEN_MODEL,
+// Muse Spark Open on Modal too, for anyone who picks it on the Me page. On with MODAL_BASE_URL, MODAL_API_KEY and MODAL_MODEL.
+const modalEnabled = () => !!process.env.MODAL_BASE_URL && !!process.env.MODAL_API_KEY && !!process.env.MODAL_MODEL
+const openHosts = {
+  open: () => ({ baseURL: process.env.OPEN_BASE_URL, apiKey: process.env.OPEN_API_KEY, model: process.env.OPEN_MODEL }),
+  modal: () => ({ baseURL: process.env.MODAL_BASE_URL, apiKey: process.env.MODAL_API_KEY, model: process.env.MODAL_MODEL }),
+}
+const openClients = {}
+async function openNudge(instructions, input, host = 'open') {
+  const { baseURL, apiKey, model } = openHosts[host]()
+  openClients[host] ??= new OpenAI({ baseURL, apiKey })
+  const r = await openClients[host].chat.completions.create({
+    model,
     messages: [{ role: 'system', content: instructions }, { role: 'user', content: input }],
     // Open models can spend part of this on reasoning before the line, as Muse Spark did. 1000 is the project cap;
     // raise OPEN_MAX_TOKENS only if the log shows finish_reason=length with no text.
@@ -320,7 +327,7 @@ async function openNudge(instructions, input) {
     temperature: 0.8,
     reasoning_effort: 'low',
   })
-  console.log(`[usage] engine=open model=${process.env.OPEN_MODEL} input_tokens=${r.usage?.prompt_tokens} output_tokens=${r.usage?.completion_tokens}`)
+  console.log(`[usage] engine=${host} model=${model} input_tokens=${r.usage?.prompt_tokens} output_tokens=${r.usage?.completion_tokens}`)
   // Some open models write their reasoning inline; keep only what follows it.
   const text = String(r.choices?.[0]?.message?.content ?? '').replace(/<think>[\s\S]*?<\/think>/gi, '').trim().replace(/^"|"$/g, '')
   // Cut off by the cap means half a line: Muse Spark takes over instead.
@@ -333,7 +340,13 @@ app.post('/api/nudge', requireSession, async (req, res) => {
   const buddy = cleanBuddy(req.body?.buddy)
   if (!title) return res.status(400).json({ error: 'No task' })
   const input = `name: ${name || 'friend'}\ntask: ${title}\nlevel: ${level}\n${due ? `due: ${due}\nnow: ${now}` : 'no due time'}`
-  if (engine !== 'spark' && openEnabled()) {
+  if (engine === 'modal' && modalEnabled()) {
+    try {
+      return res.json({ text: await openNudge(withBuddy(NUDGE_PROMPT, buddy), input, 'modal'), engine: 'modal', via: 'Muse Spark Open · Modal' })
+    } catch (err) {
+      console.error('[nudge] modal failed, using Muse Spark:', err.message)
+    }
+  } else if (engine !== 'spark' && openEnabled()) {
     try {
       return res.json({ text: await openNudge(withBuddy(NUDGE_PROMPT, buddy), input), engine: 'open', via: `Muse Spark Open · ${hostOf(process.env.OPEN_BASE_URL)}` })
     } catch (err) {
