@@ -49,3 +49,4 @@
 - Fullscreen chat: the X refocused the box, which reopened it on phones. It now closes, fits above the keyboard and restores the scroll. Fields are 16px on touch screens so iPhones stop zooming.
 - Voice lag: only cancel speech that is really playing and load voices early, since Chrome can stall a speak right after a cancel.
 - Home screen pitch: a punny line above the install button.
+- Photo proof fixed: the parser was guessing at SAM's reply and always got "couldn't tell", so any photo passed. A match really comes back as a box tag in the text stream, and finished with none now means not found.

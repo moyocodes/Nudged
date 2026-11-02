@@ -22,22 +22,12 @@ export function parseEvents(text) {
   return events
 }
 
-// Did it find the thing? Looks for lists of boxes/masks/detections anywhere in the answer.
-// found: true (something found), false (empty lists), null (couldn't tell from the shape).
-// This is a best guess until it's been tuned against a real answer (see server/data/last-sam.json).
+// Did it find the thing? A match comes back in the text stream as <|box;...|><|mask;...|>; no match finishes with empty text.
+// found: true (a box), false (finished with none), null (cut off before finishing, so we can't tell).
 export function interpret(events) {
-  let sawList = false
-  let anyItems = false
-  const walk = (value, key = '') => {
-    if (Array.isArray(value)) {
-      if (/box|mask|detection|instance|segment/i.test(key)) { sawList = true; if (value.length) anyItems = true }
-      value.forEach((v) => walk(v))
-    } else if (value && typeof value === 'object') {
-      for (const [k, v] of Object.entries(value)) walk(v, k)
-    }
-  }
-  events.forEach((e) => walk(e))
-  return { found: sawList ? anyItems : null }
+  const hasBox = (value) => typeof value === 'string' ? value.includes('<|box;') : !!value && typeof value === 'object' && Object.values(value).some(hasBox)
+  if (events.some(hasBox)) return { found: true }
+  return { found: events.some((e) => e.type === 'response.completed') ? false : null }
 }
 
 export async function findInPhoto({ image, phrase }) {
