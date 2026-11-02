@@ -89,6 +89,8 @@ export function StoreProvider({ children }) {
   const [alarmOn, setAlarmOn] = usePersisted('alarmOn', false)
   // Which model writes nudge lines: 'open' (Muse Spark Open on Baseten), 'modal' (the same on Modal) or 'spark' (Muse Spark on Meta).
   const [nudgeModel, setNudgeModel] = usePersisted('nudgeModel', 'open')
+  // The device voice Nudgy speaks with; null means the nicest one on this device.
+  const [voiceName, setVoiceName] = usePersisted('voiceName', null)
   // Whether the Alarm sound row in "Set Nudgy up" has been answered.
   const [alarmAsked, setAlarmAsked] = usePersisted('alarmAsked', false)
   // Background music during the rundown (lib/music.js).
@@ -126,8 +128,8 @@ export function StoreProvider({ children }) {
   // Signed-in account: { email } for this device, or null. The session itself is an HTTP-only cookie. See lib/account.js.
   const [account, setAccount] = usePersisted('account', null)
   // timeZone lets the server keep reminder emails out of this person's sleep hours.
-  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, rundownMode, nudgeModel, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
-  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
+  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, rundownMode, nudgeModel, voiceName, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
+  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, voiceName: setVoiceName, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
   const [hydrated, setHydrated] = useState(false)
 
   // On sign-in: the account's saved state wins if there is one; otherwise this device's state seeds it.
@@ -285,7 +287,7 @@ export function StoreProvider({ children }) {
         termsAcceptedAt, setTermsAcceptedAt, account, setAccount, signOut, hydrated, replaceTasks: setTasks, replacePoints: setPoints, spendPoints, aboutTaskId, setAboutTaskId,
         tutorialSeen, tutorialOpen, openTutorial, closeTutorial,
         schedule, setSchedule, introSeen, setIntroSeen, snoozeTask, joke, setJoke,
-        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
+        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
       }}
     >
       {children}

@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { startTranscribing } from '../lib/museTranscribe.js'
+import { makeLine } from '../lib/voice.js'
 import { showModel } from './ModelTag.jsx'
 import { Button } from './ui.jsx'
 import { ArrowIcon, MicIcon } from './Icons.jsx'
 import { friendlyDue } from '../lib/format.js'
-import { getVolume } from '../lib/volume.js'
 import { useStore } from '../lib/store.jsx'
 import { holdNudges } from '../lib/nudges.js'
 
@@ -20,7 +20,7 @@ const isPhone = () => window.matchMedia('(max-width: 639px)').matches
 // Full screen: automatic when typing on a phone, or via the expand button anywhere.
 // question: Nudgy's open question about a reminder; answer it here in plain words.
 export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
-  const { muted } = useStore()
+  const { muted, nudgeModel, setNudgeModel } = useStore()
   const [text, setText] = useState('')
   const [interim, setInterim] = useState('')
   const [listening, setListening] = useState(false)
@@ -159,11 +159,7 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
               type="button"
               onClick={() => {
                 window.speechSynthesis.cancel()
-                const line = new SpeechSynthesisUtterance(question)
-                line.rate = 1.05
-                line.pitch = 1.25
-                line.volume = getVolume()
-                window.speechSynthesis.speak(line)
+                window.speechSynthesis.speak(makeLine(question))
               }}
               aria-label="Hear Nudgy's question"
               title="Hear it"
@@ -207,6 +203,21 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
         }
         className={`w-full resize-none bg-transparent p-2 leading-relaxed outline-none placeholder:text-ink/35 ${full ? 'flex-1 text-lg' : 'pr-9 text-base'}`}
       />
+      <div role="radiogroup" aria-label="Model" className="mb-2 flex flex-wrap items-center gap-1.5 px-1">
+        <span className="text-xs font-semibold text-ink/50">Model</span>
+        {[['open', 'Spark Open · Baseten'], ['modal', 'Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            role="radio"
+            aria-checked={nudgeModel === value}
+            onClick={() => setNudgeModel(value)}
+            className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${nudgeModel === value ? 'bg-primary text-on-primary' : 'bg-ink/5 text-ink/70 hover:bg-ink/10'}`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <div className="flex items-center gap-2">
         <button
           type="button"

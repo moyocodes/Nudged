@@ -135,7 +135,7 @@ function cleanRepeat(repeat) {
 }
 
 app.post('/api/extract', requireSession, async (req, res) => {
-  const { text, now, name, history, reminders, selected } = req.body ?? {}
+  const { text, now, name, history, reminders, selected, engine } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
   if (!text?.trim()) return res.status(400).json({ error: 'No text' })
   const model = process.env.MODEL_NAME
@@ -159,14 +159,29 @@ app.post('/api/extract', requireSession, async (req, res) => {
   const { weekday, calendar: fullCalendar } = calendarFor(now)
   const calendar = DATE_WORDS.test(text) ? fullCalendar : ''
 
-  const key = `${String(now).slice(0, 10)}|${name}|${buddy}|${recent}|${list.join(';')}|${pick}|${text.trim().toLowerCase()}`
+  const key = `${engine}|${String(now).slice(0, 10)}|${name}|${buddy}|${recent}|${list.join(';')}|${pick}|${text.trim().toLowerCase()}`
   if (extractCache.has(key)) return res.json(extractCache.get(key))
 
   try {
+    const input = `now: ${now}${weekday ? ` (${weekday})` : ''}\n${calendar ? `calendar: ${calendar}\n` : ''}name: ${name || 'friend'}\n${listCount ? `reminders:\n${list.join('\n')}\n` : ''}${pick ? `selected: ${pick}\n` : ''}${recent ? `recent chat:\n${recent}\n` : ''}text: ${text.trim()}`
+    const instructions = withBuddy(EXTRACT_PROMPT, buddy)
+    const shape = (json, via) => ({ reply: String(json.reply ?? ''), followup: typeof json.followup === 'string' ? json.followup.slice(0, 200) : '', actions: cleanActions(json.actions, listCount), tasks: (Array.isArray(json.tasks) ? json.tasks : []).map(cleanTask).filter(Boolean), via })
+    // The model picked by the switch beside the mic. If it fails, Muse Spark on Meta takes over.
+    let result
+    const host = engine === 'modal' && modalEnabled() ? 'modal' : engine === 'open' && openEnabled() ? 'open' : null
+    if (host) {
+      try {
+        const out = await openNudge(instructions, input, host, 2000)
+        result = shape(JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1)), `Muse Spark Open · ${host === 'modal' ? 'Modal' : hostOf(process.env.OPEN_BASE_URL)}`)
+      } catch (err) {
+        console.error('[extract] open model failed, using Muse Spark:', err.message)
+      }
+    }
+    if (!result) {
     const r = await getClient().responses.create({
       model,
-      instructions: withBuddy(EXTRACT_PROMPT, buddy),
-      input: `now: ${now}${weekday ? ` (${weekday})` : ''}\n${calendar ? `calendar: ${calendar}\n` : ''}name: ${name || 'friend'}\n${listCount ? `reminders:\n${list.join('\n')}\n` : ''}${pick ? `selected: ${pick}\n` : ''}${recent ? `recent chat:\n${recent}\n` : ''}text: ${text.trim()}`,
+      instructions,
+      input,
       // Muse Spark can spend ~800 tokens just reasoning on "low", so 800 left nothing for the JSON.
       max_output_tokens: 2000,
       reasoning: { effort: 'low' },
@@ -177,7 +192,8 @@ app.post('/api/extract', requireSession, async (req, res) => {
       throw new Error(`Model returned no JSON (status ${r.status}${r.incomplete_details ? `, ${r.incomplete_details.reason}` : ''})`)
     }
     const json = JSON.parse(r.output_text.slice(r.output_text.indexOf('{'), r.output_text.lastIndexOf('}') + 1))
-    const result = { reply: String(json.reply ?? ''), followup: typeof json.followup === 'string' ? json.followup.slice(0, 200) : '', actions: cleanActions(json.actions, listCount), tasks: (Array.isArray(json.tasks) ? json.tasks : []).map(cleanTask).filter(Boolean), via: 'Muse Spark · Meta' }
+    result = shape(json, 'Muse Spark · Meta')
+    }
     extractCache.set(key, result)
     res.json(result)
   } catch (err) {
@@ -289,7 +305,7 @@ const openHosts = {
   modal: () => ({ baseURL: process.env.MODAL_BASE_URL, apiKey: process.env.MODAL_API_KEY, model: process.env.MODAL_MODEL }),
 }
 const openClients = {}
-async function openNudge(instructions, input, host = 'open') {
+async function openNudge(instructions, input, host = 'open', maxTokens = Number(process.env.OPEN_MAX_TOKENS) || 1000) {
   const { baseURL, apiKey, model } = openHosts[host]()
   openClients[host] ??= new OpenAI({ baseURL, apiKey })
   const r = await openClients[host].chat.completions.create({
@@ -297,7 +313,7 @@ async function openNudge(instructions, input, host = 'open') {
     messages: [{ role: 'system', content: instructions }, { role: 'user', content: input }],
     // Open models can spend part of this on reasoning before the line, as Muse Spark did. 1000 is the project cap;
     // raise OPEN_MAX_TOKENS only if the log shows finish_reason=length with no text.
-    max_tokens: Number(process.env.OPEN_MAX_TOKENS) || 1000,
+    max_tokens: maxTokens,
     temperature: 0.8,
     reasoning_effort: 'low',
   })

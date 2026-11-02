@@ -322,7 +322,7 @@ function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upc
 }
 
 export default function HomePage() {
-  const { setNudges, schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
+  const { nudgeModel, setNudges, schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
   const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen)
   const [askingProof, setAskingProof] = useState(false)
   const [snoozingBanner, setSnoozingBanner] = useState(false)
@@ -512,7 +512,7 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text, now, name, buddy: buddyName,
+          text, now, name, buddy: buddyName, engine: nudgeModel,
           history: chat.slice(-4).map(({ from, text }) => ({ from, text })),
           selected: about ? 1 : null,
           reminders: listed.map((t) => ({ title: t.title, due: t.due ? new Date(new Date(t.due).getTime() - local.getTimezoneOffset() * 60000).toISOString() : null, ask: t.ask?.text ?? null })),

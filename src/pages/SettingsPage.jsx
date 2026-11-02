@@ -1,6 +1,7 @@
 import { useStore } from '../lib/store.jsx'
+import { englishVoices, makeLine } from '../lib/voice.js'
 import { THEMES } from '../lib/themes.js'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Button, Card } from '../components/ui.jsx'
 import { ChevronIcon } from '../components/Icons.jsx'
@@ -14,7 +15,20 @@ export default function SettingsPage() {
   useEffect(() => {
     if (window.location.hash === '#account') document.getElementById('account')?.scrollIntoView({ block: 'center' })
   }, [])
-  const { chat, name, setName, theme, setTheme, accents, setAccent, resetDemo, openTutorial, schedule, setSchedule, setIntroSeen, voiceOn, setVoiceOn, say, rundownMode, setRundownMode, nudgeModel, setNudgeModel, buddyName, setBuddyName,  } = useStore()
+  const { chat, name, setName, theme, setTheme, accents, setAccent, resetDemo, openTutorial, schedule, setSchedule, setIntroSeen, voiceOn, setVoiceOn, say, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName,  } = useStore()
+  // Browsers load voices late, so the list fills in when they arrive.
+  const [voices, setVoices] = useState(englishVoices)
+  useEffect(() => {
+    if (!('speechSynthesis' in window)) return
+    const load = () => setVoices(englishVoices())
+    load()
+    window.speechSynthesis.addEventListener('voiceschanged', load)
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', load)
+  }, [])
+  const hearVoice = (voice) => {
+    window.speechSynthesis.cancel()
+    window.speechSynthesis.speak(makeLine(`Hi ${name || 'friend'}, this is how I'll sound.`, voice))
+  }
   const setTime = (key) => (e) => e.target.value && setSchedule((s) => ({ ...s, [key]: e.target.value }))
   const timeField = 'mt-1 w-full rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2 text-base outline-none focus:ring-2 focus:ring-primary'
 
@@ -134,9 +148,9 @@ export default function SettingsPage() {
       </Card>
 
       <Card>
-        <h2 className="font-display text-xl">Nudge voice</h2>
-        <p className="mb-3 text-sm text-ink/60">Which Meta model writes your nudges.</p>
-        <div role="radiogroup" aria-label="Nudge voice" className="flex flex-wrap gap-2">
+        <h2 className="font-display text-xl">Model</h2>
+        <p className="mb-3 text-sm text-ink/60">Which Meta model reads your brain dumps and writes your nudges. You can also switch it beside the mic.</p>
+        <div role="radiogroup" aria-label="Model" className="flex flex-wrap gap-2">
           {[['open', 'Muse Spark Open · Baseten'], ['modal', 'Muse Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
             <button
               key={value}
@@ -150,6 +164,20 @@ export default function SettingsPage() {
             </button>
           ))}
         </div>
+      </Card>
+
+      <Card>
+        <h2 className="font-display text-xl">Nudgy's voice</h2>
+        <p className="mb-3 text-sm text-ink/60">The nicest voices on this device come first.</p>
+        <select
+          aria-label="Nudgy's voice"
+          value={voiceName ?? voices[0]?.name ?? ''}
+          onChange={(e) => { setVoiceName(e.target.value); hearVoice(e.target.value) }}
+          className={timeField}
+        >
+          {voices.map((v) => <option key={v.name} value={v.name}>{v.name}</option>)}
+        </select>
+        <button type="button" onClick={() => hearVoice(voiceName)} className="mt-2 text-xs font-semibold text-primary hover:underline">Hear it</button>
       </Card>
 
       <section>

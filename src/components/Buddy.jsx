@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import Mascot from './Mascot.jsx'
-import { getVolume } from '../lib/volume.js'
+import { makeLine } from '../lib/voice.js'
 import { unlockSound } from '../lib/alarm.js'
 
 const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -36,10 +36,7 @@ export default function Buddy() {
       // Only cancel a line that's really playing: Chrome can stall a speak() right after a cancel(), so give it a beat then.
       const interrupting = synth.speaking || synth.pending
       if (interrupting) synth.cancel()
-      const line = new SpeechSynthesisUtterance(buddy.text)
-      line.rate = 1.05
-      line.pitch = 1.25
-      line.volume = getVolume()
+      const line = makeLine(buddy.text)
       line.onend = () => {
         setTalking(false)
         hideTimer = setTimeout(() => setBuddy(null), 5000)
@@ -73,12 +70,8 @@ export default function Buddy() {
     setVoiceOn(true)
     setMuted(false)
     synth.cancel()
-    const line = new SpeechSynthesisUtterance(buddy.text)
-    line.rate = 1.05
-    line.pitch = 1.25
-    line.volume = getVolume() || 1
     synth.resume()
-    synth.speak(line)
+    synth.speak(makeLine(buddy.text))
   }
 
   return (
@@ -90,7 +83,7 @@ export default function Buddy() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 120, opacity: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
           transition={{ type: 'spring', duration: 0.5, bounce: 0.35 }}
-          className="fixed bottom-24 right-3 z-50 flex max-w-[min(22rem,calc(100vw-1.5rem))] items-end gap-1"
+          className="pointer-events-none fixed bottom-24 right-3 z-50 flex max-w-[min(22rem,calc(100vw-1.5rem))] items-end gap-1"
           role="status"
           aria-live="polite"
         >
@@ -107,7 +100,7 @@ export default function Buddy() {
               <button
                 type="button"
                 onClick={toggleVoice}
-                className="mt-1 text-[11px] font-semibold text-ink/45 hover:text-ink"
+                className="pointer-events-auto mt-1 text-[11px] font-semibold text-ink/45 hover:text-ink"
               >
                 {voiceOn && !muted ? 'Sound on · mute' : 'Hear me say it'}
               </button>
@@ -119,7 +112,7 @@ export default function Buddy() {
             aria-label="Dismiss Nudgy"
             animate={talking ? { y: [0, -4, 0], rotate: [0, -3, 0] } : { y: 0, rotate: 0 }}
             transition={talking ? { duration: 0.5, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
-            className="shrink-0"
+            className="pointer-events-auto shrink-0"
           >
             <Mascot size={72} talking={talking} />
           </motion.button>
