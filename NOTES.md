@@ -81,3 +81,4 @@
 - Proof second look: SAM outlines objects, so "bank" failed on a photo of a bank. When SAM says no, Muse Spark looks at the photo before Nudgy rejects it.
 - Background work: brain dumps, Plan my day and badges now finish on the server if the page reloads or the connection drops. The app collects the result when it's back, and the top tag and badge loader show it's still working.
 - Docs: the README and demo script now cover the model switch and Auto, chat memory, quiet check-ins, the photo second look, background work, the badge loader and the voice picker.
+- Rundown on login: a fresh login always opens Today's rundown, whatever the rundown setting, once the account's data has loaded.

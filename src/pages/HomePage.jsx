@@ -50,9 +50,15 @@ function useDailyStory(ready) {
   const { setStoryOpen, rundownMode } = useStore()
   const [open, setOpen] = useState(false)
   useEffect(() => {
-    if (!ready || rundownShownThisLoad) return
+    if (!ready) return
+    let fresh = false
+    try {
+      fresh = localStorage.getItem('nudgy:rundownOnLogin') === '1'
+      localStorage.removeItem('nudgy:rundownOnLogin')
+    } catch {}
+    if (rundownShownThisLoad && !fresh) return
     rundownShownThisLoad = true
-    if (!rundownDue(rundownMode)) return
+    if (!fresh && !rundownDue(rundownMode)) return
     try { localStorage.setItem(RUNDOWN_AT, String(Date.now())) } catch {}
     // Tell the rest of the app now, so the permissions card doesn't pop up while the rundown mounts.
     setStoryOpen(true)
@@ -325,7 +331,7 @@ function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upc
 
 export default function HomePage() {
   const { hydrated, nudgeModel, setNudges, schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
-  const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen)
+  const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen && hydrated)
   const [askingProof, setAskingProof] = useState(false)
   const [snoozingBanner, setSnoozingBanner] = useState(false)
   // A day picked from the week strip ("Wed Oct 28 2026"), or null for the full list.
