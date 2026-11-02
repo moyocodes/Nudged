@@ -14,7 +14,8 @@ import Story from '../components/Story.jsx'
 import Mascot from '../components/Mascot.jsx'
 import { showModel } from '../components/ModelTag.jsx'
 import { BellIcon, ChevronIcon, TrophyIcon } from '../components/Icons.jsx'
-import { SNOOZE_OPTIONS, holdNudges } from '../lib/nudges.js'
+import { SNOOZE_OPTIONS, holdNudges, makeNudge } from '../lib/nudges.js'
+import { ALARM_MS, playAlarm } from '../lib/alarm.js'
 
 
 // What Nudgy says while the model reads a brain dump. One at random each time.
@@ -321,7 +322,7 @@ function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upc
 }
 
 export default function HomePage() {
-  const { schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
+  const { setNudges, schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
   const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen)
   const [askingProof, setAskingProof] = useState(false)
   const [snoozingBanner, setSnoozingBanner] = useState(false)
@@ -350,6 +351,21 @@ export default function HomePage() {
     const line = 'Undone. Like it never happened.'
     say(line)
     addChat({ from: 'nudgy', text: line })
+  }
+
+  // Try a nudge: a real one on demand, so a first-timer hears what's coming. Gone once they've had any nudge.
+  const [tryingNudge, setTryingNudge] = useState(false)
+  async function tryNudge() {
+    const rank = { high: 0, medium: 1, low: 2 }
+    const task = tasks.filter((t) => !t.done).sort((a, b) => (rank[a.priority] ?? 1) - (rank[b.priority] ?? 1))[0]
+    if (!task || tryingNudge) return
+    setTryingNudge(true)
+    const nudge = await makeNudge(task, 1, name, 0, buddyName)
+    setNudges((ps) => [...ps, nudge])
+    setTryingNudge(false)
+    const chimed = playAlarm()
+    if (chimed) setTimeout(() => say(nudge.text), ALARM_MS)
+    else say(nudge.text)
   }
 
   // Plan my day: the agent works on a copy on the server, and its changes land here in one undoable go.
@@ -678,6 +694,18 @@ export default function HomePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {open.length > 0 && nudges.length === 0 && (
+        <div className={`${card} flex items-center gap-3`}>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-sm font-semibold">See how I nudge</h2>
+            <p className="text-xs text-ink/50">Hear the chime and my voice before the real thing.</p>
+          </div>
+          <button type="button" disabled={tryingNudge} onClick={tryNudge} className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-60">
+            {tryingNudge ? 'Winding up…' : 'Try a nudge'}
+          </button>
+        </div>
+      )}
 
       {open.length > 0 && (
         <div className={card}>

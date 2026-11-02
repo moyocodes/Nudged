@@ -67,3 +67,4 @@
 - Removed the Muse Glimmer router: no Fireworks credits came through, so plain chat goes to Muse Spark like everything else, and the open-weights work is Muse Spark Open on Baseten and Modal.
 - Hear me say it: the button only switched the voice setting on, so the line on screen stayed silent, and mute blocked it too. The tap now unmutes and speaks that line straight away.
 - Sound fixes: phones lock sound again after a reload, so the chime only ever worked right after tapping Allow. Any tap now unlocks the chime and voice, and Nudge me chimes and speaks. The chime is now compulsory on every nudge, with no setting or mute.
+- Try a nudge: a first-timer had no way to hear a nudge before one came due, so Today offers a real one on demand until they've had their first.
