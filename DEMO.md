@@ -47,6 +47,7 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 **2:00 – 2:20 · Badge art that is yours** (Muse Wonder + Muse Image)
 - Do: open Rewards, open the badge, tap Create my badge. Let the loader play, cut the wait, and show the badge.
 - Say: "Muse Wonder writes the art direction from what I actually finished, and Muse Image draws it. Nobody else has this badge."
+- Optional, if the take has time: on Me, use Restyle Nudgy, show the new Nudgy, and say "The same two models can redraw Nudgy too."
 
 **2:20 – 2:30 · Work carries on without you** (Technical depth)
 - Do: send a brain dump and reload straight away. The tag shows the model working, then the reminder appears.

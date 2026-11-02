@@ -1,5 +1,9 @@
 import { useStore } from '../lib/store.jsx'
 import { englishVoices, makeLine } from '../lib/voice.js'
+import { makeMascot } from '../lib/mascotArt.js'
+import { useJobs } from '../lib/jobs.js'
+import ArtLoader from '../components/ArtLoader.jsx'
+import Mascot from '../components/Mascot.jsx'
 import { THEMES } from '../lib/themes.js'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -9,6 +13,58 @@ import AccountCard from '../components/AccountCard.jsx'
 import InstallButton from '../components/InstallButton.jsx'
 import { playAlarm } from '../lib/alarm.js'
 import SoundPicker from '../components/SoundPicker.jsx'
+
+// Restyle Nudgy: describe a look, Muse Wonder directs it and Muse Image draws it.
+function RestyleCard() {
+  const { mascotArt, setMascotArt, say } = useStore()
+  const jobs = useJobs()
+  const [look, setLook] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  const drawing = busy || jobs.some((j) => j.kind === 'mascot')
+  async function draw() {
+    setBusy(true)
+    setError('')
+    try {
+      setMascotArt(await makeMascot(look))
+      setLook('')
+      say('New look, same nagging. What do you think?')
+    } catch (err) {
+      setError(err.message)
+    }
+    setBusy(false)
+  }
+  return (
+    <Card>
+      <h2 className="font-display text-xl">Restyle Nudgy</h2>
+      <p className="mb-3 text-sm text-ink/60">Describe a look, and Muse Wonder and Muse Image will draw me in it.</p>
+      <div className="flex items-center gap-3">
+        <span className="shrink-0"><Mascot size={72} wiggle /></span>
+        <input
+          value={look}
+          onChange={(e) => setLook(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && look.trim() && !drawing) draw() }}
+          maxLength={100}
+          placeholder="A pirate hat, made of jollof…"
+          aria-label="Nudgy's new look"
+          className="min-w-0 flex-1 rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2 text-base outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <button type="button" onClick={draw} disabled={!look.trim() || drawing} className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-50">
+          {drawing ? 'Drawing…' : 'Draw my new look'}
+        </button>
+        {mascotArt && !drawing && (
+          <button type="button" onClick={() => setMascotArt(null)} className="rounded-full px-3 py-2 text-sm font-semibold text-ink/60 hover:bg-ink/5">
+            Back to the original
+          </button>
+        )}
+      </div>
+      {drawing && <ArtLoader drawing="Drawing my new look…" />}
+      {error && <p className="mt-2 text-sm text-accent">{error}</p>}
+    </Card>
+  )
+}
 
 export default function SettingsPage() {
   // "Sync devices" in the top bar links to #account; jump to it.
@@ -165,6 +221,8 @@ export default function SettingsPage() {
           ))}
         </div>
       </Card>
+
+      <RestyleCard />
 
       <Card>
         <h2 className="font-display text-xl">Nudgy's voice</h2>

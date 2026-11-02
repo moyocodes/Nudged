@@ -25,6 +25,7 @@ import PlayPage from './pages/PlayPage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
 import { resumeBadges } from './lib/badgeArt.js'
+import { resumeMascot } from './lib/mascotArt.js'
 
 function Page({ children }) {
   return (
@@ -40,10 +41,12 @@ function Page({ children }) {
 }
 
 export default function App() {
-  const { name, account, termsAcceptedAt, introSeen, setIntroSeen, setBadgeArt, hydrated } = useStore()
-  // Finish a badge that was still drawing when the page last closed.
+  const { name, account, termsAcceptedAt, introSeen, setIntroSeen, setBadgeArt, setMascotArt, hydrated } = useStore()
+  // Finish a badge or a new look that was still drawing when the page last closed.
   useEffect(() => {
-    if (hydrated) resumeBadges(setBadgeArt)
+    if (!hydrated) return
+    resumeBadges(setBadgeArt)
+    resumeMascot(setMascotArt)
   }, [hydrated]) // eslint-disable-line react-hooks/exhaustive-deps
   const location = useLocation()
   // Welcome and login are the only pages open to everyone.

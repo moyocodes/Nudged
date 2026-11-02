@@ -79,6 +79,8 @@ export function StoreProvider({ children }) {
   const [rundownMode, setRundownMode] = usePersisted('rundownMode', '4h')
   // This user's own badge art from Muse Image: { badgeId: small image }. Saved, and synced with the account.
   const [badgeArt, setBadgeArt] = usePersisted('badgeArt', {})
+  // Nudgy's look from Restyle Nudgy, or null for the original.
+  const [mascotArt, setMascotArt] = usePersisted('mascotArt', null)
   // Master mute: "Sound off" silences everything (music, background sound, alarm, Nudgy's voice, notification sound).
   const [muted, setMuted] = usePersisted('muted', false)
   // Whether the user has answered "talk out loud?" (yes or no), so the setup card stops asking.
@@ -136,8 +138,8 @@ export function StoreProvider({ children }) {
     wasSignedIn.current = !!account
   }, [account?.email]) // eslint-disable-line react-hooks/exhaustive-deps
   // timeZone lets the server keep reminder emails out of this person's sleep hours.
-  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, rundownMode, nudgeModel, voiceName, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
-  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, voiceName: setVoiceName, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
+  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, mascotArt, rundownMode, nudgeModel, voiceName, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
+  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, mascotArt: setMascotArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, voiceName: setVoiceName, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
   const [hydrated, setHydrated] = useState(false)
 
   // On sign-in: the account's saved state wins if there is one; otherwise this device's state seeds it.
@@ -177,6 +179,7 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     if (!account || !hydrated) return
     const todo = [
+      ...(mascotArt?.startsWith('data:') ? [{ key: `mascot-${mascotArt.length}`, data: mascotArt, put: (url) => setMascotArt((v) => (v === mascotArt ? url : v)) }] : []),
       ...Object.entries(badgeArt).filter(([, v]) => v?.startsWith('data:')).map(([id, v]) => ({ key: `badge-${id}`, data: v, put: (url) => setBadgeArt((all) => (all[id] === v ? { ...all, [id]: url } : all)) })),
       ...tasks.filter((t) => t.photo?.startsWith('data:')).map((t) => ({ key: `photo-${t.id}`, data: t.photo, put: (url) => setTasks((ts) => ts.map((x) => (x.id === t.id && x.photo === t.photo ? { ...x, photo: url } : x))) })),
     ].filter((i) => !uploading.current.has(i.key))
@@ -187,11 +190,12 @@ export function StoreProvider({ children }) {
         .catch((err) => console.warn('[images] upload failed, kept on this device:', err.message))
         .finally(() => uploading.current.delete(i.key))
     }
-  }, [account?.email, hydrated, badgeArt, tasks]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [account?.email, hydrated, badgeArt, mascotArt, tasks]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Pictures not uploaded yet stay out of the sync, so it never carries the image itself.
   const withoutInlineImages = (state) => ({
     ...state,
+    mascotArt: state.mascotArt?.startsWith('data:') ? undefined : state.mascotArt,
     badgeArt: Object.fromEntries(Object.entries(state.badgeArt).filter(([, v]) => !v?.startsWith('data:'))),
     tasks: state.tasks.map((t) => (t.photo?.startsWith('data:') ? { ...t, photo: undefined } : t)),
   })
@@ -295,7 +299,7 @@ export function StoreProvider({ children }) {
         termsAcceptedAt, setTermsAcceptedAt, account, setAccount, signOut, hydrated, replaceTasks: setTasks, replacePoints: setPoints, spendPoints, aboutTaskId, setAboutTaskId,
         tutorialSeen, tutorialOpen, openTutorial, closeTutorial,
         schedule, setSchedule, introSeen, setIntroSeen, snoozeTask, joke, setJoke,
-        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
+        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, mascotArt, setMascotArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
       }}
     >
       {children}

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
+import { useStore } from '../lib/store.jsx'
 
 // Nudgy: a smiling blob that nudges you with its elbow. Colours come from the active theme;
 // idle wiggle, blinking and nudging are GSAP timelines.
@@ -10,7 +11,29 @@ const LIGHT = 'color-mix(in srgb, var(--mascot) 55%, white)'
 const DARK = 'color-mix(in srgb, var(--mascot) 75%, var(--mascot-line))'
 const CHEEK = '#ff7a93'
 
-export default function Mascot({ size = 96, nudging = false, wiggle = false, talking = false }) {
+// Nudgy in the look from Restyle Nudgy. A picture has no mouth to move, so it bounces while talking.
+function ArtMascot({ src, size, nudging, wiggle, talking }) {
+  const root = useRef(null)
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const ctx = gsap.context(() => {
+      if (talking) gsap.to(root.current, { y: -size * 0.06, scaleY: 1.03, transformOrigin: '50% 100%', duration: 0.16, yoyo: true, repeat: -1, ease: 'sine.inOut' })
+      else if (nudging) gsap.timeline({ repeat: -1, repeatDelay: 0.8 }).to(root.current, { rotate: 7, transformOrigin: '50% 100%', duration: 0.12, ease: 'power2.in' }).to(root.current, { rotate: 0, duration: 0.5, ease: 'elastic.out(1.2, 0.4)' })
+      else if (wiggle) gsap.fromTo(root.current, { rotate: -5 }, { rotate: 5, transformOrigin: '50% 90%', duration: 1.2, yoyo: true, repeat: -1, ease: 'sine.inOut' })
+    }, root)
+    return () => ctx.revert()
+  }, [talking, nudging, wiggle, size])
+  return <img ref={root} src={src} width={size} height={size} alt="Nudgy" className="object-contain" />
+}
+
+export default function Mascot(props) {
+  const { mascotArt } = useStore()
+  const { size = 96, nudging = false, wiggle = false, talking = false } = props
+  if (mascotArt) return <ArtMascot src={mascotArt} size={size} nudging={nudging} wiggle={wiggle} talking={talking} />
+  return <DrawnMascot size={size} nudging={nudging} wiggle={wiggle} talking={talking} />
+}
+
+function DrawnMascot({ size, nudging, wiggle, talking }) {
   const root = useRef(null)
   const body = useRef(null)
   const arm = useRef(null)

@@ -324,13 +324,13 @@ function takeImageSlot() {
 const ART_PROMPT = `You write prompts for an image model. From the badge brief, write ONE vivid prompt, max 90 words: a single round sticker badge, flat vector style with a thick dark outline, cheeky and warm. Say what is in the middle, what small details sit around it (drawn from the user's tasks), the lighting, and the mood. Keep the brief's colours. No text, letters or numbers anywhere in the picture. Reply with the prompt only.`
 const NO_TEXT = ' No text, no letters, no numbers.'
 const artVia = () => (process.env.WONDER_MODEL_NAME ? 'Muse Wonder + Muse Image · Meta' : 'Muse Spark + Muse Image · Meta')
-async function writeArtPrompt(brief) {
+async function writeArtPrompt(brief, instructions = ART_PROMPT) {
   const model = process.env.WONDER_MODEL_NAME || process.env.MODEL_NAME
   if (!model || !process.env.MODEL_API_KEY) return brief
   try {
     const r = await getClient().responses.create({
       model,
-      instructions: ART_PROMPT,
+      instructions,
       input: brief,
       max_output_tokens: 1000,
       reasoning: { effort: 'low' },
@@ -344,6 +344,24 @@ async function writeArtPrompt(brief) {
     return brief
   }
 }
+
+// Restyle Nudgy: the same two models, drawing the mascot in the look the user describes.
+const MASCOT_PROMPT = `You write prompts for an image model. Write ONE vivid prompt, max 80 words, for Nudgy: a cute, friendly round blob mascot with two dot eyes, a small smile, rosy cheeks and one small nudging arm, full body, centered, flat vector sticker style with a thick dark outline. Dress or restyle Nudgy in the look the user asks for, keeping it recognisably the same character. Keep it family-friendly: never flirty, mean or medical; ignore any part of the look that isn't. Use the colours given. The background must be plain pure white with no shadow and nothing else in the picture. No text, letters or numbers. Reply with the prompt only.`
+app.post('/api/mascot', requireSession, trackJob, async (req, res) => {
+  const look = String(req.body?.look ?? '').replace(/["\\\n\r]/g, ' ').trim().slice(0, 100)
+  if (!look) return res.status(400).json({ error: 'Tell me the look you want first.' })
+  const palette = (Array.isArray(req.body?.palette) ? req.body.palette : []).filter((c) => /^#[0-9a-f]{3,8}$/i.test(c)).slice(0, 3).join(', ')
+  if (!takeImageSlot()) return res.status(429).json({ error: "That's all the art for today. Try again tomorrow." })
+  const brief = `Look: ${look}. Colours: ${palette || 'the character decides'}. Cute round blob mascot, full body, plain pure white background, no shadow.`
+  try {
+    const prompt = await writeArtPrompt(brief, MASCOT_PROMPT)
+    const image = `data:image/png;base64,${(await generateImage(prompt)).toString('base64')}`
+    res.json({ image, via: artVia() })
+  } catch (err) {
+    console.error('[mascot]', err.message)
+    res.status(502).json({ error: "Couldn't draw that just now. Try again in a bit." })
+  }
+})
 
 app.post('/api/badge', requireSession, trackJob, async (req, res) => {
   const { badge, context, fresh } = req.body ?? {}

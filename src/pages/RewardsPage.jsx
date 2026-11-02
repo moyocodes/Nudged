@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useJobs } from '../lib/jobs.js'
+import ArtLoader from '../components/ArtLoader.jsx'
 import { AnimatePresence, motion } from 'framer-motion'
 import Counter from '../components/Counter.jsx'
 import { useStore } from '../lib/store.jsx'
@@ -95,7 +96,7 @@ function BadgeView({ badge, stats, onClose }) {
             <div className="h-full rounded-full bg-primary" style={{ width: `${(stats[badge.stat] / badge.goal) * 100}%` }} />
           </div>
         )}
-        {drawing && <BadgeLoader />}
+        {drawing && <ArtLoader />}
         {earned && mine && <p className="mt-2 text-xs text-ink/45">Made for {name || 'you'} by Muse Image</p>}
         {earned && (
           <input
@@ -123,24 +124,6 @@ function BadgeView({ badge, stats, onClose }) {
         </button>
       </motion.div>
     </motion.div>
-  )
-}
-
-// Shown until the badge arrives: an animation drawn by Muse Image, and the two models taking turns.
-const DRAWING = [['Muse Wonder', 'Writing the art direction…'], ['Muse Image', 'Drawing your badge…']]
-function BadgeLoader() {
-  const [step, setStep] = useState(0)
-  useEffect(() => {
-    const id = setInterval(() => setStep((s) => s + 1), 2000)
-    return () => clearInterval(id)
-  }, [])
-  const [model, doing] = DRAWING[step % DRAWING.length]
-  return (
-    <div role="status" className="mt-3 flex flex-col items-center">
-      <img src="/badge-loading.gif" alt="" width="120" height="120" className="rounded-2xl" />
-      <p className="mt-2 text-sm font-semibold">⚡ {model}</p>
-      <p className="text-xs text-ink/55">{doing}</p>
-    </div>
   )
 }
 

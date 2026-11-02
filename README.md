@@ -22,6 +22,7 @@ Everything in this repo was built from scratch for the Meta Global AI Developer 
 - **Daily goals.** Recurring reminders show as a checklist on Today. A missed day is skipped instead of piling up as overdue.
 - **Pics or it didn't happen.** Errands marked as photo proof earn +15 points with a photo that passes the check, or can be skipped for the normal points. SAM 3.1 looks first; if it says no, Muse Spark looks at the photo before Nudgy rejects it, so a photo of a bank counts as "bank" while a photo of a parrot doesn't.
 - **Rewards.** Points, a daily streak and badges, with personal badge art directed by Muse Wonder and drawn by Muse Image. While it draws, a loader made from Muse Image frames plays.
+- **Restyle Nudgy.** Describe a look on the Me page. Muse Wonder writes the art direction, Muse Image draws it, the background is cut away, and that Nudgy appears across the app and follows your account. A button brings the original back.
 - **Its own voice.** A voice picker on the Me page lists the voices on your device, nicest first. A chime plays on every nudge.
 - **Every device.** Log in with just your email, and tasks, chat, points, streak and pictures sync. For the hackathon demo there is no emailed code, so judges can get straight in; a new device gets a login email, and `REQUIRE_SIGNUP_CODE` and `REQUIRE_LOGIN_CODE` turn codes back on.
 - **Four personalities.** Chill, Cheeky, Sassy and Night owl themes, each with its own font, look and colour choices.
@@ -39,6 +40,7 @@ Nudgy is always warm and cheeky, and a nudge makes sense on first read. Never fl
 | Photo proof | SAM 3.1 finds the task's object in your photo, then Muse Spark takes a second look if SAM says no | You send a proof photo |
 | Plan my day | Muse Spark as an agent, one tool per step, at most 5 calls | You tap Plan it |
 | Personal badge art | Muse Wonder writes the art prompt, Muse Image draws it | You tap Create my badge |
+| Restyle Nudgy | Muse Wonder writes the art prompt, Muse Image draws it | You tap Draw my new look |
 
 Model output is never trusted blindly. The server drops tasks with no title, turns an unreadable time into a "when?" question, ignores actions that point at reminders that don't exist, and Nudgy's confirmation ("Set: Call mum, today 6 PM") is built from what was really saved, so it can't claim a reminder it didn't make. If a call fails, a local parser and canned nudges keep the app working.
 
