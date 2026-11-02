@@ -65,6 +65,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
   // Closing drops the keyboard and puts the page back where it was, since phones leave it shifted otherwise.
   const [viewport, setViewport] = useState(null)
   useEffect(() => {
+    window.dispatchEvent(new CustomEvent('nudgy:fullchat', { detail: full }))
     if (!full) return
     const scrollY = window.scrollY
     document.body.style.overflow = 'hidden'
@@ -172,9 +173,9 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
         </button>
       </div>
       {question && !about && (
-        <p className="mb-1 flex items-start gap-2 rounded-2xl rounded-bl-md bg-soft px-3 py-2 pr-9 text-sm leading-snug">
-          <span className="shrink-0 font-semibold text-primary">{questionLabel}</span>
-          <span className="flex-1">{question}</span>
+        <p className="mb-1 flex flex-wrap items-start gap-x-2 gap-y-1 rounded-2xl rounded-bl-md bg-soft px-3 py-2 pr-9 text-sm leading-snug">
+          <span className={`shrink-0 font-semibold text-primary ${questionLabel === 'Nudgy:' ? '' : 'basis-full'}`}>{questionLabel}</span>
+          <span className="min-w-0 flex-1">{question}</span>
           {onDismissQuestion && (
             <button type="button" onClick={onDismissQuestion} className="-my-1 shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-ink/50 hover:bg-ink/5 hover:text-ink">No thanks</button>
           )}

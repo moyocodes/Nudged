@@ -83,3 +83,4 @@
 - Docs: the README and demo script now cover the model switch and Auto, chat memory, quiet check-ins, the photo second look, background work, the badge loader and the voice picker.
 - Rundown on login: a fresh login always opens Today's rundown, whatever the rundown setting, once the account's data has loaded.
 - Clearer check-ins: the 15-second check-in was only a passing bubble, so the chat box now counts down to it, and it arrives with the chime and a card to answer.
+- Check-in card: the label squeezed the message into a thin column and the model tag covered it in full-screen chat, so the label now has its own line and the tag moves to the header there.
