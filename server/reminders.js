@@ -1,11 +1,11 @@
-// Email reminders for people who aren't looking at the app. Every few minutes: tasks past due that weren't ticked or snoozed
-// go out in one email per account when due or when a snooze ends, then 10, 20, 40, 80... minutes apart, for up to a day. Nothing during their sleep hours;
-// whatever is still undone arrives together when they wake. The copy is fixed, so this never calls the model.
+// Email reminders for people who aren't looking at the app. Every minute: a task not ticked or snoozed goes out when due or
+// when a snooze ends, then 30, 60, 120 and 240 minutes apart, and that's the last. Nothing during their sleep hours; on waking,
+// one morning email lists everything for that day plus whatever is still undone. The copy is fixed, so this never calls the model.
 // A free Render service sleeps and stops the timer, so an outside cron can wake it through /api/cron/reminders.
 import { store } from './db.js'
 
-const CHECK_EVERY_MS = 5 * 60 * 1000
-const FIRST_GAP_MIN = 10 // then 20, 40, 80... between emails
+const CHECK_EVERY_MS = 60 * 1000
+const ROUNDS_MIN = [0, 30, 90, 210, 450] // minutes after the start: gaps of 30, 60, 120, 240
 const TOO_OLD_MS = 24 * 60 * 60 * 1000 // stop nagging about long-gone tasks
 const WAKE_WINDOW_MIN = 60
 
@@ -13,11 +13,9 @@ const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', 
 
 // The clock starts when the task is due, or restarts when its snooze ends.
 const startOf = (task) => Math.max(new Date(task.due).getTime(), task.snoozedUntil ? new Date(task.snoozedUntil).getTime() : 0)
-// Rounds fall at 0, 10, 30, 70, 150... minutes. One key per round, so each goes out once.
-// After a snooze the gaps start at the snooze length, the same as the app's nudges.
+// The latest round that has come round. One key per round, so each goes out once.
 const roundKey = (task, now) => {
-  const firstGap = startOf(task) > new Date(task.due).getTime() && task.snoozeMinutes ? task.snoozeMinutes : FIRST_GAP_MIN
-  const round = Math.floor(Math.log2((now - startOf(task)) / 60000 / firstGap + 1))
+  const round = ROUNDS_MIN.findLastIndex((m) => now - startOf(task) >= m * 60000)
   return `${task.id}|${startOf(task)}|${round}`
 }
 
@@ -43,14 +41,23 @@ export function nightFor(schedule, timeZone, now) {
   }
 }
 
-// Keys this email would use up. Waking adds one, so everything still undone is in the morning email.
-const keysFor = (task, now, morning) => [roundKey(task, now), ...(morning ? [`${task.id}|morning|${morning}`] : [])]
+const localDate = (time, timeZone) => new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(time)
 
-export function tasksToEmail(tasks, emailed, now = Date.now(), morning = null) {
+// Reminders whose current round hasn't gone out.
+export function tasksToEmail(tasks, emailed, now = Date.now()) {
   return (tasks ?? []).filter((t) => {
     if (t.done || !t.due) return false
     const age = now - startOf(t)
-    return age >= 0 && age <= TOO_OLD_MS && keysFor(t, now, morning).some((k) => !emailed.has(k))
+    return age >= 0 && age <= TOO_OLD_MS && !emailed.has(roundKey(t, now))
+  })
+}
+
+// The morning list: due today, or still undone from the last day. Snoozed ones wait for their snooze.
+export function tasksForMorning(tasks, timeZone, now = Date.now()) {
+  return (tasks ?? []).filter((t) => {
+    if (t.done || !t.due) return false
+    const age = now - startOf(t)
+    return age >= 0 ? age <= TOO_OLD_MS : !(t.snoozedUntil && new Date(t.snoozedUntil) > now) && localDate(new Date(t.due), timeZone) === localDate(now, timeZone)
   })
 }
 
@@ -63,17 +70,18 @@ export const reminderHtml = (url, tasks) => `<!doctype html><html><body style="m
 <tr><td style="padding:24px 32px 32px"><a href="${url}" style="display:inline-block;background:#5b4be8;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:999px">Open Nudgy</a></td></tr>
 </table></td></tr></table></body></html>`
 
-async function sendReminder(to, tasks) {
+async function sendReminder(to, tasks, { morning = false, timeZone } = {}) {
   const url = process.env.APP_URL || 'https://getnudged.chat'
+  const listed = morning ? tasks.map((t) => ({ title: [t.title, dueText(t, timeZone)].filter(Boolean).join(' · ') })) : tasks
   const r = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
       to,
-      subject: tasks.length === 1 ? `Psst: ${tasks[0].title}` : `Psst: ${tasks.length} things are waiting`,
-      html: reminderHtml(url, tasks),
-      text: `Knock knock, it's Nudgy. You didn't think I'd let this slide, did you?\n\n${tasks.map((t) => `- ${t.title}`).join('\n')}\n\nOpen Nudgy: ${url}`,
+      subject: morning ? 'Morning! Your reminders for today' : tasks.length === 1 ? `Psst: ${tasks[0].title}` : `Psst: ${tasks.length} things are waiting`,
+      html: reminderHtml(url, listed),
+      text: `Knock knock, it's Nudgy. You didn't think I'd let this slide, did you?\n\n${listed.map((t) => `- ${t.title}`).join('\n')}\n\nOpen Nudgy: ${url}`,
     }),
   })
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
@@ -150,10 +158,23 @@ export async function runReminders({ db = store, send = sendReminder, now = Date
       try {
         const { asleep, morning } = nightFor(state?.schedule, state?.timeZone, now)
         if (asleep) continue
-        const tasks = tasksToEmail(state?.tasks, await db.emailedReminders(email), now, morning)
-        if (!tasks.length) continue
-        await send(email, tasks)
-        await db.markRemindersEmailed(email, tasks.flatMap((t) => keysFor(t, now, morning)))
+        const emailed = await db.emailedReminders(email)
+        const morningKey = `morning|${morning}`
+        const isMorning = !!morning && !emailed.has(morningKey)
+        const due = tasksToEmail(state?.tasks, emailed, now)
+        const list = isMorning ? tasksForMorning(state?.tasks, state?.timeZone, now) : due
+        // Claim first, so a second server or a failed save can't send it twice. A failed send gives the claim back.
+        const keys = [...due.map((t) => roundKey(t, now)), ...(isMorning ? [morningKey] : [])]
+        const won = keys.length ? await db.claimReminders(email, keys) : []
+        const shouldSend = isMorning ? won.includes(morningKey) && list.length : due.some((t) => won.includes(roundKey(t, now)))
+        if (!shouldSend) continue
+        const tasks = isMorning ? list : due.filter((t) => won.includes(roundKey(t, now)))
+        try {
+          await send(email, tasks, { morning: isMorning, timeZone: state?.timeZone })
+        } catch (err) {
+          await db.releaseReminders(email, won)
+          throw err
+        }
         sent++
       } catch (err) {
         console.error('[reminders] failed for one account:', err.message) // tried again next check

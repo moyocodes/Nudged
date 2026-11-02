@@ -51,3 +51,4 @@
 - Home screen pitch: a punny line above the install button.
 - Photo proof fixed: the parser was guessing at SAM's reply and always got "couldn't tell", so any photo passed. A match really comes back as a box tag in the text stream, and finished with none now means not found.
 - Model routes need a login: extract, nudge, proof, badge, test and the voice socket answered anyone, so anyone could spend the credits. The practice script now takes NUDGY_SESSION.
+- Reminder email schedule: when due, then gaps of 30, 60, 120 and 240 minutes, and one morning email with the day's list. Sends are claimed in the database first, so a deploy overlap can't send one twice.

@@ -104,8 +104,14 @@ async function mysqlStore(url) {
       run('INSERT INTO user_state (email, state, updated_at) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE state = VALUES(state), updated_at = VALUES(updated_at)', [email, JSON.stringify(state), Date.now()]),
     allStates: async () => (await pool.query('SELECT email, state FROM user_state'))[0].map((r) => ({ email: r.email, state: JSON.parse(r.state) })),
     emailedReminders: async (email) => new Set((await pool.query('SELECT reminder_key FROM emailed_reminders WHERE email = ?', [email]))[0].map((r) => r.reminder_key)),
-    async markRemindersEmailed(email, keys) {
-      for (const key of keys) await run('INSERT IGNORE INTO emailed_reminders (email, reminder_key, sent_at) VALUES (?, ?, ?)', [email, key, Date.now()])
+    // Claimed before sending, so two servers can't send the same one. Returns the keys this call won.
+    async claimReminders(email, keys) {
+      const won = []
+      for (const key of keys) if ((await run('INSERT IGNORE INTO emailed_reminders (email, reminder_key, sent_at) VALUES (?, ?, ?)', [email, key, Date.now()]))[0].affectedRows) won.push(key)
+      return won
+    },
+    async releaseReminders(email, keys) {
+      for (const key of keys) await run('DELETE FROM emailed_reminders WHERE email = ? AND reminder_key = ?', [email, key])
     },
   }
 }
@@ -183,8 +189,14 @@ export async function pgStore(url, Pool) {
       run('INSERT INTO user_state (email, state, updated_at) VALUES ($1, $2, $3) ON CONFLICT (email) DO UPDATE SET state = EXCLUDED.state, updated_at = EXCLUDED.updated_at', [email, JSON.stringify(state), Date.now()]),
     allStates: async () => (await pool.query('SELECT email, state FROM user_state')).rows.map((r) => ({ email: r.email, state: JSON.parse(r.state) })),
     emailedReminders: async (email) => new Set((await pool.query('SELECT reminder_key FROM emailed_reminders WHERE email = $1', [email])).rows.map((r) => r.reminder_key)),
-    async markRemindersEmailed(email, keys) {
-      for (const key of keys) await run('INSERT INTO emailed_reminders (email, reminder_key, sent_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [email, key, Date.now()])
+    // Claimed before sending, so two servers can't send the same one. Returns the keys this call won.
+    async claimReminders(email, keys) {
+      const won = []
+      for (const key of keys) if ((await run('INSERT INTO emailed_reminders (email, reminder_key, sent_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING', [email, key, Date.now()])).rowCount) won.push(key)
+      return won
+    },
+    async releaseReminders(email, keys) {
+      for (const key of keys) await run('DELETE FROM emailed_reminders WHERE email = $1 AND reminder_key = $2', [email, key])
     },
   }
 }
@@ -224,7 +236,13 @@ function fileStore() {
     async putState(email, state) { db.data[email] = { state, updatedAt: Date.now() }; save() },
     allStates: async () => Object.entries(db.data).map(([email, d]) => ({ email, state: d.state })),
     emailedReminders: async (email) => new Set(db.emailed[email] ?? []),
-    async markRemindersEmailed(email, keys) { db.emailed[email] = [...(db.emailed[email] ?? []), ...keys]; save() },
+    async claimReminders(email, keys) {
+      const won = keys.filter((k) => !db.emailed[email]?.includes(k))
+      db.emailed[email] = [...(db.emailed[email] ?? []), ...won]
+      save()
+      return won
+    },
+    async releaseReminders(email, keys) { db.emailed[email] = (db.emailed[email] ?? []).filter((k) => !keys.includes(k)); save() },
   }
 }
 
