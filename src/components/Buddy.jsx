@@ -79,11 +79,11 @@ export default function Buddy() {
       {buddy && (
         <motion.div
           key="buddy"
-          initial={{ y: 120, opacity: 0 }}
+          initial={{ y: -40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 120, opacity: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
+          exit={{ y: -40, opacity: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
           transition={{ type: 'spring', duration: 0.5, bounce: 0.35 }}
-          className="pointer-events-none fixed bottom-24 right-3 z-50 flex max-w-[min(22rem,calc(100vw-1.5rem))] items-end gap-1"
+          className="pointer-events-none fixed top-[6.25rem] right-3 z-50 flex max-w-[min(22rem,calc(100vw-1.5rem))] items-end gap-1"
           role="status"
           aria-live="polite"
         >

@@ -20,7 +20,7 @@ export default function ModelTag() {
   }, [])
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-20 z-[1000] flex justify-center" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 top-[4.25rem] z-[1000] flex justify-center" aria-live="polite">
       <AnimatePresence>
         {label && (
           <motion.span
@@ -28,7 +28,7 @@ export default function ModelTag() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 8 }}
-            className="rounded-full bg-ink px-4 py-1.5 text-sm font-semibold text-bg shadow-btn"
+            className="rounded-full bg-ink px-3 py-1 text-xs font-semibold text-bg shadow-btn"
           >
             ⚡ {label}
           </motion.span>

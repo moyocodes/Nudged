@@ -73,3 +73,4 @@
 - Nudgy's voice: a picker on the Me page lists the device's voices with the nicest first, and the default voice is calmer than the old high pitch.
 - Chat memory: Nudgy now gets the last 30 dated messages, saved across visits and devices, instead of 4, so a new visit carries on the same conversation.
 - Quiet check-in: 15 seconds after typing, talking or a reply with no further activity, Nudgy sends one model-written line that picks the conversation back up, or nudges an unsent draft. Once per burst, and never in a hidden tab.
+- Moved Nudgy's bubble and the model tag to the top of the screen, since at the bottom they covered the chat box, the model switch and Add tasks on phones.
