@@ -13,7 +13,7 @@ const hasVoice = typeof window !== 'undefined' && 'speechSynthesis' in window
 // Browsers only allow these prompts from a tap, so each row has its own Allow button.
 // "Not now" hides the card for this visit; it comes back next visit until everything is decided.
 export default function Permissions() {
-  const { name, setVoiceOn, soundAsked, setSoundAsked, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked } = useStore()
+  const { name, voiceOn, setVoiceOn, muted, setMuted, setSoundAsked, voiceDeclined, setVoiceDeclined, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked } = useStore()
   // A short beat before the first check, so the rundown (which opens right after the intro) gets the screen first.
   const [settled, setSettled] = useState(false)
   useEffect(() => {
@@ -32,10 +32,10 @@ export default function Permissions() {
   }, [])
 
   const rows = [
-    hasVoice && !soundAsked && {
+    hasVoice && (!voiceOn || muted) && !voiceDeclined && {
       key: 'sound', icon: '🔊', title: 'Talk out loud', body: 'I read my nudges and replies aloud.',
-      allow: () => { setVoiceOn(true); setSoundAsked(true); setTimeout(() => say(`Hi ${name || 'friend'}! This is my voice.`), 50) },
-      no: () => setSoundAsked(true),
+      allow: () => { setVoiceOn(true); setMuted(false); setVoiceDeclined(false); setSoundAsked(true); setTimeout(() => say(`Hi ${name || 'friend'}! This is my voice.`), 50) },
+      no: () => { setVoiceDeclined(true); setSoundAsked(true) },
     },
     notify === 'default' && {
       key: 'notify', icon: '🔔', title: 'Notifications', body: 'Nudges reach you when you’re in another tab.',

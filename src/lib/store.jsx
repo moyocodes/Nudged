@@ -85,6 +85,8 @@ export function StoreProvider({ children }) {
   const [muted, setMuted] = usePersisted('muted', false)
   // Whether the user has answered "talk out loud?" (yes or no), so the setup card stops asking.
   const [soundAsked, setSoundAsked] = usePersisted('soundAsked', false)
+  // Said No to "talk out loud". Until then the setup card offers it whenever the voice is off.
+  const [voiceDeclined, setVoiceDeclined] = usePersisted('voiceDeclined', false)
   // True while a full-screen story (rundown or tutorial) is showing, so other pop-ups wait.
   const [storyOpen, setStoryOpen] = useState(false)
   // Alarm chime when a nudge fires (lib/alarm.js).
@@ -138,8 +140,8 @@ export function StoreProvider({ children }) {
     wasSignedIn.current = !!account
   }, [account?.email]) // eslint-disable-line react-hooks/exhaustive-deps
   // timeZone lets the server keep reminder emails out of this person's sleep hours.
-  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, mascotArt, rundownMode, nudgeModel, voiceName, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
-  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, mascotArt: setMascotArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, voiceName: setVoiceName, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
+  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, mascotArt, rundownMode, nudgeModel, voiceName, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, voiceDeclined, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
+  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, mascotArt: setMascotArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, voiceName: setVoiceName, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, voiceDeclined: setVoiceDeclined, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
   const [hydrated, setHydrated] = useState(false)
 
   // On sign-in: the account's saved state wins if there is one; otherwise this device's state seeds it.
@@ -299,7 +301,7 @@ export function StoreProvider({ children }) {
         termsAcceptedAt, setTermsAcceptedAt, account, setAccount, signOut, hydrated, replaceTasks: setTasks, replacePoints: setPoints, spendPoints, aboutTaskId, setAboutTaskId,
         tutorialSeen, tutorialOpen, openTutorial, closeTutorial,
         schedule, setSchedule, introSeen, setIntroSeen, snoozeTask, joke, setJoke,
-        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, mascotArt, setMascotArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
+        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, voiceDeclined, setVoiceDeclined, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, mascotArt, setMascotArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
       }}
     >
       {children}

@@ -6,7 +6,7 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 ## Before you hit record
 
 - Fresh browser profile (or incognito), Chill or Cheeky theme, at getnudged.chat. Don't deploy while recording: a deploy loses any model result still waiting.
-- Enter a name, skip the tutorial, close the daily rundown. In the Set Nudgy up card, allow Talk out loud and Notifications.
+- Enter a name, skip the tutorial, close the daily rundown. In the Set me up card, allow Talk out loud and Notifications. If the card doesn't appear, Talk out loud is also a switch on the Me page.
 - Add these, due a minute ago: "Go to the bank" with **Photo proof** on, plus "Water the plants". Finish one reminder beforehand so a badge is earned and "Create my badge" is ready.
 - Have your phone logged in to the same email, a real photo of a bank ready, and a real reminder email open in your inbox.
 - Open the Render logs in a tab, to show `engine=open`, `engine=modal` and `step=plan` lines.

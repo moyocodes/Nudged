@@ -86,3 +86,4 @@
 - Check-in card: the label squeezed the message into a thin column and the model tag covered it in full-screen chat, so the label now has its own line and the tag moves to the header there.
 - Restyle Nudgy: describe a look on the Me page and Muse Wonder and Muse Image redraw the mascot across the app, with the background cut away. A picture can't move its mouth, so it bounces while talking.
 - Brain dump drawer: the full-screen chat is now a side drawer over the dimmed page, and tapping outside closes it. The close and back buttons were faint, so they're now solid and larger.
+- Talk out loud row: it vanished for good once answered, even with the voice off. It now shows whenever the voice is off or muted, unless the user tapped No.
