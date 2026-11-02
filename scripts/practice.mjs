@@ -97,7 +97,7 @@ for (const s of chosen) {
     try {
       if (mode === 'mock') got = norm(fabricate(turn.expect, open))
       else {
-        const r = await fetch(`${url}/api/extract`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyFor(state, turn.say)) })
+        const r = await fetch(`${url}/api/extract`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${process.env.NUDGY_SESSION}` }, body: JSON.stringify(bodyFor(state, turn.say)) })
         const json = await r.json().catch(() => ({}))
         if (!r.ok) throw new Error(json.error || r.statusText)
         got = norm(json)

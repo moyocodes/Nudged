@@ -69,7 +69,7 @@ async function sendWelcome(to) {
 }
 
 const readCookie = (req, name) =>
-  (req.get('cookie') ?? '').split(';').map((c) => c.trim().split('=')).find(([k]) => k === name)?.[1]
+  (req.headers.cookie ?? '').split(';').map((c) => c.trim().split('=')).find(([k]) => k === name)?.[1]
 
 // HttpOnly: scripts can't read it. SameSite=Lax: other sites can't send it with their requests. Secure on https.
 function setSession(req, res, session) {
@@ -78,8 +78,8 @@ function setSession(req, res, session) {
 }
 
 // The device behind a request: the session cookie (or an "Authorization: Bearer" header, for scripts).
-async function deviceFor(req) {
-  const session = readCookie(req, COOKIE) || req.get('authorization')?.replace(/^Bearer /, '')
+export async function deviceFor(req) {
+  const session = readCookie(req, COOKIE) || req.headers.authorization?.replace(/^Bearer /, '')
   return session ? store.deviceBySession(session) : null
 }
 
@@ -95,9 +95,15 @@ async function signIn(req, res, deviceId, email, deviceName) {
 }
 
 // Route errors (a dropped database connection, say) answer 500 instead of crashing the server.
-const safe = (fn) => (req, res) => fn(req, res).catch((err) => {
+const safe = (fn) => (req, res, next) => fn(req, res, next).catch((err) => {
   console.error('[auth]', err.message)
   res.status(500).json({ error: 'Something went wrong on my side. Try again in a bit.' })
+})
+
+// In front of every route that spends model credits.
+export const requireSession = safe(async (req, res, next) => {
+  if (!(await deviceFor(req))) return res.status(401).json({ error: 'Signed out' })
+  next()
 })
 
 export function mountAuth(app) {

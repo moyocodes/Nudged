@@ -5,7 +5,7 @@ import path from 'node:path'
 import express from 'express'
 import OpenAI from 'openai'
 import { WebSocket, WebSocketServer } from 'ws'
-import { mountAuth } from './auth.js'
+import { deviceFor, mountAuth, requireSession } from './auth.js'
 import { mountReminders } from './reminders.js'
 import { findInPhoto } from './sam.js'
 import { BADGE_IDS, badgePrompt, generateImage } from './image.js'
@@ -28,7 +28,7 @@ function getClient() {
   return client
 }
 
-app.post('/api/test', async (_req, res) => {
+app.post('/api/test', requireSession, async (_req, res) => {
   try {
     const model = process.env.MODEL_NAME
     if (!model || !process.env.MODEL_API_KEY) {
@@ -168,7 +168,7 @@ async function routeMessage(text, name, buddy, recent) {
   }
 }
 
-app.post('/api/extract', async (req, res) => {
+app.post('/api/extract', requireSession, async (req, res) => {
   const { text, now, name, history, reminders, selected } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
   if (!text?.trim()) return res.status(400).json({ error: 'No text' })
@@ -232,7 +232,7 @@ app.post('/api/extract', async (req, res) => {
 })
 
 // Photo proof: SAM 3.1 looks for the task's object in the photo. Called once, when a photo is added.
-app.post('/api/proof', async (req, res) => {
+app.post('/api/proof', requireSession, async (req, res) => {
   const { image, phrase } = req.body ?? {}
   const what = typeof phrase === 'string' ? phrase.trim().slice(0, 80) : ''
   if (!what || typeof image !== 'string') return res.status(400).json({ error: 'Need a photo and what to look for' })
@@ -282,7 +282,7 @@ async function writeArtPrompt(brief) {
   }
 }
 
-app.post('/api/badge', async (req, res) => {
+app.post('/api/badge', requireSession, async (req, res) => {
   const { badge, context, fresh } = req.body ?? {}
   if (!BADGE_IDS.includes(badge)) return res.status(400).json({ error: 'Unknown badge' })
   const brief = badgePrompt(badge, context)
@@ -326,7 +326,7 @@ async function openNudge(instructions, input) {
   return text
 }
 
-app.post('/api/nudge', async (req, res) => {
+app.post('/api/nudge', requireSession, async (req, res) => {
   const { name, title, level, due, now } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
   if (!title) return res.status(400).json({ error: 'No task' })
@@ -375,7 +375,11 @@ const server = http.createServer(app)
 // Live speech-to-text: the browser streams 16 kHz PCM here, and we relay it to
 // Muse Voice Transcribe so the API key never leaves the server.
 // Only opened when the user taps the mic; closed when they stop.
-const asr = new WebSocketServer({ server, path: '/api/asr' })
+const asr = new WebSocketServer({
+  server,
+  path: '/api/asr',
+  verifyClient: ({ req }, done) => deviceFor(req).then((device) => done(!!device, 401), () => done(false, 401)),
+})
 asr.on('connection', (browser) => {
   const model = process.env.VOICE_MODEL_NAME
   if (!model || !process.env.MODEL_API_KEY) {
