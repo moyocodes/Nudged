@@ -135,13 +135,35 @@ function cleanRepeat(repeat) {
   return slots.length ? slots : null
 }
 
+// Model work carries on if the person leaves. The result waits here under the id the app sent, for an hour.
+const jobs = new Map()
+const JOB_TTL_MS = 60 * 60 * 1000
+function trackJob(req, res, next) {
+  const id = req.get('x-job-id')
+  if (!id || id.length > 60) return next()
+  const now = Date.now()
+  for (const [key, job] of jobs) if (now - job.at > JOB_TTL_MS) jobs.delete(key)
+  jobs.set(id, { status: 'running', at: now })
+  const send = res.json.bind(res)
+  res.json = (body) => {
+    jobs.set(id, { status: 'done', code: res.statusCode, body, at: Date.now() })
+    return send(body)
+  }
+  next()
+}
+app.get('/api/jobs/:id', requireSession, (req, res) => {
+  const job = jobs.get(req.params.id)
+  if (!job) return res.status(404).json({ error: 'Unknown job' })
+  res.json(job)
+})
+
 // Nudgy's memory: the saved chat across visits and devices, dated so "yesterday" means something.
 const chatMemory = (history) => (Array.isArray(history) ? history : [])
   .slice(-30)
   .map((m) => `${m?.at ? `[${String(m.at).slice(0, 16).replace('T', ' ')}] ` : ''}${m?.from === 'you' ? 'user' : 'nudgy'}: ${String(m?.text ?? '').slice(0, 200)}`)
   .join('\n')
 
-app.post('/api/extract', requireSession, async (req, res) => {
+app.post('/api/extract', requireSession, trackJob, async (req, res) => {
   const { text, now, name, history, reminders, selected, engine } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
   if (!text?.trim()) return res.status(400).json({ error: 'No text' })
@@ -241,7 +263,7 @@ app.post('/api/proof', requireSession, async (req, res) => {
 })
 
 // The "Plan my day" button: the agent loop is in plan.js. Each step is one Muse Spark call.
-app.post('/api/plan', requireSession, async (req, res) => {
+app.post('/api/plan', requireSession, trackJob, async (req, res) => {
   const { reminders, schedule, now } = req.body ?? {}
   const model = process.env.MODEL_NAME
   if (!Array.isArray(reminders) || !reminders.length || typeof now !== 'string') return res.status(400).json({ error: 'Nothing to plan' })
@@ -323,7 +345,7 @@ async function writeArtPrompt(brief) {
   }
 }
 
-app.post('/api/badge', requireSession, async (req, res) => {
+app.post('/api/badge', requireSession, trackJob, async (req, res) => {
   const { badge, context, fresh } = req.body ?? {}
   if (!BADGE_IDS.includes(badge)) return res.status(400).json({ error: 'Unknown badge' })
   const brief = badgePrompt(badge, context)

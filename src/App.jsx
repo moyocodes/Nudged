@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from './lib/store.jsx'
@@ -23,6 +24,7 @@ import NotFoundPage from './pages/NotFoundPage.jsx'
 import PlayPage from './pages/PlayPage.jsx'
 import HistoryPage from './pages/HistoryPage.jsx'
 import LoginPage from './pages/LoginPage.jsx'
+import { resumeBadges } from './lib/badgeArt.js'
 
 function Page({ children }) {
   return (
@@ -38,7 +40,11 @@ function Page({ children }) {
 }
 
 export default function App() {
-  const { name, account, termsAcceptedAt, introSeen, setIntroSeen } = useStore()
+  const { name, account, termsAcceptedAt, introSeen, setIntroSeen, setBadgeArt, hydrated } = useStore()
+  // Finish a badge that was still drawing when the page last closed.
+  useEffect(() => {
+    if (hydrated) resumeBadges(setBadgeArt)
+  }, [hydrated]) // eslint-disable-line react-hooks/exhaustive-deps
   const location = useLocation()
   // Welcome and login are the only pages open to everyone.
   const onboarding = location.pathname === '/welcome' || location.pathname === '/login'

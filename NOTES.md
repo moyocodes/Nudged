@@ -79,3 +79,4 @@
 - Badge loader: while a badge draws, an animation made from Muse Image frames plays with Muse Wonder and Muse Image labels taking turns.
 - Photo proof bypass: the photo was saved before SAM answered, so reopening the page offered the bonus for a rejected photo. It's now saved only after passing.
 - Proof second look: SAM outlines objects, so "bank" failed on a photo of a bank. When SAM says no, Muse Spark looks at the photo before Nudgy rejects it.
+- Background work: brain dumps, Plan my day and badges now finish on the server if the page reloads or the connection drops. The app collects the result when it's back, and the top tag and badge loader show it's still working.

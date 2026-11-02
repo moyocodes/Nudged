@@ -17,6 +17,7 @@ import { BellIcon, ChevronIcon, TrophyIcon } from '../components/Icons.jsx'
 import { SNOOZE_OPTIONS, holdNudges, makeNudge } from '../lib/nudges.js'
 import { ALARM_MS, playAlarm } from '../lib/alarm.js'
 import { pickEngine } from '../lib/engine.js'
+import { resumeJobs, runJob } from '../lib/jobs.js'
 
 
 // What Nudgy says while the model reads a brain dump. One at random each time.
@@ -323,7 +324,7 @@ function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upc
 }
 
 export default function HomePage() {
-  const { nudgeModel, setNudges, schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
+  const { hydrated, nudgeModel, setNudges, schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
   const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen)
   const [askingProof, setAskingProof] = useState(false)
   const [snoozingBanner, setSnoozingBanner] = useState(false)
@@ -353,6 +354,16 @@ export default function HomePage() {
     say(line)
     addChat({ from: 'nudgy', text: line })
   }
+
+  // Work left running when the page closed: collect it and carry on, with the same loaders.
+  useEffect(() => {
+    if (!hydrated) return
+    const byId = (ids) => ids.map((id) => tasks.find((t) => t.id === id)).filter(Boolean)
+    resumeJobs('extract', (json, job) => {
+      applyReply(json, job.meta.text, job.meta.said, byId(job.meta.listed))
+    }, (job, err) => say(`I lost that one, sorry: ${err.message}`))
+    resumeJobs('plan', applyPlan, (job, err) => say(err.message))
+  }, [hydrated]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Quiet for 15 seconds after typing, talking or a reply: Nudgy picks the conversation back up, once per burst of activity.
   const idleTimer = useRef(null)
@@ -402,6 +413,13 @@ export default function HomePage() {
   // Plan my day: the agent works on a copy on the server, and its changes land here in one undoable go.
   const [planning, setPlanning] = useState(false)
   const [plan, setPlan] = useState(null)
+  function applyPlan(json) {
+    showModel(json.via)
+    if (json.changes.length) setLastChange({ before: tasks, points })
+    json.changes.forEach((c) => updateTask(c.id, { due: c.due ? new Date(c.due).toISOString() : null, priority: c.priority, snoozedUntil: null }))
+    setPlan(json)
+    say(json.summary)
+  }
   async function planMyDay() {
     const localTime = (d) => new Date(new Date(d).getTime() - new Date(d).getTimezoneOffset() * 60000).toISOString().slice(0, 16)
     // Recurring reminders keep their own slots.
@@ -411,14 +429,7 @@ export default function HomePage() {
     setPlanning(true)
     holdNudges(true)
     try {
-      const r = await fetch('/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reminders, schedule, now: localTime(new Date()) }) })
-      const json = await r.json()
-      if (!r.ok) throw new Error(json.error)
-      showModel(json.via)
-      if (json.changes.length) setLastChange({ before: tasks, points })
-      json.changes.forEach((c) => updateTask(c.id, { due: c.due ? new Date(c.due).toISOString() : null, priority: c.priority, snoozedUntil: null }))
-      setPlan(json)
-      say(json.summary)
+      applyPlan(await runJob('plan', 'Muse Spark Agent', '/api/plan', { reminders, schedule, now: localTime(new Date()) }))
     } catch (err) {
       say(err.message || "Couldn't plan just now. Try again in a bit.")
     } finally {
@@ -539,18 +550,22 @@ export default function HomePage() {
     setAboutTaskId(null)
     const said = about ? `About "${about.title}": ${text}` : text
     try {
-      const r = await fetch('/api/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text, now, name, buddy: buddyName, engine: pickEngine(nudgeModel),
+      const engine = pickEngine(nudgeModel)
+      const label = { open: 'Muse Spark Open · Baseten', modal: 'Muse Spark Open · Modal', spark: 'Muse Spark · Meta' }[engine]
+      const json = await runJob('extract', label, '/api/extract', {
+          text, now, name, buddy: buddyName, engine,
           history: chat.slice(-30).map(({ from, text, at }) => ({ from, text, at })),
           selected: about ? 1 : null,
           reminders: listed.map((t) => ({ title: t.title, due: t.due ? new Date(new Date(t.due).getTime() - local.getTimezoneOffset() * 60000).toISOString() : null, ask: t.ask?.text ?? null })),
-        }),
-      })
-      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText)
-      const { reply, followup, actions = [], tasks: found, via } = await r.json()
+      }, { text, said, listed: listed.map((t) => t.id) })
+      return applyReply(json, text, said, listed)
+    } catch (err) {
+      return dumpFailed(err, text, said, listed, about)
+    }
+  }
+
+  // Uses Muse Spark's answer. Also runs for an answer collected after the page reloaded.
+  function applyReply({ reply, followup, actions = [], tasks: found, via }, text, said, listed) {
       showModel(via)
       if (actions.some((a) => a.type === 'undo')) {
         addChat({ from: 'you', text: said })
@@ -589,7 +604,9 @@ export default function HomePage() {
       const line = [reply, changed, savedSummary(saved), limitLine(found.length - saved.length), ask].filter(Boolean).join(' ')
       say(line)
       addChat({ from: 'you', text: said }, { from: 'nudgy', text: line, taskIds: saved.map((t) => t.id) })
-    } catch (err) {
+  }
+
+  function dumpFailed(err, text, said, listed, about) {
       console.warn('[extract] falling back to local parser:', err.message)
       // The local parser only handles simple lists. A reply to Nudgy's question, an @ instruction
       // or a long sentence would just become a junk task, so say so instead.
@@ -607,7 +624,6 @@ export default function HomePage() {
       const line = found.length ? `My brain's offline, so I winged it. ${savedSummary(found)} Check the times.${all.length > found.length ? ` ${limitLine(all.length - found.length)}` : ''}` : all.length ? limitLine(all.length) : nudge
       say(line)
       addChat({ from: 'you', text: said }, { from: 'nudgy', text: line, taskIds: found.map((t) => t.id) })
-    }
   }
 
   idleState.current = { chat, tasks, thinking, name, nudgeModel }

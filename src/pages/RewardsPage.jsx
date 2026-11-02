@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useJobs } from '../lib/jobs.js'
 import { AnimatePresence, motion } from 'framer-motion'
 import Counter from '../components/Counter.jsx'
 import { useStore } from '../lib/store.jsx'
@@ -46,6 +47,10 @@ function BadgeView({ badge, stats, onClose }) {
     setMaking(false)
   }
 
+  // Still drawing from before, even if this was closed or the page reloaded.
+  const jobs = useJobs()
+  const drawing = making || jobs.some((j) => j.kind === 'badge' && j.meta?.badgeId === badge.id)
+
   useEffect(() => {
     if (earned) confettiBurst({ y: window.innerHeight * 0.45, count: 90 })
     const esc = (e) => e.key === 'Escape' && onClose()
@@ -90,7 +95,7 @@ function BadgeView({ badge, stats, onClose }) {
             <div className="h-full rounded-full bg-primary" style={{ width: `${(stats[badge.stat] / badge.goal) * 100}%` }} />
           </div>
         )}
-        {making && <BadgeLoader />}
+        {drawing && <BadgeLoader />}
         {earned && mine && <p className="mt-2 text-xs text-ink/45">Made for {name || 'you'} by Muse Image</p>}
         {earned && (
           <input
@@ -106,10 +111,10 @@ function BadgeView({ badge, stats, onClose }) {
           <button
             type="button"
             onClick={create}
-            disabled={making}
+            disabled={drawing}
             className={`mt-4 min-h-10 w-full rounded-full text-sm font-semibold disabled:opacity-60 ${mine ? 'text-ink/60 hover:bg-ink/5' : 'bg-soft text-ink'}`}
           >
-            {making ? 'Drawing your badge…' : mine ? 'Make a new one' : '✨ Create my badge'}
+            {drawing ? 'Drawing your badge…' : mine ? 'Make a new one' : '✨ Create my badge'}
           </button>
         )}
         {error && <p className="mt-2 text-sm text-accent">{error}</p>}

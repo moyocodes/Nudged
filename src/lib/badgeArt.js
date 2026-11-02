@@ -1,6 +1,7 @@
 // Asks the server (Muse Image) for this user's own version of a badge, then shrinks it so it stays small
 // in storage and sync. Called only when the user taps "Create my badge".
 import { guessPhrase } from './proof.js'
+import { resumeJobs, runJob } from './jobs.js'
 import { showModel } from '../components/ModelTag.jsx'
 
 const hex = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim()
@@ -33,10 +34,17 @@ function shrink(dataUrl, size = 384) {
   })
 }
 
-export async function makeBadgeArt(badgeId, context, { fresh = false } = {}) {
-  const r = await fetch('/api/badge', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ badge: badgeId, context, fresh }) })
-  const json = await r.json().catch(() => ({}))
-  if (!r.ok) throw new Error(json.error || "Couldn't draw that just now.")
+const finishArt = (json) => {
   showModel(json.via)
   return shrink(json.image)
 }
+
+export async function makeBadgeArt(badgeId, context, { fresh = false } = {}) {
+  return finishArt(await runJob('badge', 'Muse Wonder + Muse Image', '/api/badge', { badge: badgeId, context, fresh }, { badgeId }))
+}
+
+// A badge still drawing when the page closed lands here once it's done.
+export const resumeBadges = (setBadgeArt) => resumeJobs('badge', async (json, job) => {
+  const art = await finishArt(json)
+  setBadgeArt((all) => ({ ...all, [job.meta.badgeId]: art }))
+})
