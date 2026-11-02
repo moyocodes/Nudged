@@ -2,6 +2,7 @@
 // When nudges are due: dated tasks at their due time, then further and further apart until Done or Snooze
 // (the tone tops out at level 4); undated tasks once a day at check-in. Sleep hours and snoozes are respected.
 import { canNudge, nextNudgeTime } from './schedule.js'
+import { pickEngine } from './engine.js'
 import { showModel } from '../components/ModelTag.jsx'
 
 export const MAX_LEVEL = 4
@@ -33,7 +34,7 @@ const localIso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).to
 
 // The model picked on the Me page.
 const chosenEngine = () => {
-  try { return JSON.parse(localStorage.getItem('nudgy:nudgeModel')) ?? 'open' } catch { return 'open' }
+  try { return pickEngine(JSON.parse(localStorage.getItem('nudgy:nudgeModel')) ?? 'auto') } catch { return pickEngine('auto') }
 }
 
 // count: how many nudges this task has had before this one.

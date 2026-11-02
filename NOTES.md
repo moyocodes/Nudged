@@ -74,3 +74,6 @@
 - Chat memory: Nudgy now gets the last 30 dated messages, saved across visits and devices, instead of 4, so a new visit carries on the same conversation.
 - Quiet check-in: 15 seconds after typing, talking or a reply with no further activity, Nudgy sends one model-written line that picks the conversation back up, or nudges an unsent draft. Once per burst, and never in a hidden tab.
 - Moved Nudgy's bubble and the model tag to the top of the screen, since at the bottom they covered the chat box, the model switch and Add tasks on phones.
+- Auto model: by default each brain dump, nudge and check-in takes the next model in turn (Baseten, Modal, Meta), so a conversation uses them all and the tag shows each one.
+- Mic status: the model tag and "Connecting…" show the moment the mic is tapped, since connecting takes a moment.
+- Badge loader: while a badge draws, an animation made from Muse Image frames plays with Muse Wonder and Muse Image labels taking turns.

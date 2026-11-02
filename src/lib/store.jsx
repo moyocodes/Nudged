@@ -87,8 +87,8 @@ export function StoreProvider({ children }) {
   const [storyOpen, setStoryOpen] = useState(false)
   // Alarm chime when a nudge fires (lib/alarm.js).
   const [alarmOn, setAlarmOn] = usePersisted('alarmOn', false)
-  // Which model writes nudge lines: 'open' (Muse Spark Open on Baseten), 'modal' (the same on Modal) or 'spark' (Muse Spark on Meta).
-  const [nudgeModel, setNudgeModel] = usePersisted('nudgeModel', 'open')
+  // Which model writes nudge lines: 'auto' (each in turn), 'open' (Muse Spark Open on Baseten), 'modal' (the same on Modal) or 'spark' (Muse Spark on Meta).
+  const [nudgeModel, setNudgeModel] = usePersisted('nudgeModel', 'auto')
   // The device voice Nudgy speaks with; null means the nicest one on this device.
   const [voiceName, setVoiceName] = usePersisted('voiceName', null)
   // Whether the Alarm sound row in "Set Nudgy up" has been answered.

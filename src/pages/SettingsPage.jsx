@@ -151,7 +151,7 @@ export default function SettingsPage() {
         <h2 className="font-display text-xl">Model</h2>
         <p className="mb-3 text-sm text-ink/60">Which Meta model reads your brain dumps and writes your nudges. You can also switch it beside the mic.</p>
         <div role="radiogroup" aria-label="Model" className="flex flex-wrap gap-2">
-          {[['open', 'Muse Spark Open · Baseten'], ['modal', 'Muse Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
+          {[['auto', 'Auto: each in turn'], ['open', 'Muse Spark Open · Baseten'], ['modal', 'Muse Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
             <button
               key={value}
               type="button"

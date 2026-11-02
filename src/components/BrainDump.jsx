@@ -24,6 +24,7 @@ export default function BrainDump({ onActivity, onSubmit, reminders = [], about,
   const [text, setText] = useState('')
   const [interim, setInterim] = useState('')
   const [listening, setListening] = useState(false)
+  const [connecting, setConnecting] = useState(false)
   const [micError, setMicError] = useState('')
   useEffect(() => {
     holdNudges(listening || thinking > 0)
@@ -92,6 +93,9 @@ export default function BrainDump({ onActivity, onSubmit, reminders = [], about,
   async function toggleMic() {
     if (listening) return stopMic()
     setMicError('')
+    // Shown at once, since the mic and the connection take a moment.
+    showModel('Muse Voice Transcribe · Meta')
+    setConnecting(true)
     try {
       setListening(true)
       stopRef.current = await startTranscribing({
@@ -109,7 +113,9 @@ export default function BrainDump({ onActivity, onSubmit, reminders = [], about,
           setInterim('')
         },
       })
+      setConnecting(false)
     } catch (e) {
+      setConnecting(false)
       setListening(false)
       setMicError(e.name === 'NotAllowedError' ? 'Mic access was blocked.' : e.message)
     }
@@ -205,7 +211,7 @@ export default function BrainDump({ onActivity, onSubmit, reminders = [], about,
       />
       <div role="radiogroup" aria-label="Model" className="mb-2 flex flex-wrap items-center gap-1.5 px-1">
         <span className="text-xs font-semibold text-ink/50">Model</span>
-        {[['open', 'Spark Open · Baseten'], ['modal', 'Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
+        {[['auto', 'Auto'], ['open', 'Spark Open · Baseten'], ['modal', 'Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
           <button
             key={value}
             type="button"
@@ -250,7 +256,7 @@ export default function BrainDump({ onActivity, onSubmit, reminders = [], about,
             : !canRecord
               ? "Your browser can't record. Type instead."
               : listening
-                ? 'Listening… say "send" when you\'re done.'
+                ? connecting ? 'Connecting to Muse Voice Transcribe…' : 'Listening… say "send" when you\'re done.'
                 : 'Talk or type. Enter sends.'}
         </p>
         <Button size="sm" onClick={() => submit()} disabled={!text.trim()}>

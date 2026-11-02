@@ -16,6 +16,7 @@ import { showModel } from '../components/ModelTag.jsx'
 import { BellIcon, ChevronIcon, TrophyIcon } from '../components/Icons.jsx'
 import { SNOOZE_OPTIONS, holdNudges, makeNudge } from '../lib/nudges.js'
 import { ALARM_MS, playAlarm } from '../lib/alarm.js'
+import { pickEngine } from '../lib/engine.js'
 
 
 // What Nudgy says while the model reads a brain dump. One at random each time.
@@ -367,7 +368,7 @@ export default function HomePage() {
       const r = await fetch('/api/checkin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ draft, name, engine: nudgeModel, history: chat.slice(-30).map(({ from, text, at }) => ({ from, text, at })), reminders: tasks.filter((t) => !t.done).map((t) => t.title) }),
+        body: JSON.stringify({ draft, name, engine: pickEngine(nudgeModel), history: chat.slice(-30).map(({ from, text, at }) => ({ from, text, at })), reminders: tasks.filter((t) => !t.done).map((t) => t.title) }),
       })
       const json = await r.json()
       if (!r.ok || !json.text) return
@@ -542,7 +543,7 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text, now, name, buddy: buddyName, engine: nudgeModel,
+          text, now, name, buddy: buddyName, engine: pickEngine(nudgeModel),
           history: chat.slice(-30).map(({ from, text, at }) => ({ from, text, at })),
           selected: about ? 1 : null,
           reminders: listed.map((t) => ({ title: t.title, due: t.due ? new Date(new Date(t.due).getTime() - local.getTimezoneOffset() * 60000).toISOString() : null, ask: t.ask?.text ?? null })),
