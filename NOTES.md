@@ -62,3 +62,4 @@
 - Modal: Muse Spark Open on a Modal shared endpoint is now a third Nudge voice choice, billed per token, falling back to Muse Spark if it fails.
 - Clearer nudges: lines like "don't let it be an oat-mission" took effort to read, so the prompt now asks for plain words that make sense on first read, with no twisted puns.
 - Docs: the README and demo script now name the problem statement and what was built during the hackathon, and cover email reminders, Nudge voice, Modal and the model tag.
+- Plan my day: Muse Spark runs as an agent, one tool per step and at most 5 calls, with the server refusing past, sleep-hour and clashing times so it has to try again. Each step shows on Today and the run can be undone.

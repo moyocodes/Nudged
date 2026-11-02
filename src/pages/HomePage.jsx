@@ -14,7 +14,7 @@ import Story from '../components/Story.jsx'
 import Mascot from '../components/Mascot.jsx'
 import { showModel } from '../components/ModelTag.jsx'
 import { BellIcon, ChevronIcon, TrophyIcon } from '../components/Icons.jsx'
-import { SNOOZE_OPTIONS } from '../lib/nudges.js'
+import { SNOOZE_OPTIONS, holdNudges } from '../lib/nudges.js'
 
 
 // What Nudgy says while the model reads a brain dump. One at random each time.
@@ -321,7 +321,7 @@ function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upc
 }
 
 export default function HomePage() {
-  const { name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
+  const { schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
   const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen)
   const [askingProof, setAskingProof] = useState(false)
   const [snoozingBanner, setSnoozingBanner] = useState(false)
@@ -350,6 +350,34 @@ export default function HomePage() {
     const line = 'Undone. Like it never happened.'
     say(line)
     addChat({ from: 'nudgy', text: line })
+  }
+
+  // Plan my day: the agent works on a copy on the server, and its changes land here in one undoable go.
+  const [planning, setPlanning] = useState(false)
+  const [plan, setPlan] = useState(null)
+  async function planMyDay() {
+    const localTime = (d) => new Date(new Date(d).getTime() - new Date(d).getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+    // Recurring reminders keep their own slots.
+    const movable = tasks.filter((t) => !t.done && !t.repeat)
+    const reminders = movable.map((t, i) => ({ n: i + 1, id: t.id, title: t.title, due: t.due ? localTime(t.due) : null, priority: t.priority ?? 'medium' }))
+    if (!reminders.length) return say('Nothing to plan. Enjoy it while it lasts.')
+    setPlanning(true)
+    holdNudges(true)
+    try {
+      const r = await fetch('/api/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reminders, schedule, now: localTime(new Date()) }) })
+      const json = await r.json()
+      if (!r.ok) throw new Error(json.error)
+      showModel(json.via)
+      if (json.changes.length) setLastChange({ before: tasks, points })
+      json.changes.forEach((c) => updateTask(c.id, { due: c.due ? new Date(c.due).toISOString() : null, priority: c.priority, snoozedUntil: null }))
+      setPlan(json)
+      say(json.summary)
+    } catch (err) {
+      say(err.message || "Couldn't plan just now. Try again in a bit.")
+    } finally {
+      holdNudges(false)
+      setPlanning(false)
+    }
   }
 
   // Applies the model's actions on existing reminders and describes what really changed.
@@ -650,6 +678,33 @@ export default function HomePage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {open.length > 0 && (
+        <div className={card}>
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold">Plan my day</h2>
+              <p className="text-xs text-ink/50">Nudgy's agent sorts out overdue and clashing reminders, step by step.</p>
+            </div>
+            <button type="button" disabled={planning} onClick={planMyDay} className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-60">
+              {planning ? 'Planning…' : 'Plan it'}
+            </button>
+          </div>
+          {plan && (
+            <div className="mt-3 border-t-[length:var(--bw)] border-line pt-3">
+              <ol className="space-y-2">
+                {plan.steps.map((s, i) => (
+                  <li key={i} className="text-sm leading-snug">
+                    <span className="font-medium">{i + 1}. {s.thought}</span>
+                    <span className="block text-xs text-ink/50">{s.result}</span>
+                  </li>
+                ))}
+              </ol>
+              <p className="mt-2 text-sm font-semibold">{plan.summary}</p>
+            </div>
+          )}
+        </div>
+      )}
 
       <BrainDump
         onSubmit={handleDump}

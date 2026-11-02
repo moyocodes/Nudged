@@ -7,6 +7,7 @@ import OpenAI from 'openai'
 import { WebSocket, WebSocketServer } from 'ws'
 import { deviceFor, mountAuth, requireSession } from './auth.js'
 import { mountReminders } from './reminders.js'
+import { planDay } from './plan.js'
 import { findInPhoto } from './sam.js'
 import { BADGE_IDS, badgePrompt, generateImage } from './image.js'
 
@@ -241,6 +242,24 @@ app.post('/api/proof', requireSession, async (req, res) => {
   } catch (err) {
     console.error('[proof]', err.message)
     res.status(502).json({ error: err.message })
+  }
+})
+
+// The "Plan my day" button: the agent loop is in plan.js. Each step is one Muse Spark call.
+app.post('/api/plan', requireSession, async (req, res) => {
+  const { reminders, schedule, now } = req.body ?? {}
+  const model = process.env.MODEL_NAME
+  if (!Array.isArray(reminders) || !reminders.length || typeof now !== 'string') return res.status(400).json({ error: 'Nothing to plan' })
+  try {
+    const ask = async (instructions, input) => {
+      const r = await getClient().responses.create({ model, instructions, input, max_output_tokens: 2000, reasoning: { effort: 'low' } })
+      console.log(`[usage] step=plan model=${model} input_tokens=${r.usage?.input_tokens} output_tokens=${r.usage?.output_tokens}`)
+      return r.output_text ?? ''
+    }
+    res.json({ ...(await planDay({ reminders: reminders.slice(0, 30), schedule, now, ask })), via: 'Muse Spark · Agent' })
+  } catch (err) {
+    console.error('[plan]', err.message)
+    res.status(502).json({ error: "Couldn't plan just now. Try again in a bit." })
   }
 })
 
