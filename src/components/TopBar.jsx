@@ -21,7 +21,7 @@ export default function TopBar() {
             type="button"
             onClick={() => (key !== 'default' ? navigate(-1) : navigate('/'))}
             aria-label="Back"
-            className="-ml-2 grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink/70 hover:bg-ink/5 hover:text-ink"
+            className="-ml-1 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ink text-bg shadow-btn"
           >
             <ChevronIcon size={22} className="rotate-90" />
           </button>

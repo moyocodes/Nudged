@@ -85,3 +85,4 @@
 - Clearer check-ins: the 15-second check-in was only a passing bubble, so the chat box now counts down to it, and it arrives with the chime and a card to answer.
 - Check-in card: the label squeezed the message into a thin column and the model tag covered it in full-screen chat, so the label now has its own line and the tag moves to the header there.
 - Restyle Nudgy: describe a look on the Me page and Muse Wonder and Muse Image redraw the mascot across the app, with the background cut away. A picture can't move its mouth, so it bounces while talking.
+- Brain dump drawer: the full-screen chat is now a side drawer over the dimmed page, and tapping outside closes it. The close and back buttons were faint, so they're now solid and larger.

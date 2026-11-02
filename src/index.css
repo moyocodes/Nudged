@@ -168,6 +168,13 @@ body {
   color: var(--primary);
 }
 
+@keyframes drawer-in {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.drawer-in { animation: drawer-in 0.26s cubic-bezier(0.23, 1, 0.32, 1); }
+@media (prefers-reduced-motion: reduce) { .drawer-in { animation: none; } }
+
 @keyframes wiggle {
   0%, 100% { transform: rotate(-5deg); }
   50% { transform: rotate(5deg); }

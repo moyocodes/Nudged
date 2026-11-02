@@ -143,19 +143,20 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
 
   return (
     <>
+    {full && <button type="button" aria-label="Close brain dump" onClick={() => setFull(false)} className="fixed inset-0 z-[59] cursor-default bg-ink/40" />}
     <section
       ref={boxRef}
       style={full && viewport ? { top: viewport.top, height: viewport.height, bottom: 'auto', paddingTop: 'max(0.75rem, env(safe-area-inset-top))' } : undefined}
       className={
         full
-          ? 'fixed inset-x-0 top-0 bottom-0 z-[60] mx-auto flex max-w-2xl flex-col bg-surface p-4 pt-3 shadow-card sm:rounded-b-3xl'
+          ? 'drawer-in fixed right-0 top-0 bottom-0 z-[60] flex w-[min(92vw,28rem)] flex-col rounded-l-3xl bg-surface p-4 pt-3 shadow-card'
           : 'relative rounded-3xl bg-surface p-3 shadow-card border-[length:var(--bw)] border-line focus-within:border-primary/40'
       }
     >
       <label htmlFor="dump" className="sr-only">
         Dump everything on your mind
       </label>
-      <div className={`flex items-center justify-between ${full ? 'mb-2' : 'absolute right-2 top-2'}`}>
+      <div className={`flex items-center justify-between ${full ? 'mb-9' : 'absolute right-2 top-2'}`}>
         {full && <span className="font-display text-xl">Brain dump</span>}
         <button
           type="button"
@@ -165,9 +166,11 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
             setFull(true)
             inputRef.current?.focus({ preventScroll: true })
           }}
-          aria-label={full ? 'Close full screen' : 'Open full screen'}
-          title={full ? 'Close (Esc)' : 'Full screen'}
-          className="grid h-8 w-8 place-items-center rounded-full text-ink/40 hover:bg-ink/5 hover:text-ink"
+          aria-label={full ? 'Close brain dump' : 'Open brain dump'}
+          title={full ? 'Close (Esc)' : 'Open larger'}
+          className={full
+            ? 'grid h-11 w-11 place-items-center rounded-full bg-ink text-2xl leading-none text-bg shadow-btn'
+            : 'grid h-8 w-8 place-items-center rounded-full text-ink/40 hover:bg-ink/5 hover:text-ink'}
         >
           {full ? '×' : '⤢'}
         </button>
