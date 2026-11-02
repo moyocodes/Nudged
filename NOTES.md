@@ -65,3 +65,4 @@
 - Plan my day: Muse Spark runs as an agent, one tool per step and at most 5 calls, with the server refusing past, sleep-hour and clashing times so it has to try again. Each step shows on Today and the run can be undone.
 - Muse Wonder: it now writes the art direction for personal badges, with Muse Image drawing them. Falls back to the plain brief if the call fails.
 - Removed the Muse Glimmer router: no Fireworks credits came through, so plain chat goes to Muse Spark like everything else, and the open-weights work is Muse Spark Open on Baseten and Modal.
+- Hear me say it: the button only switched the voice setting on, so the line on screen stayed silent, and mute blocked it too. The tap now unmutes and speaks that line straight away.

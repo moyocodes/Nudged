@@ -11,7 +11,7 @@ if (canSpeak) window.speechSynthesis.getVoices()
 // Nudgy as an on-screen buddy: pops up from the corner, talks in a bubble (mouth moving),
 // and reads the line aloud with the browser's own voice when sound is on. No model calls.
 export default function Buddy() {
-  const { buddy, setBuddy, voiceOn, setVoiceOn, muted } = useStore()
+  const { buddy, setBuddy, voiceOn, setVoiceOn, muted, setMuted } = useStore()
   const [talking, setTalking] = useState(false)
 
   useEffect(() => {
@@ -56,6 +56,25 @@ export default function Buddy() {
     }
   }, [buddy]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The tap itself has to start the speech (phones block it otherwise), and it reads the line already on screen.
+  function toggleVoice() {
+    const synth = window.speechSynthesis
+    if (voiceOn && !muted) {
+      setVoiceOn(false)
+      synth.cancel()
+      return
+    }
+    setVoiceOn(true)
+    setMuted(false)
+    synth.cancel()
+    const line = new SpeechSynthesisUtterance(buddy.text)
+    line.rate = 1.05
+    line.pitch = 1.25
+    line.volume = getVolume() || 1
+    synth.resume()
+    synth.speak(line)
+  }
+
   return (
     <AnimatePresence>
       {buddy && (
@@ -81,10 +100,10 @@ export default function Buddy() {
             {canSpeak && (
               <button
                 type="button"
-                onClick={() => setVoiceOn((v) => !v)}
+                onClick={toggleVoice}
                 className="mt-1 text-[11px] font-semibold text-ink/45 hover:text-ink"
               >
-                {voiceOn ? 'Sound on · mute' : 'Hear me say it'}
+                {voiceOn && !muted ? 'Sound on · mute' : 'Hear me say it'}
               </button>
             )}
           </motion.div>
