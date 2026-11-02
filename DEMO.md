@@ -6,7 +6,7 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 ## Before you hit record
 
 - Fresh browser profile (or incognito), Chill or Cheeky theme, app at the deployed URL (or http://localhost:5173).
-- Confirm the open-weights engine is on where you record: `NUDGE_ENGINE=open`, `OPEN_BASE_URL`, `OPEN_API_KEY` and `OPEN_MODEL=meta-models/muse-spark-open`. The server log should show `engine=open` on a nudge.
+- Confirm the open-weights engine is on where you record: `NUDGE_ENGINE=open`, `OPEN_BASE_URL`, `OPEN_API_KEY` and `OPEN_MODEL=meta-models/muse-spark-open-1026`. The server log should show `engine=open` on a nudge.
 - Enter a name, skip the tutorial, close the daily rundown.
 - Add one task with **Photo proof** on, due a minute ago: "Buy oat milk". Earn one badge beforehand so "Create my badge" is ready.
 - Log in to sync on the laptop; have your phone logged in to the same email.

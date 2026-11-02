@@ -54,3 +54,4 @@
 - Reminder email schedule: when due, then gaps of 30, 60, 120 and 240 minutes, and one morning email with the day's list. Sends are claimed in the database first, so a deploy overlap can't send one twice.
 - Overdue banner on opening: Done and Snooze only showed after a nudge fired, up to a minute after opening and not at all if the newest nudge's task was finished. The banner now comes from the overdue reminders themselves, with no model call.
 - Baseten model name: OPEN_MODEL had a dated name Baseten no longer lists, so every nudge fell back to Muse Spark without showing an error. It now uses meta-models/muse-spark-open.
+- Baseten model name back to meta-models/muse-spark-open-1026, the name the hackathon asks for. The 404 came from a key without access to it, not from the name, so the earlier change was wrong. A key with the free credits works.

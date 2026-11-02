@@ -29,7 +29,7 @@ services:
       - key: OPEN_BASE_URL
         value: https://inference.baseten.co/v1
       - key: OPEN_MODEL
-        value: meta-models/muse-spark-open
+        value: meta-models/muse-spark-open-1026
       - key: OPEN_API_KEY
         sync: false
       - key: ROUTER_MODEL
