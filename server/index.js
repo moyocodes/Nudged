@@ -177,7 +177,7 @@ app.post('/api/extract', requireSession, async (req, res) => {
       throw new Error(`Model returned no JSON (status ${r.status}${r.incomplete_details ? `, ${r.incomplete_details.reason}` : ''})`)
     }
     const json = JSON.parse(r.output_text.slice(r.output_text.indexOf('{'), r.output_text.lastIndexOf('}') + 1))
-    const result = { reply: String(json.reply ?? ''), followup: typeof json.followup === 'string' ? json.followup.slice(0, 200) : '', actions: cleanActions(json.actions, listCount), tasks: (Array.isArray(json.tasks) ? json.tasks : []).map(cleanTask).filter(Boolean), via: 'Muse Spark' }
+    const result = { reply: String(json.reply ?? ''), followup: typeof json.followup === 'string' ? json.followup.slice(0, 200) : '', actions: cleanActions(json.actions, listCount), tasks: (Array.isArray(json.tasks) ? json.tasks : []).map(cleanTask).filter(Boolean), via: 'Muse Spark · Meta' }
     extractCache.set(key, result)
     res.json(result)
   } catch (err) {
@@ -192,7 +192,7 @@ app.post('/api/proof', requireSession, async (req, res) => {
   const what = typeof phrase === 'string' ? phrase.trim().slice(0, 80) : ''
   if (!what || typeof image !== 'string') return res.status(400).json({ error: 'Need a photo and what to look for' })
   try {
-    res.json({ ...(await findInPhoto({ image, phrase: what })), via: 'SAM 3.1' })
+    res.json({ ...(await findInPhoto({ image, phrase: what })), via: 'SAM 3.1 · Meta' })
   } catch (err) {
     console.error('[proof]', err.message)
     res.status(502).json({ error: err.message })
@@ -210,7 +210,7 @@ app.post('/api/plan', requireSession, async (req, res) => {
       console.log(`[usage] step=plan model=${model} input_tokens=${r.usage?.input_tokens} output_tokens=${r.usage?.output_tokens}`)
       return r.output_text ?? ''
     }
-    res.json({ ...(await planDay({ reminders: reminders.slice(0, 30), schedule, now, ask })), via: 'Muse Spark · Agent' })
+    res.json({ ...(await planDay({ reminders: reminders.slice(0, 30), schedule, now, ask })), via: 'Muse Spark Agent · Meta' })
   } catch (err) {
     console.error('[plan]', err.message)
     res.status(502).json({ error: "Couldn't plan just now. Try again in a bit." })
@@ -234,7 +234,7 @@ function takeImageSlot() {
 // small details drawn from what the user really did. One short call per new badge; if it fails, the plain brief is used.
 const ART_PROMPT = `You write prompts for an image model. From the badge brief, write ONE vivid prompt, max 90 words: a single round sticker badge, flat vector style with a thick dark outline, cheeky and warm. Say what is in the middle, what small details sit around it (drawn from the user's tasks), the lighting, and the mood. Keep the brief's colours. No text, letters or numbers anywhere in the picture. Reply with the prompt only.`
 const NO_TEXT = ' No text, no letters, no numbers.'
-const artVia = () => (process.env.WONDER_MODEL_NAME ? 'Muse Wonder + Muse Image' : 'Muse Spark + Muse Image')
+const artVia = () => (process.env.WONDER_MODEL_NAME ? 'Muse Wonder + Muse Image · Meta' : 'Muse Spark + Muse Image · Meta')
 async function writeArtPrompt(brief) {
   const model = process.env.WONDER_MODEL_NAME || process.env.MODEL_NAME
   if (!model || !process.env.MODEL_API_KEY) return brief
@@ -343,7 +343,7 @@ app.post('/api/nudge', requireSession, async (req, res) => {
     console.log(`[usage] model=${model} input_tokens=${r.usage?.input_tokens} output_tokens=${r.usage?.output_tokens}`)
     const text = r.output_text?.trim().replace(/^"|"$/g, '')
     if (!text) throw new Error(`Model returned no text (status ${r.status}${r.incomplete_details ? `, ${r.incomplete_details.reason}` : ''})`)
-    res.json({ text, engine: 'spark', via: 'Muse Spark' })
+    res.json({ text, engine: 'spark', via: 'Muse Spark · Meta' })
   } catch (err) {
     console.error('[nudge]', err.message)
     res.status(502).json({ error: err.message })

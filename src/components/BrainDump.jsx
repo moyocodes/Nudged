@@ -98,7 +98,7 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
         onPartial: setInterim,
         onFinal: (phrase) => {
           setInterim('')
-          showModel('Muse Voice Transcribe')
+          showModel('Muse Voice Transcribe · Meta')
           const joined = `${textRef.current} ${phrase}`.replace(/\s+/g, ' ').trimStart()
           if (SEND_PHRASE.test(phrase)) submit(joined.replace(SEND_PHRASE, ''))
           else setText(joined)

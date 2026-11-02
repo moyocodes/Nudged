@@ -68,3 +68,4 @@
 - Hear me say it: the button only switched the voice setting on, so the line on screen stayed silent, and mute blocked it too. The tap now unmutes and speaks that line straight away.
 - Sound fixes: phones lock sound again after a reload, so the chime only ever worked right after tapping Allow. Any tap now unlocks the chime and voice, and Nudge me chimes and speaks. The chime is now compulsory on every nudge, with no setting or mute.
 - Try a nudge: a first-timer had no way to hear a nudge before one came due, so Today offers a real one on demand until they've had their first.
+- Model tag names the host everywhere: calls straight to Meta said just "Muse Spark", which read as if the host was missing, so they now say "· Meta" like Baseten and Modal do.
