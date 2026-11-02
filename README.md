@@ -55,7 +55,6 @@ Model output is never trusted blindly. The server drops tasks with no title, tur
    - `SAM_MODEL_NAME`, `IMAGE_MODEL_NAME` and `WONDER_MODEL_NAME`: for photo proof and badge art
    - `NUDGE_ENGINE=open` plus `OPEN_BASE_URL`, `OPEN_API_KEY`, `OPEN_MODEL` (optional): nudges from Muse Spark Open
    - `MODAL_BASE_URL`, `MODAL_API_KEY`, `MODAL_MODEL` (optional): the Modal choice for nudges
-   - `ROUTER_API_KEY` and `ROUTER_MODEL` (optional): Muse Glimmer on Fireworks reads each chat message first. Plain chat ("hey", "thanks") gets its reply from Glimmer; anything that might be a reminder goes to Muse Spark. Off, unsure or failing, everything goes to Muse Spark.
    - `DATABASE_URL` (optional): Postgres (`postgresql://…`) or MySQL (`mysql://…`). Without it, data goes in `server/data/db.json`.
    - `RESEND_API_KEY` (optional): sends welcome, login, reminder and done emails. Without it, none of these go out.
 3. `npm run dev` starts Express (port 3001) and Vite (port 5173).

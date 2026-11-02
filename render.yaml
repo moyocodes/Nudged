@@ -41,10 +41,6 @@ services:
         sync: false
       - key: MODAL_MODEL
         value: meta-models/Muse-Spark-Open-816B-A42B
-      - key: ROUTER_MODEL
-        sync: false
-      - key: ROUTER_API_KEY
-        sync: false
       - key: DATABASE_URL
         sync: false
       - key: RESEND_API_KEY

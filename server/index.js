@@ -70,7 +70,7 @@ const extractCache = new Map()
 // What the user calls their Nudgy ("Moyo's Nudgy"): plain words only, so it can't smuggle instructions in.
 const cleanBuddy = (b) => String(b ?? '').replace(/["\\\n\r]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24)
 // Which host serves an open-weights model, read from its base URL, for the "via" label the app shows.
-const hostOf = (url) => (/baseten/.test(url) ? 'Baseten' : /fireworks/.test(url) ? 'Fireworks' : /modal/.test(url) ? 'Modal' : 'open weights')
+const hostOf = (url) => (/baseten/.test(url) ? 'Baseten' : /modal/.test(url) ? 'Modal' : 'open weights')
 const withBuddy = (prompt, buddy) => (buddy && buddy !== 'Nudgy' ? prompt.replace('You are Nudgy', `You are Nudgy, whom the user calls "${buddy}"`) : prompt)
 
 // Models are bad at weekday arithmetic, so when the text mentions a day or date we hand over a calendar.
@@ -134,41 +134,6 @@ function cleanRepeat(repeat) {
   return slots.length ? slots : null
 }
 
-// The router: Muse Glimmer on Fireworks, serverless and paid per token. On with ROUTER_API_KEY and ROUTER_MODEL.
-// It sorts each chat message: plain chat ("hey", "thanks") is answered here; anything that might add, change
-// or finish a reminder goes to Muse Spark. When unsure, or if the call fails, it's Muse Spark as before.
-const ROUTER_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy (never flirty, mean or medical). Sort the user's message.
-Return ONLY JSON: {"route":"chat","reply":str} or {"route":"spark"}.
-- chat: greetings, thanks, small talk, questions about you, with nothing to remember, add, change, finish, snooze or delete. reply: one witty sentence using their name.
-- spark: anything else, including anything that might be a task, plan, date, time or update. When unsure, spark.`
-
-let routerClient
-const routerEnabled = () => !!process.env.ROUTER_API_KEY && !!process.env.ROUTER_MODEL
-
-async function routeMessage(text, name, buddy, recent) {
-  routerClient ??= new OpenAI({ baseURL: process.env.ROUTER_BASE_URL || 'https://api.fireworks.ai/inference/v1', apiKey: process.env.ROUTER_API_KEY })
-  try {
-    const r = await routerClient.chat.completions.create({
-      model: process.env.ROUTER_MODEL,
-      messages: [
-        { role: 'system', content: withBuddy(ROUTER_PROMPT, buddy) },
-        { role: 'user', content: `name: ${name || 'friend'}\n${recent ? `recent chat:\n${recent}\n` : ''}text: ${text}` },
-      ],
-      max_tokens: 1000,
-      reasoning_effort: 'low',
-    })
-    console.log(`[usage] step=router model=${process.env.ROUTER_MODEL} input_tokens=${r.usage?.prompt_tokens} output_tokens=${r.usage?.completion_tokens}`)
-    const out = r.choices?.[0]?.message?.content ?? ''
-    const json = JSON.parse(out.slice(out.indexOf('{'), out.lastIndexOf('}') + 1))
-    console.log(`[router] ${json.route}`)
-    if (json.route !== 'chat' || typeof json.reply !== 'string' || !json.reply.trim()) return null
-    return { reply: json.reply.trim().slice(0, 300), followup: '', actions: [], tasks: [], via: `Muse Glimmer · ${hostOf(process.env.ROUTER_BASE_URL || 'fireworks')}` }
-  } catch (err) {
-    console.error('[router]', err.message)
-    return null
-  }
-}
-
 app.post('/api/extract', requireSession, async (req, res) => {
   const { text, now, name, history, reminders, selected } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
@@ -196,17 +161,6 @@ app.post('/api/extract', requireSession, async (req, res) => {
 
   const key = `${String(now).slice(0, 10)}|${name}|${buddy}|${recent}|${list.join(';')}|${pick}|${text.trim().toLowerCase()}`
   if (extractCache.has(key)) return res.json(extractCache.get(key))
-
-  // Muse Glimmer reads the message first. Plain chat gets its reply right there; anything that might be a
-  // reminder goes on to Muse Spark. Skipped while a question is waiting or a reminder is selected, since the
-  // answer then edits the list.
-  if (routerEnabled() && !pick && !list.some((l) => l.includes('[asked:'))) {
-    const routed = await routeMessage(text.trim(), name, buddy, recent)
-    if (routed) {
-      extractCache.set(key, routed)
-      return res.json(routed)
-    }
-  }
 
   try {
     const r = await getClient().responses.create({
@@ -324,8 +278,8 @@ app.post('/api/badge', requireSession, async (req, res) => {
 const NUDGE_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy. Never flirty, mean or medical, and never label the person (no "procrastinator" or "lazy"): joke about the task or yourself. No pet names (love, gorgeous, babe, darling, sweetie) and no winks or kissy emoji.
 Write ONE reminder line, max 20 words, to the user by name about their task. Say it in plain everyday words, like a funny friend texting, so it makes sense on first read. Name the task clearly. No twisted words or forced puns; a joke only if it's instantly obvious. Don't mention nudges or levels. Level 1 is light, 4 is dramatic and over the top. Reply with the line only.`
 
-// Nudge lines can come from an open-weights Meta model (Muse Spark Open or Muse Glimmer) hosted on Modal, Baseten
-// or Fireworks, through an OpenAI-style chat endpoint. Turned on with NUDGE_ENGINE=open plus OPEN_BASE_URL,
+// Nudge lines can come from an open-weights Meta model (Muse Spark Open) hosted on Modal or Baseten,
+// through an OpenAI-style chat endpoint. Turned on with NUDGE_ENGINE=open plus OPEN_BASE_URL,
 // OPEN_API_KEY and OPEN_MODEL. If it fails, the nudge falls back to Muse Spark, so a nudge is never lost.
 const openEnabled = () => process.env.NUDGE_ENGINE === 'open' && !!process.env.OPEN_BASE_URL && !!process.env.OPEN_API_KEY && !!process.env.OPEN_MODEL
 // Muse Spark Open on Modal too, for anyone who picks it on the Me page. On with MODAL_BASE_URL, MODAL_API_KEY and MODAL_MODEL.
