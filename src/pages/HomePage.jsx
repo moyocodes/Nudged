@@ -617,7 +617,7 @@ export default function HomePage() {
             className="flex items-center gap-3 rounded-2xl border-[length:var(--bw)] border-line bg-soft/60 px-4 py-3"
           >
             <BellIcon size={18} className="shrink-0 text-primary" />
-            <Link to="/nudges" className="min-w-0 flex-1 text-sm leading-snug">{bannerNudge?.text ?? `Psst, "${bannerTask.title}" is overdue. Done, or snooze?`}</Link>
+            <Link to="/nudges" className="min-w-0 flex-1 text-sm leading-snug">{bannerNudge?.text ?? `Psst, "${bannerTask.title}" is overdue. Done, or snooze?`}{bannerNudge?.via && <span className="mt-0.5 block text-xs font-semibold text-primary">⚡ {bannerNudge.via}</span>}</Link>
             {/* Proof tasks ask first, same as the task card. */}
             {askingProof ? (
               <span className="flex shrink-0 items-center gap-1">

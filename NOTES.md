@@ -56,4 +56,5 @@
 - Baseten model name: OPEN_MODEL had a dated name Baseten no longer lists, so every nudge fell back to Muse Spark without showing an error. It now uses meta-models/muse-spark-open.
 - Baseten model name back to meta-models/muse-spark-open-1026, the name the hackathon asks for. The 404 came from a key without access to it, not from the name, so the earlier change was wrong. A key with the free credits works.
 - Nudge tone: Muse Spark Open slipped in "love" and "gorgeous" on a bare test prompt, so the nudge prompt now rules out pet names and winks by name.
+- Model tag stays up: it vanished after 4 seconds, too easy for judges to miss. It now stays until the next call and survives a reload, and each model-written nudge shows its model on the Today banner and Nudges page.
 - Baseten nudges: reasoning used the whole 1000 tokens and cut a line off mid-sentence, so calls now ask for low reasoning and a cut-off line falls back to Muse Spark.

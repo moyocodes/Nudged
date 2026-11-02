@@ -36,6 +36,7 @@ export default function NudgeBubble({ nudge, task, onDone, onSnooze }) {
           {time && <span className="ml-auto shrink-0 tabular-nums text-ink/40">{time}</span>}
         </div>
         <p className={`mt-1 text-[15px] leading-snug ${actionable ? '' : 'text-ink/60'}`}>{nudge.text}</p>
+        {nudge.via && <p className="mt-1 text-xs font-semibold text-primary">⚡ {nudge.via}</p>}
         {actionable && !asking && !snoozing && (
           <div className="mt-3 flex gap-2">
             {onDone && (

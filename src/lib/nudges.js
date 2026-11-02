@@ -39,6 +39,7 @@ export async function makeNudge(task, level, name, count = 0, buddy = 'Nudgy') {
     text = SHOVES[count % SHOVES.length](who, task.title)
     return { id: `p${Date.now()}`, taskId: task.id, level, text, at: new Date().toISOString() }
   }
+  let via
   try {
     const r = await fetch('/api/nudge', {
       method: 'POST',
@@ -48,12 +49,13 @@ export async function makeNudge(task, level, name, count = 0, buddy = 'Nudgy') {
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText)
     const json = await r.json()
     text = json.text
-    showModel(json.via)
+    via = json.via
+    showModel(via)
   } catch (err) {
     console.warn('[nudge] using backup line:', err.message)
     text = BACKUP_LINES[level](who, task.title)
   }
-  return { id: `p${Date.now()}`, taskId: task.id, level, text, at: new Date().toISOString() }
+  return { id: `p${Date.now()}`, taskId: task.id, level, text, via, at: new Date().toISOString() }
 }
 
 function at(date, hhmm) {
