@@ -82,3 +82,4 @@
 - Background work: brain dumps, Plan my day and badges now finish on the server if the page reloads or the connection drops. The app collects the result when it's back, and the top tag and badge loader show it's still working.
 - Docs: the README and demo script now cover the model switch and Auto, chat memory, quiet check-ins, the photo second look, background work, the badge loader and the voice picker.
 - Rundown on login: a fresh login always opens Today's rundown, whatever the rundown setting, once the account's data has loaded.
+- Clearer check-ins: the 15-second check-in was only a passing bubble, so the chat box now counts down to it, and it arrives with the chime and a card to answer.

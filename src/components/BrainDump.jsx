@@ -19,7 +19,26 @@ const isPhone = () => window.matchMedia('(max-width: 639px)').matches
 // thinking: how many dumps Nudgy is still working on; they run in the background.
 // Full screen: automatic when typing on a phone, or via the expand button anywhere.
 // question: Nudgy's open question about a reminder; answer it here in plain words.
-export default function BrainDump({ onActivity, onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
+// Counts down to Nudgy's check-in, so it's clear one is coming.
+function QuietTimer({ until }) {
+  const [now, setNow] = useState(Date.now())
+  useEffect(() => {
+    setNow(Date.now())
+    const id = setInterval(() => setNow(Date.now()), 250)
+    return () => clearInterval(id)
+  }, [until])
+  const left = Math.max(0, until - now)
+  return (
+    <div className="mb-2 px-1" role="timer">
+      <p className="text-xs font-semibold text-primary">Go quiet and I'll check in: {Math.ceil(left / 1000)}s</p>
+      <div className="mt-1 h-1 overflow-hidden rounded-full bg-ink/10">
+        <div className="h-full rounded-full bg-primary transition-[width] duration-200" style={{ width: `${(left / 15000) * 100}%` }} />
+      </div>
+    </div>
+  )
+}
+
+export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nudgy:', onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
   const { muted, nudgeModel, setNudgeModel } = useStore()
   const [text, setText] = useState('')
   const [interim, setInterim] = useState('')
@@ -154,7 +173,7 @@ export default function BrainDump({ onActivity, onSubmit, reminders = [], about,
       </div>
       {question && !about && (
         <p className="mb-1 flex items-start gap-2 rounded-2xl rounded-bl-md bg-soft px-3 py-2 pr-9 text-sm leading-snug">
-          <span className="shrink-0 font-semibold text-primary">Nudgy:</span>
+          <span className="shrink-0 font-semibold text-primary">{questionLabel}</span>
           <span className="flex-1">{question}</span>
           {onDismissQuestion && (
             <button type="button" onClick={onDismissQuestion} className="-my-1 shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-ink/50 hover:bg-ink/5 hover:text-ink">No thanks</button>
@@ -209,6 +228,7 @@ export default function BrainDump({ onActivity, onSubmit, reminders = [], about,
         }
         className={`w-full resize-none bg-transparent p-2 leading-relaxed outline-none placeholder:text-ink/35 ${full ? 'flex-1 text-lg' : 'pr-9 text-base'}`}
       />
+      {quietUntil && <QuietTimer until={quietUntil} />}
       <div role="radiogroup" aria-label="Model" className="mb-2 flex flex-wrap items-center gap-1.5 px-1">
         <span className="text-xs font-semibold text-ink/50">Model</span>
         {[['auto', 'Auto'], ['open', 'Spark Open · Baseten'], ['modal', 'Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (

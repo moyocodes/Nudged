@@ -44,6 +44,8 @@ function rundownDue(mode) {
   return Date.now() - last >= 4 * 60 * 60 * 1000
 }
 
+const QUIET_MS = 15000
+
 // At most once per page load (not on every return to Today), and only when the cap allows.
 let rundownShownThisLoad = false
 function useDailyStory(ready) {
@@ -373,13 +375,17 @@ export default function HomePage() {
 
   // Quiet for 15 seconds after typing, talking or a reply: Nudgy picks the conversation back up, once per burst of activity.
   const idleTimer = useRef(null)
+  const [quietUntil, setQuietUntil] = useState(null)
+  const [checkInLine, setCheckInLine] = useState(null)
   const idleState = useRef({})
   function noteActivity(draft = '') {
     clearTimeout(idleTimer.current)
-    idleTimer.current = setTimeout(() => checkIn(draft), 15000)
+    setQuietUntil(Date.now() + QUIET_MS)
+    idleTimer.current = setTimeout(() => checkIn(draft), QUIET_MS)
   }
   async function checkIn(draft) {
     const { chat, tasks, thinking, name, nudgeModel } = idleState.current
+    setQuietUntil(null)
     if (document.hidden || thinking > 0) return
     try {
       const r = await fetch('/api/checkin', {
@@ -390,7 +396,12 @@ export default function HomePage() {
       const json = await r.json()
       if (!r.ok || !json.text) return
       showModel(json.via)
-      say(json.text)
+      // Hard to miss: the chime, the bubble, and a card in the chat box to answer.
+      setCheckInLine(json.text)
+      setPendingQuestion(json.text)
+      const chimed = playAlarm()
+      if (chimed) setTimeout(() => say(json.text), ALARM_MS)
+      else say(json.text)
       addChat({ from: 'nudgy', text: json.text, checkin: true })
     } catch {}
   }
@@ -790,6 +801,8 @@ export default function HomePage() {
 
       <BrainDump
         onActivity={noteActivity}
+        quietUntil={thinking > 0 ? null : quietUntil}
+        questionLabel={pendingQuestion && pendingQuestion === checkInLine ? 'Nudgy checked in:' : 'Nudgy:'}
         onSubmit={handleDump}
         reminders={open}
         about={open.find((t) => t.id === aboutTaskId)}
