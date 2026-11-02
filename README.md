@@ -4,7 +4,7 @@
 
 Dump everything on your mind, messy, by voice or text. Nudgy turns it into tidy reminders, then nudges you, cheekily and with escalating drama, until each one is done.
 
-Built from scratch for the Meta Global AI Developer Hackathon, Oct 27 – Nov 4, 2026. 3-minute walkthrough: [DEMO.md](DEMO.md).
+Built from scratch for the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026. 3-minute walkthrough: [DEMO.md](DEMO.md).
 
 ## What it does
 
