@@ -14,7 +14,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (window.location.hash === '#account') document.getElementById('account')?.scrollIntoView({ block: 'center' })
   }, [])
-  const { chat, name, setName, theme, setTheme, accents, setAccent, resetDemo, openTutorial, schedule, setSchedule, setIntroSeen, voiceOn, setVoiceOn, say, alarmOn, setAlarmOn, rundownMode, setRundownMode, buddyName, setBuddyName,  } = useStore()
+  const { chat, name, setName, theme, setTheme, accents, setAccent, resetDemo, openTutorial, schedule, setSchedule, setIntroSeen, voiceOn, setVoiceOn, say, alarmOn, setAlarmOn, rundownMode, setRundownMode, nudgeModel, setNudgeModel, buddyName, setBuddyName,  } = useStore()
   const setTime = (key) => (e) => e.target.value && setSchedule((s) => ({ ...s, [key]: e.target.value }))
   const timeField = 'mt-1 w-full rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2 text-base outline-none focus:ring-2 focus:ring-primary'
 
@@ -133,6 +133,25 @@ export default function SettingsPage() {
               aria-checked={rundownMode === value}
               onClick={() => setRundownMode(value)}
               className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${rundownMode === value ? 'bg-primary text-on-primary' : 'bg-ink/5 text-ink/70 hover:bg-ink/10'}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="font-display text-xl">Nudge voice</h2>
+        <p className="mb-3 text-sm text-ink/60">Which Meta model writes your nudges.</p>
+        <div role="radiogroup" aria-label="Nudge voice" className="flex flex-wrap gap-2">
+          {[['open', 'Muse Spark Open · Baseten'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={nudgeModel === value}
+              onClick={() => setNudgeModel(value)}
+              className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${nudgeModel === value ? 'bg-primary text-on-primary' : 'bg-ink/5 text-ink/70 hover:bg-ink/10'}`}
             >
               {label}
             </button>

@@ -58,3 +58,4 @@
 - Nudge tone: Muse Spark Open slipped in "love" and "gorgeous" on a bare test prompt, so the nudge prompt now rules out pet names and winks by name.
 - Model tag stays up: it vanished after 4 seconds, too easy for judges to miss. It now stays until the next call and survives a reload, and each model-written nudge shows its model on the Today banner and Nudges page.
 - Baseten nudges: reasoning used the whole 1000 tokens and cut a line off mid-sentence, so calls now ask for low reasoning and a cut-off line falls back to Muse Spark.
+- Nudge voice: a choice on the Me page between Muse Spark Open on Baseten and Muse Spark on Meta, saved with the account, and the model tag shows whichever wrote the line.

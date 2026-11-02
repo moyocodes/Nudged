@@ -31,6 +31,11 @@ const SHOVES = [
 
 const localIso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16)
 
+// The model picked on the Me page.
+const chosenEngine = () => {
+  try { return JSON.parse(localStorage.getItem('nudgy:nudgeModel')) ?? 'open' } catch { return 'open' }
+}
+
 // count: how many nudges this task has had before this one.
 export async function makeNudge(task, level, name, count = 0, buddy = 'Nudgy') {
   const who = name || 'Friend'
@@ -44,7 +49,7 @@ export async function makeNudge(task, level, name, count = 0, buddy = 'Nudgy') {
     const r = await fetch('/api/nudge', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: who, buddy, title: task.title, level, due: task.due ? localIso(new Date(task.due)) : null, now: localIso(new Date()) }),
+      body: JSON.stringify({ name: who, buddy, engine: chosenEngine(), title: task.title, level, due: task.due ? localIso(new Date(task.due)) : null, now: localIso(new Date()) }),
     })
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.statusText)
     const json = await r.json()

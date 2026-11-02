@@ -329,11 +329,11 @@ async function openNudge(instructions, input) {
 }
 
 app.post('/api/nudge', requireSession, async (req, res) => {
-  const { name, title, level, due, now } = req.body ?? {}
+  const { name, title, level, due, now, engine } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
   if (!title) return res.status(400).json({ error: 'No task' })
   const input = `name: ${name || 'friend'}\ntask: ${title}\nlevel: ${level}\n${due ? `due: ${due}\nnow: ${now}` : 'no due time'}`
-  if (openEnabled()) {
+  if (engine !== 'spark' && openEnabled()) {
     try {
       return res.json({ text: await openNudge(withBuddy(NUDGE_PROMPT, buddy), input), engine: 'open', via: `Muse Spark Open · ${hostOf(process.env.OPEN_BASE_URL)}` })
     } catch (err) {
