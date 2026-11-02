@@ -9,11 +9,11 @@ const hasNotify = typeof Notification !== 'undefined'
 const hasMic = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
 const hasVoice = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-// "Set Nudgy up": sound, alarm, notifications and mic, asked on a visit where any is still undecided.
+// "Set Nudgy up": sound, notifications and mic, asked on a visit where any is still undecided.
 // Browsers only allow these prompts from a tap, so each row has its own Allow button.
 // "Not now" hides the card for this visit; it comes back next visit until everything is decided.
 export default function Permissions() {
-  const { name, setVoiceOn, soundAsked, setSoundAsked, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked, setAlarmOn, alarmAsked, setAlarmAsked } = useStore()
+  const { name, setVoiceOn, soundAsked, setSoundAsked, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked } = useStore()
   // A short beat before the first check, so the rundown (which opens right after the intro) gets the screen first.
   const [settled, setSettled] = useState(false)
   useEffect(() => {
@@ -37,15 +37,9 @@ export default function Permissions() {
       allow: () => { setVoiceOn(true); setSoundAsked(true); setTimeout(() => say(`Hi ${name || 'friend'}! This is my voice.`), 50) },
       no: () => setSoundAsked(true),
     },
-    !alarmAsked && {
-      key: 'alarm', icon: '⏰', title: 'Alarm sound', body: 'A chime when a nudge is due. Tap Allow to hear it.',
-      // The tap here also unlocks audio, so the chime can play later without one.
-      allow: () => { unlockAlarm(); setAlarmOn(true); setAlarmAsked(true); setTimeout(playAlarm, 50) },
-      no: () => { setAlarmOn(false); setAlarmAsked(true) },
-    },
     notify === 'default' && {
       key: 'notify', icon: '🔔', title: 'Notifications', body: 'Nudges reach you when you’re in another tab.',
-      allow: () => Notification.requestPermission().then(setNotify),
+      allow: () => { unlockAlarm(); Notification.requestPermission().then((p) => { setNotify(p); if (p === 'granted') playAlarm() }) },
     },
     !ambientAsked && {
       key: 'ambient', icon: '🎧', title: 'Background sound', body: 'Rain, fire or waves while you work.',

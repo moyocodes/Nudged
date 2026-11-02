@@ -26,8 +26,9 @@ export default function NudgeScheduler() {
         // Said out loud in the app (Done/Snooze sit on the Today banner and Nudges page), and as a
         // system notification if the tab is in the background.
         // Chime first, then the voice once it has finished, so one doesn't drown out the other.
-        const chimed = latest.current.alarmOn && !latest.current.muted && playAlarm()
-        notify(nudge.text, { silent: latest.current.muted })
+        // The chime always plays, muted or not.
+        const chimed = playAlarm()
+        notify(nudge.text)
         if (chimed) setTimeout(() => say(nudge.text), ALARM_MS)
         else say(nudge.text)
       } finally {

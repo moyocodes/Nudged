@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import Mascot from './Mascot.jsx'
 import { getVolume } from '../lib/volume.js'
+import { unlockSound } from '../lib/alarm.js'
 
 const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
 // Browsers load voices lazily, which delays the first line. Asking early warms them up.
@@ -13,6 +14,11 @@ if (canSpeak) window.speechSynthesis.getVoices()
 export default function Buddy() {
   const { buddy, setBuddy, voiceOn, setVoiceOn, muted, setMuted } = useStore()
   const [talking, setTalking] = useState(false)
+
+  useEffect(() => {
+    window.addEventListener('pointerdown', unlockSound, true)
+    return () => window.removeEventListener('pointerdown', unlockSound, true)
+  }, [])
 
   useEffect(() => {
     if (!buddy) return

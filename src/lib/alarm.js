@@ -7,7 +7,7 @@ let ctx
 // How long the chime lasts, so the voice can wait for it instead of talking over it.
 export const ALARM_MS = 1500
 
-// Audio has to be started from a tap. Only called when the user allows the alarm, never behind their back.
+// Audio has to be started from a tap.
 export function unlockAlarm() {
   try {
     ctx ??= new (window.AudioContext || window.webkitAudioContext)()
@@ -15,9 +15,22 @@ export function unlockAlarm() {
   } catch {}
 }
 
+// Phones only allow sound that starts from a tap, and lock it again after a reload. Any tap in the app unlocks both
+// the chime and the voice, so a nudge that fires later can be heard.
+let voiceUnlocked = false
+export function unlockSound() {
+  unlockAlarm()
+  if (voiceUnlocked || !('speechSynthesis' in window)) return
+  voiceUnlocked = true
+  try {
+    const blank = new SpeechSynthesisUtterance(' ')
+    blank.volume = 0
+    window.speechSynthesis.speak(blank)
+  } catch {}
+}
+
 // Returns true if the chime played.
 export function playAlarm() {
-  if (getVolume() <= 0) return false
   try {
     unlockAlarm()
     if (ctx.state !== 'running') return false
@@ -29,7 +42,7 @@ export function playAlarm() {
       osc.type = 'triangle'
       osc.frequency.value = [880, 988, 1175][i % 3]
       gain.gain.setValueAtTime(0.0001, start + t)
-      gain.gain.exponentialRampToValueAtTime(Math.max(0.0001, 0.25 * getVolume()), start + t + 0.02)
+      gain.gain.exponentialRampToValueAtTime(0.25 * (getVolume() || 0.6), start + t + 0.02)
       gain.gain.exponentialRampToValueAtTime(0.0001, start + t + 0.16)
       osc.connect(gain).connect(ctx.destination)
       osc.start(start + t)

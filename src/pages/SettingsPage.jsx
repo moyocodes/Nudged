@@ -14,7 +14,7 @@ export default function SettingsPage() {
   useEffect(() => {
     if (window.location.hash === '#account') document.getElementById('account')?.scrollIntoView({ block: 'center' })
   }, [])
-  const { chat, name, setName, theme, setTheme, accents, setAccent, resetDemo, openTutorial, schedule, setSchedule, setIntroSeen, voiceOn, setVoiceOn, say, alarmOn, setAlarmOn, rundownMode, setRundownMode, nudgeModel, setNudgeModel, buddyName, setBuddyName,  } = useStore()
+  const { chat, name, setName, theme, setTheme, accents, setAccent, resetDemo, openTutorial, schedule, setSchedule, setIntroSeen, voiceOn, setVoiceOn, say, rundownMode, setRundownMode, nudgeModel, setNudgeModel, buddyName, setBuddyName,  } = useStore()
   const setTime = (key) => (e) => e.target.value && setSchedule((s) => ({ ...s, [key]: e.target.value }))
   const timeField = 'mt-1 w-full rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2 text-base outline-none focus:ring-2 focus:ring-primary'
 
@@ -66,16 +66,9 @@ export default function SettingsPage() {
       <Card className="flex items-center justify-between gap-3">
         <span>
           <span className="block font-display text-xl">Alarm sound</span>
-          <span className="block text-sm text-ink/55">A chime when a nudge is due, while Nudgy is open in any tab.</span>
+          <span className="block text-sm text-ink/55">Plays on every nudge while Nudgy is open.</span>
           <button type="button" onClick={playAlarm} className="mt-1 text-xs font-semibold text-primary hover:underline">Play it</button>
         </span>
-        <input
-          type="checkbox"
-          checked={alarmOn}
-          onChange={(e) => { setAlarmOn(e.target.checked); if (e.target.checked) playAlarm() }}
-          aria-label="Alarm sound"
-          className="h-6 w-6 shrink-0 accent-[var(--primary)]"
-        />
       </Card>
 
       <Card>

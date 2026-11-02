@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import { MAX_LEVEL, makeNudge } from '../lib/nudges.js'
+import { ALARM_MS, playAlarm } from '../lib/alarm.js'
 import NudgeBubble from '../components/NudgeBubble.jsx'
 import { Button } from '../components/ui.jsx'
 import { BellIcon } from '../components/Icons.jsx'
@@ -23,7 +24,7 @@ function NotifyCard() {
       {permission === 'default' && (
         <button
           type="button"
-          onClick={() => Notification.requestPermission().then(setPermission)}
+          onClick={() => Notification.requestPermission().then((p) => { setPermission(p); if (p === 'granted') playAlarm() })}
           className="min-h-9 shrink-0 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary"
         >
           Allow
@@ -34,7 +35,7 @@ function NotifyCard() {
 }
 
 export default function NudgesPage() {
-  const { name, buddyName, tasks, nudges, setNudges, completeTask, snoozeTask } = useStore()
+  const { name, buddyName, tasks, nudges, setNudges, completeTask, snoozeTask, say } = useStore()
   const [nudging, setNudging] = useState(false)
 
   // Nudges the most important open task right now, with a model-written line.
@@ -48,6 +49,10 @@ export default function NudgesPage() {
     const nudge = await makeNudge(task, level, name, 0, buddyName)
     setNudges((ps) => [...ps, nudge])
     setNudging(false)
+    // Heard like any other nudge: chime first, then the voice.
+    const chimed = playAlarm()
+    if (chimed) setTimeout(() => say(nudge.text), ALARM_MS)
+    else say(nudge.text)
   }
 
   // Only the newest nudge for each task gets Done/Snooze, so repeats don't stack buttons.
