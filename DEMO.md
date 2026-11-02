@@ -5,52 +5,59 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 
 ## Before you hit record
 
-- Fresh browser profile (or incognito), Chill or Cheeky theme, app at the deployed URL (or http://localhost:5173).
-- Open the Render logs in a tab, so you can show `engine=open model=meta-models/muse-spark-open-1026` and `engine=modal` on real nudges.
-- Enter a name, skip the tutorial, close the daily rundown.
-- Add one task with **Photo proof** on, due a minute ago: "Buy oat milk". Earn one badge beforehand so "Create my badge" is ready.
-- Log in to sync on the laptop; have your phone logged in to the same email.
-- Sound on for the mic. Each take costs roughly: 2-3 Spark calls, 1 nudge each on Baseten and Modal, 1 SAM 3.1 check, 1 badge (a Muse Wonder prompt plus one Muse Image), 1 Plan my day (up to 5 Spark calls). Rehearse with the UI only, and do one full take.
-- Have a real reminder email open in your inbox for the cut at 2:30.
-- Only show what was built during the hackathon. Say so in the first line.
+- Fresh browser profile (or incognito), Chill or Cheeky theme, at getnudged.chat. Don't deploy while recording: a deploy loses any model result still waiting.
+- Enter a name, skip the tutorial, close the daily rundown. In the Set Nudgy up card, allow Talk out loud and Notifications.
+- Add these, due a minute ago: "Go to the bank" with **Photo proof** on, plus "Water the plants". Finish one reminder beforehand so a badge is earned and "Create my badge" is ready.
+- Have your phone logged in to the same email, a real photo of a bank ready, and a real reminder email open in your inbox.
+- Open the Render logs in a tab, to show `engine=open`, `engine=modal` and `step=plan` lines.
+- Set the model switch beside the mic to **Auto**. Auto takes the next model on every call, so the tag order can differ from the script; say what the tag shows.
+- Tap the page once before you start, since browsers hold sound until the first tap.
+- Rehearse once, and cut the 15-second wait in the edit. The script runs close to 3 minutes, so if a take runs long, drop the 2:30 section first.
 
 ## The script
 
-**0:00 – 0:15 · Hook and the person it's for** (Impact)
+**0:00 – 0:12 · Hook and the person it's for** (Impact)
 - Do: landing page, scroll once, tap Let's go.
 - Say: "I forget things when I'm busy, and reminder apps need me to be organised first. Nudgy doesn't. Everything you'll see, I built from scratch during this hackathon with Meta's models."
 
-**0:15 – 0:45 · Say it messy, get it tidy** (Muse Voice Transcribe + Muse Spark)
-- Do: tap the mic and say: *"ugh ok, call the dentist, pay rent by tomorrow I can't forget, and I need to get to Yinka's tomorrow like 5, maybe repaint the shelf sometime… send."*
-- Do: the list fills in: the dentist with a "When should I nudge you?" question, rent as High priority, Yinka's tomorrow at 5 PM, the shelf as Low.
-- Say: "Muse Voice Transcribe turns my voice into text live. Muse Spark works out times, repeats and how much each thing matters: rent is high, the shelf is low."
+**0:12 – 0:32 · Say it messy, get it tidy** (Muse Voice Transcribe + Muse Spark)
+- Do: tap the mic, so the tag and "Connecting" show at once, and say: *"ugh ok, call the dentist, pay rent by tomorrow I can't forget, get to Yinka's tomorrow like 5, maybe repaint the shelf sometime… send."* The list fills in.
+- Say: "Muse Voice Transcribe hears me live, and Muse Spark works out times and how much each thing matters: rent is high, the shelf is low."
 
-**0:45 – 1:05 · It knows your list, and acts on it** (agentic)
-- Do: type *"actually move Yinka's to 7 and snooze the dentist"*. Nudgy changes the time, then asks *How long should I snooze it?* Answer *"30 min"*.
-- Say: "One message, several changes, no duplicates. It asks before it snoozes, and snoozing is free."
+**0:32 – 0:50 · Every model, and a memory** (Meta tooling, agentic)
+- Do: type *"actually move Yinka's to 7"*. Point at the tag, then at the model switch. Reload the page and type *"what did I just move?"*
+- Say: "One message changes the list, with no duplicates. The tag shows which model answered. On Auto they take turns: Muse Spark Open on Baseten, the same model on Modal, and Muse Spark on Meta. I reloaded, and it still remembers our conversation."
 
-**1:00 – 1:10 · Plan my day** (agentic, take these 10 seconds from the next parts)
-- Do: with two overdue reminders, tap Plan it. Let the steps fill in, including a refused time, then tap Undo.
-- Say: "Plan my day is an agent. It checks my day and moves things one step at a time. When the server refuses a time, it tries again."
+**0:50 – 1:02 · It notices when you go quiet** (agentic)
+- Do: type *"pick up the cake for"* and stop. Cut the wait until Nudgy's line appears.
+- Say: "If I stop for 15 seconds, it picks the conversation back up, or nudges me to finish what I started."
 
-**1:05 – 1:30 · Nudges on open weights, on two hosts** (Muse Spark Open)
-- Do: show the overdue oat milk on Today, with Done and Snooze and the dark model tag: *Muse Spark Open · Baseten*. Open Me, set Nudge voice to Modal. Go to Nudges, tap Nudge me, and let the tag change to *Muse Spark Open · Modal*. Tap Snooze and show 30 min / 1 hour / 90 min.
-- Say: "When something is due, Nudgy nudges with a fresh line, getting louder until it's done. The tag always shows which model did the work. This is Muse Spark Open, an open-weights model, running on Baseten. One switch and the same model runs on Modal, with Muse Spark as the backup."
+**1:02 – 1:20 · Plan my day** (agentic)
+- Do: tap Plan it. Let the steps fill in, then tap Undo last change.
+- Say: "Plan my day is an agent. It checks my day and moves things one step at a time. If the server refuses a time, it has to try again. And I can undo the whole run."
 
-**1:30 – 2:00 · Pics or it didn't happen** (SAM 3.1)
-- Do: tap Done on the oat milk, then Snap it +15, pick a photo, Claim. Confetti, coins go up. Briefly point at "Skip photo".
-- Say: "For errands I can show proof. SAM 3.1 finds the actual oat milk in my photo, so it isn't just a tick. Skip it and you still get the normal coins, just no bonus."
+**1:20 – 1:40 · Nudges on open weights** (Muse Spark Open)
+- Do: show the overdue banner with Done and Snooze. Set the switch to Baseten, open Nudges, tap Nudge me: chime, voice, tag. Set it to Modal, tap Nudge me again, and let the tag change.
+- Say: "When something's due, Nudgy chimes and nudges with a fresh line, louder until it's done. That's Muse Spark Open, an open-weights model, on Baseten. One switch, and the same model runs on Modal."
 
-**2:00 – 2:30 · Badge art that is yours** (Muse Wonder + Muse Image)
-- Do: open Rewards, tap Create my badge. Show the badge that comes back, in the theme colours and with the user's own tasks around the edge.
+**1:40 – 2:00 · Pics or it didn't happen** (SAM 3.1 + Muse Spark)
+- Do: tap Done on the bank reminder, then Snap it +15, and pick the bank photo. Claim. Confetti, coins go up.
+- Say: "For errands I show proof. SAM 3.1 looks for it in my photo. A bank is hard to outline, so if SAM says no, Muse Spark takes a second look. A wrong photo still gets rejected."
+
+**2:00 – 2:20 · Badge art that is yours** (Muse Wonder + Muse Image)
+- Do: open Rewards, open the badge, tap Create my badge. Let the loader play, cut the wait, and show the badge.
 - Say: "Muse Wonder writes the art direction from what I actually finished, and Muse Image draws it. Nobody else has this badge."
 
+**2:20 – 2:30 · Work carries on without you** (Technical depth)
+- Do: send a brain dump and reload straight away. The tag shows the model working, then the reminder appears.
+- Say: "If I close the app mid-thought, the work carries on, and it's there when I'm back."
+
 **2:30 – 2:50 · Built to hold up** (Technical depth)
-- Do: quick cuts: a reminder email in the inbox; a recurring task skipping a missed day; the Render log showing `[usage]` lines.
-- Say: "If I'm not in the app, reminders reach my email on a schedule, and they hold off while I sleep. Every call is capped and logged, and if a model fails there's a fallback, so a nudge is never lost."
+- Do: quick cuts: a reminder email in the inbox; the Me page voice picker; the Render log showing `[usage]` lines.
+- Say: "When I'm away, reminders reach my email on a schedule, and hold off while I sleep. Every call is logged, and if a model fails there's a fallback, so a nudge is never lost."
 
 **2:50 – 3:00 · Close**
-- Do: hold up the phone. The same list is there, with oat milk ticked.
+- Do: hold up the phone. The same list is there, with the bank ticked.
 - Say: "Same list on every device. Nudgy: say it messy, I'll keep it tidy."
 
 ## After recording
@@ -60,6 +67,6 @@ The video is a main judging artifact, so each part below is tied to a score: Imp
 
 ## If something goes wrong live
 
-- **The model is slow:** "Nudgy's on it…" shows under the box and you can carry on. Fill the gap with the Nudges tab.
+- **The model is slow:** the tag shows it's working and you can carry on. Fill the gap with the Nudges tab.
 - **The model fails:** the local parser still adds tasks ("My brain's offline, so I winged it").
 - **Wrong edit:** type "undo".
