@@ -353,6 +353,36 @@ export default function HomePage() {
     addChat({ from: 'nudgy', text: line })
   }
 
+  // Quiet for 15 seconds after typing, talking or a reply: Nudgy picks the conversation back up, once per burst of activity.
+  const idleTimer = useRef(null)
+  const idleState = useRef({})
+  function noteActivity(draft = '') {
+    clearTimeout(idleTimer.current)
+    idleTimer.current = setTimeout(() => checkIn(draft), 15000)
+  }
+  async function checkIn(draft) {
+    const { chat, tasks, thinking, name, nudgeModel } = idleState.current
+    if (document.hidden || thinking > 0) return
+    try {
+      const r = await fetch('/api/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ draft, name, engine: nudgeModel, history: chat.slice(-30).map(({ from, text, at }) => ({ from, text, at })), reminders: tasks.filter((t) => !t.done).map((t) => t.title) }),
+      })
+      const json = await r.json()
+      if (!r.ok || !json.text) return
+      showModel(json.via)
+      say(json.text)
+      addChat({ from: 'nudgy', text: json.text, checkin: true })
+    } catch {}
+  }
+  useEffect(() => () => clearTimeout(idleTimer.current), [])
+  // A fresh reply starts the clock. Old messages loaded from the account don't, and neither do the check-ins themselves.
+  const lastChat = chat[chat.length - 1]
+  useEffect(() => {
+    if (lastChat && !lastChat.checkin && Date.now() - new Date(lastChat.at) < 5000) noteActivity()
+  }, [lastChat?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Try a nudge: a real one on demand, so a first-timer hears what's coming. Gone once they've had any nudge.
   const [tryingNudge, setTryingNudge] = useState(false)
   async function tryNudge() {
@@ -513,7 +543,7 @@ export default function HomePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           text, now, name, buddy: buddyName, engine: nudgeModel,
-          history: chat.slice(-4).map(({ from, text }) => ({ from, text })),
+          history: chat.slice(-30).map(({ from, text, at }) => ({ from, text, at })),
           selected: about ? 1 : null,
           reminders: listed.map((t) => ({ title: t.title, due: t.due ? new Date(new Date(t.due).getTime() - local.getTimezoneOffset() * 60000).toISOString() : null, ask: t.ask?.text ?? null })),
         }),
@@ -579,6 +609,7 @@ export default function HomePage() {
     }
   }
 
+  idleState.current = { chat, tasks, thinking, name, nudgeModel }
   const open = tasks.filter((t) => !t.done)
   const done = tasks.filter((t) => t.done)
   const overdue = open.filter(isOverdue).length
@@ -735,6 +766,7 @@ export default function HomePage() {
       )}
 
       <BrainDump
+        onActivity={noteActivity}
         onSubmit={handleDump}
         reminders={open}
         about={open.find((t) => t.id === aboutTaskId)}

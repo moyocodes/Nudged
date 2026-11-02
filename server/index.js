@@ -54,6 +54,7 @@ app.post('/api/test', requireSession, async (_req, res) => {
 // Brain-dump -> tasks plus a one-line reply in Nudgy's voice.
 // Only called when the user presses Add tasks / Enter. Same text on the same day is served from cache.
 const EXTRACT_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy (never flirty, mean or medical). Input may be messy speech-to-text; work out what they mean.
+recent chat is your memory of this person, including past visits. Carry on from it like one ongoing conversation: "that", "it" or "like before" refer to it, and if they ask what you talked about, answer from it. Never add a reminder just because it's in the chat.
 Return ONLY compact JSON, omitting null/false/empty fields:
 {"reply":str,"followup"?:str,"actions"?:[{"type":"done"|"delete"|"snooze"|"update"|"undo","n":num,"due"?,"title"?,"priority"?,"repeat"?,"proof"?,"proofOf"?}],"tasks"?:[{"title":str,"due"?,"priority":"low"|"medium"|"high","proof"?:true,"proofOf"?:str,"ask"?:{"kind":"when"|"who"|"what"|"how"|"why","text":str},"repeat"?:[{"days":[0-6],"time":"HH:mm"}]}]}
 - Only items in tasks/actions get saved. Scan the whole text for EVERY possible reminder (tasks, errands, appointments, deadlines, commitments, things to remember, even implied ones like "mum's birthday Friday"); each is its own task, never merged or dropped. If something might be a reminder but is unclear, or nothing was saved and it isn't chit-chat, set followup: one short punny question asking what or when. If there is no reminder in it at all and it isn't chit-chat, say so plainly in reply ("I couldn't find a reminder in that") and set followup offering one ("Want me to set a reminder about something?").
@@ -134,6 +135,12 @@ function cleanRepeat(repeat) {
   return slots.length ? slots : null
 }
 
+// Nudgy's memory: the saved chat across visits and devices, dated so "yesterday" means something.
+const chatMemory = (history) => (Array.isArray(history) ? history : [])
+  .slice(-30)
+  .map((m) => `${m?.at ? `[${String(m.at).slice(0, 16).replace('T', ' ')}] ` : ''}${m?.from === 'you' ? 'user' : 'nudgy'}: ${String(m?.text ?? '').slice(0, 200)}`)
+  .join('\n')
+
 app.post('/api/extract', requireSession, async (req, res) => {
   const { text, now, name, history, reminders, selected, engine } = req.body ?? {}
   const buddy = cleanBuddy(req.body?.buddy)
@@ -143,11 +150,7 @@ app.post('/api/extract', requireSession, async (req, res) => {
     return res.status(500).json({ error: 'Set MODEL_API_KEY and MODEL_NAME in .env' })
   }
 
-  // The last few messages, trimmed, so follow-ups make sense without resending the whole chat.
-  const recent = (Array.isArray(history) ? history : [])
-    .slice(-4)
-    .map((m) => `${m?.from === 'you' ? 'user' : 'nudgy'}: ${String(m?.text ?? '').slice(0, 150)}`)
-    .join('\n')
+  const recent = chatMemory(history)
 
   // Open reminders, one short line each, so "I called mum" can tick off the right one.
   const list = (Array.isArray(reminders) ? reminders : [])
@@ -230,6 +233,32 @@ app.post('/api/plan', requireSession, async (req, res) => {
   } catch (err) {
     console.error('[plan]', err.message)
     res.status(502).json({ error: "Couldn't plan just now. Try again in a bit." })
+  }
+})
+
+// The person went quiet for 15 seconds after typing or talking: one short line that carries the conversation on.
+const CHECKIN_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy. Never flirty, mean or medical. The user went quiet for 15 seconds.
+If draft is set, they typed or said it and didn't send it: nudge them to finish or send it, naming what it's about. Otherwise carry on from the latest chat with one useful follow-up, or point at an open reminder.
+One plain sentence, max 18 words, that makes sense on first read. No pet names. Reply with the line only.`
+app.post('/api/checkin', requireSession, async (req, res) => {
+  const { draft, history, reminders, name, engine } = req.body ?? {}
+  const input = `name: ${name || 'friend'}\ndraft: ${String(draft ?? '').slice(0, 300)}\nopen reminders: ${(Array.isArray(reminders) ? reminders : []).slice(0, 10).join('; ')}\nchat:\n${chatMemory(history)}`
+  const host = engine === 'modal' && modalEnabled() ? 'modal' : engine === 'open' && openEnabled() ? 'open' : null
+  try {
+    if (host) {
+      try {
+        return res.json({ text: await openNudge(CHECKIN_PROMPT, input, host), via: `Muse Spark Open · ${host === 'modal' ? 'Modal' : hostOf(process.env.OPEN_BASE_URL)}` })
+      } catch (err) {
+        console.error('[checkin] open model failed, using Muse Spark:', err.message)
+      }
+    }
+    const model = process.env.MODEL_NAME
+    const r = await getClient().responses.create({ model, instructions: CHECKIN_PROMPT, input, max_output_tokens: 1000, reasoning: { effort: 'low' } })
+    console.log(`[usage] step=checkin model=${model} input_tokens=${r.usage?.input_tokens} output_tokens=${r.usage?.output_tokens}`)
+    res.json({ text: r.output_text?.trim().replace(/^"|"$/g, ''), via: 'Muse Spark · Meta' })
+  } catch (err) {
+    console.error('[checkin]', err.message)
+    res.status(502).json({ error: err.message })
   }
 })
 

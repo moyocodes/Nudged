@@ -19,7 +19,7 @@ const isPhone = () => window.matchMedia('(max-width: 639px)').matches
 // thinking: how many dumps Nudgy is still working on; they run in the background.
 // Full screen: automatic when typing on a phone, or via the expand button anywhere.
 // question: Nudgy's open question about a reminder; answer it here in plain words.
-export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
+export default function BrainDump({ onActivity, onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
   const { muted, nudgeModel, setNudgeModel } = useStore()
   const [text, setText] = useState('')
   const [interim, setInterim] = useState('')
@@ -95,13 +95,13 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
     try {
       setListening(true)
       stopRef.current = await startTranscribing({
-        onPartial: setInterim,
+        onPartial: (partial) => { setInterim(partial); onActivity?.(`${textRef.current} ${partial}`.trim()) },
         onFinal: (phrase) => {
           setInterim('')
           showModel('Muse Voice Transcribe · Meta')
           const joined = `${textRef.current} ${phrase}`.replace(/\s+/g, ' ').trimStart()
           if (SEND_PHRASE.test(phrase)) submit(joined.replace(SEND_PHRASE, ''))
-          else setText(joined)
+          else { setText(joined); onActivity?.(joined) }
         },
         onError: setMicError,
         onEnd: () => {
@@ -183,7 +183,7 @@ export default function BrainDump({ onSubmit, reminders = [], about, onPickAbout
         ref={inputRef}
         id="dump"
         value={interim ? `${text} ${interim}`.trimStart() : text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => { setText(e.target.value); onActivity?.(e.target.value) }}
         onKeyDown={(e) => {
           // Enter sends, Shift+Enter is a new line. Leave it alone mid-IME composition.
           if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
