@@ -78,6 +78,8 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
   // Full screen: lock the page behind it, and Esc closes it. It fits the visible area above the phone keyboard.
   // Closing drops the keyboard and puts the page back where it was, since phones leave it shifted otherwise.
   const [viewport, setViewport] = useState(null)
+  // A keyboard leaves little room, so only the essentials stay: the question, the box and the buttons.
+  const cramped = full && !!viewport && viewport.height < 520
   useEffect(() => {
     window.dispatchEvent(new CustomEvent('nudgy:fullchat', { detail: full }))
     if (!full) return
@@ -170,7 +172,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
       <label htmlFor="dump" className="sr-only">
         Dump everything on your mind
       </label>
-      <div className={`flex items-center justify-between ${full ? 'mb-9' : 'absolute right-2 top-2'}`}>
+      <div className={`flex shrink-0 items-center justify-between ${full ? (cramped ? 'mb-1' : 'mb-9') : 'absolute right-2 top-2'}`}>
         {full && <span className="font-display text-xl">Brain dump</span>}
         <button
           type="button"
@@ -190,7 +192,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
         </button>
       </div>
       {question && !about && (
-        <p className="mb-1 flex flex-wrap items-start gap-x-2 gap-y-1 rounded-2xl rounded-bl-md bg-soft px-3 py-2 pr-9 text-sm leading-snug">
+        <p className={`mb-1 flex shrink-0 flex-wrap items-start gap-x-2 gap-y-1 rounded-2xl rounded-bl-md bg-soft px-3 py-2 pr-9 text-sm leading-snug ${cramped ? 'max-h-20 overflow-y-auto' : ''}`}>
           <span className={`shrink-0 font-semibold text-primary ${questionLabel === 'Nudged:' ? '' : 'basis-full'}`}>{questionLabel}</span>
           <span className="min-w-0 flex-1">{question}</span>
           {onDismissQuestion && (
@@ -244,10 +246,10 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
             : question ? 'Answer Nudged, or add something new…'
             : expanded ? "Call the dentist, buy oat milk, Yinka's tomorrow at 5…" : 'Add something, or brain-dump it all…'
         }
-        className={`w-full resize-none bg-transparent p-2 leading-relaxed outline-none placeholder:text-ink/35 ${full ? 'flex-1 text-lg' : 'pr-9 text-base'}`}
+        className={`w-full resize-none bg-transparent p-2 leading-relaxed outline-none placeholder:text-ink/35 ${full ? 'min-h-16 flex-1 text-lg' : 'pr-9 text-base'}`}
       />
-      {quietUntil && <QuietTimer until={quietUntil} />}
-      <div role="radiogroup" aria-label="Model" className="mb-2 flex flex-wrap items-center gap-1.5 px-1">
+      {quietUntil && !cramped && <QuietTimer until={quietUntil} />}
+      <div role="radiogroup" aria-label="Model" className={`mb-2 shrink-0 flex-wrap items-center gap-1.5 px-1 ${cramped ? 'hidden' : 'flex'}`}>
         <span className="text-xs font-semibold text-ink/50">Model</span>
         {[['auto', 'Auto'], ['open', 'Spark Open · Baseten'], ['modal', 'Spark Open · Modal'], ['spark', 'Muse Spark · Meta']].map(([value, label]) => (
           <button
@@ -262,7 +264,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
           </button>
         ))}
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={toggleMic}
@@ -303,7 +305,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
             @
           </button>
         )}
-        <p className="min-w-0 flex-1 text-[13px] leading-tight text-ink/50">
+        <p className={`min-w-0 flex-1 text-[13px] leading-tight text-ink/50 ${cramped ? 'invisible' : ''}`}>
           {micError
             ? micError
             : !canRecord
