@@ -24,6 +24,10 @@ Meta Model API usage from the project's dashboard, which is private, so these ar
 ![Meta Model API usage, 98 requests on Oct 26](docs/api-usage-oct-26.png)
 ![Meta Model API usage, 65 requests on Oct 27](docs/api-usage-oct-27.png)
 
+The plan written on kickoff day, dated Oct 26, when the app was still called Pokey:
+
+![Kickoff plan dated 26 Oct 2026, with the hackathon's key times](docs/kickoff-plan-oct-26.png)
+
 ## What it does
 
 - **Messy in, tidy out.** "ugh dentist?? oat milk. yinka's tmrw like 5pm" becomes three reminders with times. Muse Spark fixes typos and mishearings, works out dates, priorities and repeats ("every weekday at 8"), and asks a short, punny question when something essential is missing.
