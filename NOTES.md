@@ -123,3 +123,5 @@
 - Photo proof on every reminder: only errands asked for it. Now every reminder does, including ones already on the list. It stays optional, and can be switched off on a reminder.
 - Check-ins end: Nudged checked in after every reply, even with the reminder set. Now it only checks in on an unsent draft, and a saved reminder ends the conversation with no extra follow-up.
 - Typing room in the drawer: with the keyboard up, the typing box got squashed to nothing. The box now keeps its height, the question scrolls, and the model switch hides until the keyboard goes.
+- Bye means bye: replies to "bye" or "thanks" could still ask something, and a draft could fire a check-in after it was sent. Closing words now end the conversation, sending cancels the wait, and there's at most one check-in in 5 minutes, counting from No thanks too.
+- One question at a time: answering a question popped up the next waiting one, plus any follow-up from the model. Now a reply to a check-in ends it, and reminders still waiting for a time ask on their own cards.

@@ -70,6 +70,9 @@ export function taskSummary(tasks, scope, name = 'friend', now = new Date()) {
 // own call, and for the offline fallback.
 const DIGITAL = /^\s*(?:call|phone|ring|text|email|e-mail|message|dm|whatsapp|pay|transfer|send|reply|respond|remind|remember|think|decide|plan|research|read|review|check|book|renew|order)\b/i
 const PHYSICAL = /\b(?:meeting|stand-?up|conference|workshop|class|lecture|interview|presentation|event|party|wedding|appointment|visit|go to|head to|drive to|walk to|drop (?:off|by)|pick up|collect|buy|shop|clean|wash|tidy|cook|pack|fix|assemble|post|mail|gym|workout|exercise|haircut|dentist|doctor|bank|pharmacy|airport|work|office|school|church|mosque|market|store)\b/i
+// "Bye", "thanks", "that's all", "no thanks": they're done, so Nudged stops asking things.
+export const isClosing = (text) => /^\s*(ok(ay)?[,\s]+)?(bye+|goodbye|good ?night|see (you|ya)|later|thanks?( you| a lot| so much)?|thx|no( thanks?| thank you)?|nope|nah|i'?m good|i'?m done|that'?s (all|it)|all good|nothing( else)?|stop)\b[\s\w,.!']{0,20}$/i.test(text)
+
 export const looksPhysical = (title) => !DIGITAL.test(title) && PHYSICAL.test(title)
 
 // "30 minutes", "half an hour", "1 hour", "2h", "two hours" -> minutes. Null if no length is given.

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { INTENT_HINT, listRequest, looksPhysical, snoozeMinutes, taskSummary } from '../src/lib/intent.js'
+import { INTENT_HINT, listRequest, looksPhysical, snoozeMinutes, taskSummary, isClosing } from '../src/lib/intent.js'
 import { guessPhrase } from '../src/lib/proof.js'
 
 describe('listRequest', () => {
@@ -139,5 +139,15 @@ describe('taskSummary defaults', () => {
 
   it('uses the current time and "friend"', () => {
     expect(taskSummary([{ title: 'Rent', due: new Date(2026, 5, 10, 15).toISOString() }], 'today')).toContain('friend. 1 today: Rent')
+  })
+})
+
+describe('isClosing', () => {
+  it.each(['bye', 'Bye!', 'byeee', 'thanks', 'thank you so much', 'ok bye', 'no thanks', "that's all", "I'm good", 'good night', 'nope'])('hears "%s" as the end', (text) => {
+    expect(isClosing(text)).toBe(true)
+  })
+
+  it.each(['remind me to say bye to Tolu at the airport tomorrow morning', 'thanks to Ada for the gift, send a card friday', 'call mum', 'no milk left, buy some tomorrow at the shop near work'])('keeps "%s" going', (text) => {
+    expect(isClosing(text)).toBe(false)
   })
 })

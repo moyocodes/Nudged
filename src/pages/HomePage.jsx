@@ -6,7 +6,7 @@ import { badgeStats, mockExtract, nextBadge } from '../lib/mockData.js'
 import { countdown, friendlyDue, isOverdue, nextDue, savedSummary } from '../lib/format.js'
 import { describeRepeat, nextOccurrence } from '../lib/schedule.js'
 import { greetingLine, isGreeting } from '../lib/phrases.js'
-import { BACKSTOP, INTENT_HINT, OFFER, listRequest, snoozeMinutes, taskSummary, whenAsk } from '../lib/intent.js'
+import { BACKSTOP, INTENT_HINT, OFFER, isClosing, listRequest, snoozeMinutes, taskSummary, whenAsk } from '../lib/intent.js'
 import BrainDump from '../components/BrainDump.jsx'
 import SoundPicker from '../components/SoundPicker.jsx'
 import TaskCard from '../components/TaskCard.jsx'
@@ -46,6 +46,8 @@ function rundownDue(mode) {
 }
 
 const QUIET_MS = 15000
+// However much is left unsent, at most one check-in in this long.
+const CHECK_IN_GAP_MS = 5 * 60 * 1000
 const PLAN_OPEN_MS = 10000
 
 // At most once per page load (not on every return to Today), and only when the cap allows.
@@ -394,6 +396,8 @@ export default function HomePage() {
   const [quietUntil, setQuietUntil] = useState(null)
   const [checkInLine, setCheckInLine] = useState(null)
   const idleState = useRef({})
+  const lastCheckIn = useRef(0)
+  const answeringCheckIn = useRef(false)
   // Only an unsent draft gets a check-in. Once something has been said and saved, the conversation is over.
   function noteActivity(draft = '') {
     clearTimeout(idleTimer.current)
@@ -404,7 +408,8 @@ export default function HomePage() {
   async function checkIn(draft) {
     const { chat, tasks, thinking, name, nudgeModel } = idleState.current
     setQuietUntil(null)
-    if (document.hidden || thinking > 0) return
+    if (document.hidden || thinking > 0 || Date.now() - lastCheckIn.current < CHECK_IN_GAP_MS) return
+    lastCheckIn.current = Date.now()
     try {
       const r = await fetch('/api/checkin', {
         method: 'POST',
@@ -553,6 +558,7 @@ export default function HomePage() {
   const snoozeName = (m) => (m === 30 ? '30 minutes' : m === 60 ? 'an hour' : m % 60 ? `${m} minutes` : `${m / 60} hours`)
   // Photo brain dump: a handwritten list, flyer, notice or screenshot goes through the same flow as typing, with the image added.
   async function handleImage(file) {
+    noteActivity()
     setPendingQuestion(null)
     setThinking((n) => n + 1)
     try {
@@ -565,6 +571,9 @@ export default function HomePage() {
     }
   }
   async function handleDump(text) {
+    // Sent, so there's no draft left to check in about.
+    noteActivity()
+    answeringCheckIn.current = !!pendingQuestion && pendingQuestion === checkInLine
     setPendingQuestion(null)
     setThinking((n) => n + 1)
     try {
@@ -667,16 +676,16 @@ export default function HomePage() {
       addTasks(saved)
       if (saved.length || changed) setLastChange({ before, points })
       // The quip is the model's; the "Set: ..." and action parts come from what was really changed.
-      // Keep the conversation going: ask about a new task first, else the next one still waiting.
-      const answered = new Set(actions.filter((a) => a.type !== 'update' || a.due || a.title).map((a) => listed[a.n - 1]?.id))
-      const question = saved.find((t) => t.ask)?.ask.text ?? listed.find((t) => t.ask && !answered.has(t.id))?.ask.text
-      // Nothing saved but it reads like a reminder: ask, don't shrug. The model's followup wins over the backstop.
+      // One question at most, and only about what was just added. Reminders still waiting for a time ask on their own cards,
+      // so answering one doesn't pop up the next. A reply to a check-in, a saved reminder or a goodbye ends it there.
+      const question = saved.find((t) => t.ask)?.ask.text
       const nothing = !saved.length && !changed
-      // Set and nothing missing: the conversation ends here, with no extra follow-up.
-      let ask = question ?? (saved.length ? '' : followup || (nothing && INTENT_HINT.test(text) ? BACKSTOP : ''))
+      const ended = saved.length || changed || isClosing(text) || answeringCheckIn.current
+      answeringCheckIn.current = false
+      let ask = question ?? (ended ? '' : followup || (nothing && INTENT_HINT.test(text) ? BACKSTOP : ''))
       // If the model had nothing to say either, don't shrug: say no reminder was found and offer to set one.
-      if (nothing && !reply && !ask) ask = OFFER
-      if (!question && ask) setPendingQuestion(ask)
+      if (nothing && !reply && !ask && !ended) ask = OFFER
+      if (ask) setPendingQuestion(ask)
       const line = [reply, changed, savedSummary(saved), limitLine(found.length - saved.length), ask].filter(Boolean).join(' ')
       say(line)
       addChat({ from: 'you', text: said }, { from: 'nudgy', text: line, taskIds: saved.map((t) => t.id) })
@@ -879,8 +888,8 @@ export default function HomePage() {
         about={open.find((t) => t.id === aboutTaskId)}
         onPickAbout={setAboutTaskId}
         thinking={thinking}
-        question={pendingQuestion ?? open.find((t) => t.ask)?.ask.text}
-        onDismissQuestion={pendingQuestion ? () => setPendingQuestion(null) : undefined}
+        question={pendingQuestion}
+        onDismissQuestion={pendingQuestion ? () => { lastCheckIn.current = Date.now(); setPendingQuestion(null) } : undefined}
       />
       {(chat.length > 0 || lastChange) && (
         <div className="-mt-2 flex items-center justify-end gap-3">
