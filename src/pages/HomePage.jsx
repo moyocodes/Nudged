@@ -573,41 +573,44 @@ export default function HomePage() {
   }
 
   async function processDump(text, { image = null, shown = text } = {}) {
-    if (pendingSnooze) {
-      const id = pendingSnooze
-      setPendingSnooze(null)
-      const minutes = snoozeMinutes(text, true)
-      const task = tasks.find((t) => t.id === id && !t.done)
-      if (minutes && task) {
-        snoozeTask(id, minutes)
-        const line = `Snoozed "${task.title}" for ${snoozeName(minutes)}.`
+    // These shortcuts answer typed words without a model call. A picture has to reach the model, so it skips them.
+    if (!image) {
+      if (pendingSnooze) {
+        const id = pendingSnooze
+        setPendingSnooze(null)
+        const minutes = snoozeMinutes(text, true)
+        const task = tasks.find((t) => t.id === id && !t.done)
+        if (minutes && task) {
+          snoozeTask(id, minutes)
+          const line = `Snoozed "${task.title}" for ${snoozeName(minutes)}.`
+          say(line)
+          return addChat({ from: 'you', text }, { from: 'nudgy', text: line })
+        }
+      }
+      // A bare greeting ("hey Nudged", "hi Moyo", "good morning") gets a hello back, no model call.
+      if (isGreeting(text, [name, buddyName])) {
+        const open = tasks.filter((t) => !t.done)
+        const next = nextDue(tasks)
+        const hello = greetingLine(name || 'friend', buddyName || 'Nudged', Date.now(), new Date().getHours())
+        const status = open.length
+          ? `${open.length} ${open.length === 1 ? 'thing' : 'things'} on${next ? `, next up: ${next.title}` : ''}. What's on your mind?`
+          : 'Your list is empty. Suspicious. What are we remembering?'
+        const line = `${hello} ${status}`
         say(line)
         return addChat({ from: 'you', text }, { from: 'nudgy', text: line })
       }
-    }
-    // A bare greeting ("hey Nudged", "hi Moyo", "good morning") gets a hello back, no model call.
-    if (isGreeting(text, [name, buddyName])) {
-      const open = tasks.filter((t) => !t.done)
-      const next = nextDue(tasks)
-      const hello = greetingLine(name || 'friend', buddyName || 'Nudged', Date.now(), new Date().getHours())
-      const status = open.length
-        ? `${open.length} ${open.length === 1 ? 'thing' : 'things'} on${next ? `, next up: ${next.title}` : ''}. What's on your mind?`
-        : 'Your list is empty. Suspicious. What are we remembering?'
-      const line = `${hello} ${status}`
-      say(line)
-      return addChat({ from: 'you', text }, { from: 'nudgy', text: line })
-    }
-    // "What do I have today?" is a question about the list, not a new reminder: answer it from the real list.
-    const scope = listRequest(text)
-    if (scope) {
-      const line = taskSummary(tasks, scope, name || 'friend')
-      say(line)
-      return addChat({ from: 'you', text }, { from: 'nudgy', text: line })
-    }
-    // A bare "undo" needs no model call.
-    if (/^\s*(undo( that| it)?|take (that|it) back)[.!\s]*$/i.test(text)) {
-      addChat({ from: 'you', text })
-      return undoLast()
+      // "What do I have today?" is a question about the list, not a new reminder: answer it from the real list.
+      const scope = listRequest(text)
+      if (scope) {
+        const line = taskSummary(tasks, scope, name || 'friend')
+        say(line)
+        return addChat({ from: 'you', text }, { from: 'nudgy', text: line })
+      }
+      // A bare "undo" needs no model call.
+      if (/^\s*(undo( that| it)?|take (that|it) back)[.!\s]*$/i.test(text)) {
+        addChat({ from: 'you', text })
+        return undoLast()
+      }
     }
     say(THINKING[Math.floor(Math.random() * THINKING.length)])
     const local = new Date()
