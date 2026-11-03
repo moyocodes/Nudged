@@ -92,3 +92,4 @@
 - Model tag and Nudgy's bubble: both floated over the page and hid the date, cards and Plan it. The top bar now keeps a row for the tag and grows while Nudgy talks, so the page moves down instead. Two tags also squashed together during a handover, so now one leaves before the next arrives.
 - Repeating tasks: ticking the last one said "List cleared" while it was still on Today at its next time. A repeating task now gets its own "see you at the next one" line.
 - Share image: the link preview pointed at the old onrender address and an og.png that was never added. Added the image and moved the links to getnudged.chat.
+- Demo script: the scenes felt like separate features, so the bank and Yinka's now run through the whole video, with linking lines and steps to stop chimes and the rundown interrupting a take.
