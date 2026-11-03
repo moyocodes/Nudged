@@ -10,6 +10,8 @@ Everything in this repo was built from scratch for the Meta Global AI Developer 
 
 ## Built during the hackathon
 
+Built by James Moyosore, using Claude Code as a coding assistant. All the AI inside the app runs on Meta's models.
+
 Check it yourself, no login needed:
 
 - **Live app:** [getnudged.chat](https://getnudged.chat)
