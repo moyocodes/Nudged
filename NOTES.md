@@ -91,3 +91,4 @@
 - Sleep hours: medium reminders were nudging at night, so now only high priority gets through. The task card names any time that lands in sleep hours, and says to make it high priority or remove that time.
 - Model tag and Nudgy's bubble: both floated over the page and hid the date, cards and Plan it. The top bar now keeps a row for the tag and grows while Nudgy talks, so the page moves down instead. Two tags also squashed together during a handover, so now one leaves before the next arrives.
 - Repeating tasks: ticking the last one said "List cleared" while it was still on Today at its next time. A repeating task now gets its own "see you at the next one" line.
+- Share image: the link preview pointed at the old onrender address and an og.png that was never added. Added the image and moved the links to getnudged.chat.
