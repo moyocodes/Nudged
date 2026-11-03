@@ -121,3 +121,4 @@
 - Microphone prompt: the set-up card asked on every reload, because iPhones can report the mic as undecided each time. The answer is now saved with the account, and there's a No button.
 - Nudges wait their turn: a nudge could cut in while Nudged was asking a question, even about the same task. Each reason now holds nudges on its own: the mic, thinking, a plan, the rundown, Nudged talking, a question on screen or a half-typed message. The last two stop after 2 minutes, so a forgotten question can't silence every nudge.
 - Photo proof on every reminder: only errands asked for it. Now every reminder does, including ones already on the list. It stays optional, and can be switched off on a reminder.
+- Check-ins end: Nudged checked in after every reply, even with the reminder set. Now it only checks in on an unsent draft, and a saved reminder ends the conversation with no extra follow-up.

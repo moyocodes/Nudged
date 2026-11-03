@@ -394,8 +394,10 @@ export default function HomePage() {
   const [quietUntil, setQuietUntil] = useState(null)
   const [checkInLine, setCheckInLine] = useState(null)
   const idleState = useRef({})
+  // Only an unsent draft gets a check-in. Once something has been said and saved, the conversation is over.
   function noteActivity(draft = '') {
     clearTimeout(idleTimer.current)
+    if (!draft.trim()) return setQuietUntil(null)
     setQuietUntil(Date.now() + QUIET_MS)
     idleTimer.current = setTimeout(() => checkIn(draft), QUIET_MS)
   }
@@ -422,7 +424,7 @@ export default function HomePage() {
     } catch {}
   }
   useEffect(() => () => clearTimeout(idleTimer.current), [])
-  // A fresh reply starts the clock. Old messages loaded from the account don't, and neither do the check-ins themselves.
+  // Anything sent cancels the wait for the draft it came from.
   const lastChat = chat[chat.length - 1]
   useEffect(() => {
     if (lastChat && !lastChat.checkin && Date.now() - new Date(lastChat.at) < 5000) noteActivity()
@@ -670,7 +672,8 @@ export default function HomePage() {
       const question = saved.find((t) => t.ask)?.ask.text ?? listed.find((t) => t.ask && !answered.has(t.id))?.ask.text
       // Nothing saved but it reads like a reminder: ask, don't shrug. The model's followup wins over the backstop.
       const nothing = !saved.length && !changed
-      let ask = question ?? (followup || (nothing && INTENT_HINT.test(text) ? BACKSTOP : ''))
+      // Set and nothing missing: the conversation ends here, with no extra follow-up.
+      let ask = question ?? (saved.length ? '' : followup || (nothing && INTENT_HINT.test(text) ? BACKSTOP : ''))
       // If the model had nothing to say either, don't shrug: say no reminder was found and offer to set one.
       if (nothing && !reply && !ask) ask = OFFER
       if (!question && ask) setPendingQuestion(ask)

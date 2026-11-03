@@ -38,7 +38,7 @@ The plan written on kickoff day, dated Oct 26, when the app was still called Pok
 - **Emails when you're away.** A reminder emails you when due, then at gaps of 30, 60, 120 and 240 minutes, with no model call. Nothing goes out during sleep hours, and one morning email lists the day's reminders.
 - **Choose the model, see the model.** A switch beside the mic, and on the Me page, picks who answers: Muse Spark Open on Baseten, Muse Spark Open on Modal, or Muse Spark on Meta. On Auto, each call takes the next one in turn. A tag stays on screen naming the model and host behind the latest call, and each nudge shows its own.
 - **It remembers the conversation.** Nudged reads your last 30 dated messages, saved to your account, so a new visit or another device carries on where you left off.
-- **It notices when you go quiet.** 15 seconds after you type, talk or get a reply with nothing further, Nudged sends one line that picks the conversation back up or nudges an unsent draft. Once per burst, and never in a hidden tab.
+- **It notices an unfinished thought.** Stop typing or talking for 15 seconds with something unsent, and Nudged sends one line nudging you to finish it. Once a reminder is set, the conversation is over.
 - **Work carries on without you.** Brain dumps, Plan my day and badges finish on the server if you reload or lose connection. The app collects the result when you're back, and shows the model still working until then.
 - **Plan my day.** One tap and an agent works through your list: it checks your day, moves overdue reminders to free times and spreads out clashes. The server refuses past, sleep-hour and clashing times, so it has to try again. Each step shows on screen, and Undo reverses the run.
 - **Daily goals.** Recurring reminders show as a checklist on Today. A missed day is skipped instead of piling up as overdue.
@@ -58,7 +58,7 @@ Nudged is always warm and cheeky, and a nudge makes sense on first read. Never f
 | Voice brain-dump | Muse Voice Transcribe (live, streamed through the server) | You tap the mic |
 | Turning a dump into reminders and actions, with chat memory | Muse Spark Open on Baseten or Modal, or Muse Spark on Meta, by the switch or Auto, with Muse Spark as backup | You press Add tasks / Enter |
 | Nudge lines | The same choice of models and backup | A nudge is actually due, or you tap Nudge me or Try a nudge |
-| Quiet check-ins | The same choice of models and backup | 15 seconds of quiet after you type, talk or get a reply |
+| Quiet check-ins | The same choice of models and backup | 15 seconds of quiet with something typed or said but not sent |
 | Photo brain dump | Muse Spark reads a handwritten list, flyer, notice or screenshot in the same call as any message, and words in a picture can only add reminders | You add a photo or screenshot beside the mic |
 | Photo proof | SAM 3.1 finds the task's object in your photo, then Muse Spark takes a second look if SAM says no | You send a proof photo |
 | Plan my day | Muse Wonder as an agent, one tool per step, at most 5 calls | You tap Plan it |
@@ -109,4 +109,4 @@ NOTES.md                  Dev log, one entry per feature
 
 ## When models are called
 
-The API is called only when you tap a button, a nudge is actually due, or you've gone quiet for 15 seconds after an exchange, never on page load or while typing. Outputs are capped (1000 tokens for nudges, 2000 for extraction, since Muse Spark's reasoning alone used up the earlier 300 and 800), reasoning effort is low on Muse Spark and Muse Spark Open (Meta's hackathon workshop benchmarks found low scores best on short tasks: higher effort spent more tokens, scored lower, and at max sometimes used the whole budget and returned nothing), identical dumps are cached, and the server logs model and token counts per call.
+The API is called only when you tap a button, a nudge is actually due, or you've left something unsent for 15 seconds, never on page load or while typing. Outputs are capped (1000 tokens for nudges, 2000 for extraction, since Muse Spark's reasoning alone used up the earlier 300 and 800), reasoning effort is low on Muse Spark and Muse Spark Open (Meta's hackathon workshop benchmarks found low scores best on short tasks: higher effort spent more tokens, scored lower, and at max sometimes used the whole budget and returned nothing), identical dumps are cached, and the server logs model and token counts per call.
