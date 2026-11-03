@@ -39,7 +39,9 @@ function TaskEditor({ task, onClose }) {
   const sameRepeat = JSON.stringify(repeat) === JSON.stringify(task.repeat ?? null)
   const keepDue = sameRepeat && task.due && new Date(task.due) > new Date()
   const due = repeat ? (keepDue ? new Date(task.due) : nextOccurrence(repeat)) : date || time ? new Date(`${date || dayString(0)}T${time || '09:00'}`) : null
-  const asleep = due && priority === 'low' && !canNudge({ priority }, due, schedule)
+  // The first time that lands in sleep hours: any slot of a repeat, or the one due time.
+  const times = repeat ? repeat.map((s) => new Date(`${dayString(0)}T${s.time}`)) : due ? [due] : []
+  const asleep = times.find((t) => !canNudge({ priority }, t, schedule))
 
   function save(e) {
     e.preventDefault()
@@ -84,7 +86,7 @@ function TaskEditor({ task, onClose }) {
         {!due
           ? `No date: I'll nudge you at ${formatClock(schedule.checkIn)} each day.`
           : asleep
-            ? `That's during your sleep hours, so I'll wait until ${formatClock(schedule.sleepEnd)}. Make it medium or high to nudge you anyway.`
+            ? `${asleep.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} is during your sleep hours, so I'll wait until ${formatClock(schedule.sleepEnd)}. Make it high priority to nudge you anyway, or remove that time.`
             : `I'll nudge you ${friendlyDue(due.toISOString()).toLowerCase()}${repeat ? `, then ${describeRepeat(repeat).toLowerCase()}` : ''}.`}
       </p>
       <div className="flex items-center gap-2">

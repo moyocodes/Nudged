@@ -50,7 +50,7 @@ export default function LoginPage() {
         ) : name ? (
           <>
             <h1 className="text-center font-display text-[2rem] leading-tight">When should I let you sleep?</h1>
-            <p className="max-w-sm text-center text-ink/60">No reminder emails during these hours. Whatever's still undone lands in your inbox when you wake. Happy with these? Change them now or any time in Settings.</p>
+            <p className="max-w-sm text-center text-ink/60">No reminder emails during these hours. Whatever's still undone lands in your inbox when you wake. In the app, only high-priority reminders nudge you during these hours. Happy with these? Change them now or any time in Settings.</p>
             <Card className="w-full max-w-sm">
               <div className="grid grid-cols-2 gap-2">
                 <label className="text-xs font-medium text-ink/60">

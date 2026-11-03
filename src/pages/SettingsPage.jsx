@@ -166,7 +166,7 @@ export default function SettingsPage() {
       <Card>
         <h2 className="font-display text-xl">Sleep hours</h2>
         <p className="mt-1 text-sm text-ink/55">
-          I won't nudge you about low-priority things while you sleep. Medium and high still get through.
+          Only high-priority reminders nudge you while you sleep. Medium and low wait until you wake up.
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2">
           <label className="text-xs font-medium text-ink/60">

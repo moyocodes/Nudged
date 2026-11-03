@@ -79,7 +79,7 @@ function nudgeClock(t, mine) {
   return { start, gap, sent: mine.filter((p) => new Date(p.at).getTime() >= start).length }
 }
 
-// When this task's next nudge is due, for the countdown on its card. Sleep hours still push low-priority ones to wake-up.
+// When this task's next nudge is due, for the countdown on its card. Sleep hours still push all but high-priority ones to wake-up.
 export function nextNudgeAt(t, nudges, schedule, now = new Date()) {
   if (t.done) return null
   if (!t.due) return nextNudgeTime(t, schedule, now)

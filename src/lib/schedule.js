@@ -3,7 +3,7 @@
 //
 // settings = { sleepStart: '00:00', sleepEnd: '07:00', checkIn: '10:00' }
 // - Undated tasks get nudged once a day at checkIn.
-// - During sleep hours only medium and high priority tasks may nudge; low waits until sleepEnd.
+// - During sleep hours only high priority tasks may nudge; medium and low wait until sleepEnd.
 
 export const DEFAULT_SCHEDULE = { sleepStart: '00:00', sleepEnd: '07:00', checkIn: '10:00' }
 
@@ -22,7 +22,7 @@ export function isAsleep(date, { sleepStart, sleepEnd }) {
 
 export function canNudge(task, date, schedule) {
   if (task.done) return false
-  return task.priority !== 'low' || !isAsleep(date, schedule)
+  return task.priority === 'high' || !isAsleep(date, schedule)
 }
 
 function at(date, hhmm) {
@@ -33,7 +33,7 @@ function at(date, hhmm) {
 }
 
 // The next moment this task would nudge: its due time (or the next check-in if undated),
-// pushed to wake-up time when it lands in sleep hours and the task is low priority.
+// pushed to wake-up time when it lands in sleep hours and the task isn't high priority.
 export function nextNudgeTime(task, schedule, now = new Date()) {
   if (task.done) return null
   let when
