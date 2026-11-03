@@ -38,7 +38,7 @@ Nudgy is always warm and cheeky, and a nudge makes sense on first read. Never fl
 | Nudge lines | The same choice of models and backup | A nudge is actually due, or you tap Nudge me or Try a nudge |
 | Quiet check-ins | The same choice of models and backup | 15 seconds of quiet after you type, talk or get a reply |
 | Photo proof | SAM 3.1 finds the task's object in your photo, then Muse Spark takes a second look if SAM says no | You send a proof photo |
-| Plan my day | Muse Spark as an agent, one tool per step, at most 5 calls | You tap Plan it |
+| Plan my day | Muse Wonder as an agent, one tool per step, at most 5 calls | You tap Plan it |
 | Personal badge art | Muse Wonder writes the art prompt, Muse Image draws it | You tap Create my badge |
 | Restyle Nudgy | Muse Wonder writes the art prompt, Muse Image draws it | You tap Draw my new look |
 

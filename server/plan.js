@@ -1,4 +1,4 @@
-// Plan my day: Muse Spark as an agent. Each step it picks one tool, the server runs it against the list, and the result
+// Plan my day: Muse Wonder as an agent. Each step it picks one tool, the server runs it against the list, and the result
 // feeds the next step. Only when the user taps the button, at most MAX_STEPS calls. Nothing is saved until the app applies the changes.
 const MAX_STEPS = 5
 const SOON_MIN = 30 // two reminders closer than this clash

@@ -110,7 +110,7 @@ describe('Plan my day', () => {
       { n: 2, id: 'gym', title: 'Go to the gym', due: `${dayFrom(1)}T18:00`, priority: 'low' },
     ]
     const r = await post('/api/plan', { reminders, schedule: { sleepStart: '00:00', sleepEnd: '07:00' }, now: nowIso })
-    expect(r.via).toBe('Muse Spark Agent · Meta')
+    expect(r.via).toBe('Muse Wonder Agent · Meta')
     expect(r.summary.length).toBeGreaterThan(0)
     const moved = r.changes.find((c) => c.id === 'late')
     expect(moved, JSON.stringify(r)).toBeDefined()

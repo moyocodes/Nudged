@@ -446,7 +446,7 @@ export default function HomePage() {
     setPlanning(true)
     holdNudges(true)
     try {
-      applyPlan(await runJob('plan', 'Muse Spark Agent', '/api/plan', { reminders, schedule, now: localTime(new Date()) }))
+      applyPlan(await runJob('plan', 'Muse Wonder Agent', '/api/plan', { reminders, schedule, now: localTime(new Date()) }))
     } catch (err) {
       say(err.message || "Couldn't plan just now. Try again in a bit.")
     } finally {

@@ -262,10 +262,10 @@ app.post('/api/proof', requireSession, async (req, res) => {
   }
 })
 
-// The "Plan my day" button: the agent loop is in plan.js. Each step is one Muse Spark call.
+// The "Plan my day" button: the agent loop is in plan.js. Each step is one call to PLAN_MODEL_NAME (Muse Wonder), or Muse Spark if that's blank.
 app.post('/api/plan', requireSession, trackJob, async (req, res) => {
   const { reminders, schedule, now } = req.body ?? {}
-  const model = process.env.MODEL_NAME
+  const model = process.env.PLAN_MODEL_NAME || process.env.MODEL_NAME
   if (!Array.isArray(reminders) || !reminders.length || typeof now !== 'string') return res.status(400).json({ error: 'Nothing to plan' })
   try {
     const ask = async (instructions, input) => {
@@ -273,7 +273,7 @@ app.post('/api/plan', requireSession, trackJob, async (req, res) => {
       console.log(`[usage] step=plan model=${model} input_tokens=${r.usage?.input_tokens} output_tokens=${r.usage?.output_tokens}`)
       return r.output_text ?? ''
     }
-    res.json({ ...(await planDay({ reminders: reminders.slice(0, 30), schedule, now, ask })), via: 'Muse Spark Agent · Meta' })
+    res.json({ ...(await planDay({ reminders: reminders.slice(0, 30), schedule, now, ask })), via: `${/wonder/i.test(model) ? 'Muse Wonder' : 'Muse Spark'} Agent · Meta` })
   } catch (err) {
     console.error('[plan]', err.message)
     res.status(502).json({ error: "Couldn't plan just now. Try again in a bit." })
