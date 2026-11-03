@@ -6,7 +6,7 @@ import { badgeStats, mockExtract, nextBadge } from '../lib/mockData.js'
 import { countdown, friendlyDue, isOverdue, nextDue, savedSummary } from '../lib/format.js'
 import { describeRepeat, nextOccurrence } from '../lib/schedule.js'
 import { greetingLine, isGreeting } from '../lib/phrases.js'
-import { BACKSTOP, INTENT_HINT, OFFER, listRequest, looksPhysical, snoozeMinutes, taskSummary, whenAsk } from '../lib/intent.js'
+import { BACKSTOP, INTENT_HINT, OFFER, listRequest, snoozeMinutes, taskSummary, whenAsk } from '../lib/intent.js'
 import BrainDump from '../components/BrainDump.jsx'
 import SoundPicker from '../components/SoundPicker.jsx'
 import TaskCard from '../components/TaskCard.jsx'
@@ -654,8 +654,8 @@ export default function HomePage() {
           title: t.title,
           due,
           priority: t.priority,
-          // Photo proof is ticked for meetings, places and errands, by the model or by the local backstop.
-          physical: !!t.proof || looksPhysical(t.title),
+          // Every reminder asks for photo proof. It stays optional, and can be switched off on the reminder.
+          physical: true,
           proofOf: t.proofOf || undefined,
           ask: t.ask ?? (due ? null : whenAsk(t.title)),
           repeat: t.repeat,
@@ -689,7 +689,7 @@ export default function HomePage() {
         return addChat({ from: 'you', text: said }, { from: 'nudgy', text: line })
       }
       const all = mockExtract(text)
-      const found = all.slice(0, Math.max(0, MAX_OPEN_TASKS - tasks.filter((t) => !t.done).length)).map((t) => ({ ...t, physical: t.physical || looksPhysical(t.title), ...(t.due || t.ask ? {} : { ask: whenAsk(t.title) }) }))
+      const found = all.slice(0, Math.max(0, MAX_OPEN_TASKS - tasks.filter((t) => !t.done).length)).map((t) => ({ ...t, physical: true, ...(t.due || t.ask ? {} : { ask: whenAsk(t.title) }) }))
       if (found.length) setLastChange({ before: tasks, points })
       addTasks(found)
       const nudge = INTENT_HINT.test(text) ? BACKSTOP : OFFER
