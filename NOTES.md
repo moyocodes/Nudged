@@ -113,3 +113,5 @@
 - Proof highlight: the proof screen now outlines what SAM 3.1 found, so it's clear why a photo passed. It draws SAM's boxes, because Meta's docs page didn't explain how to decode the masks.
 - Badges as a set: Muse Image now gets the mascot as a reference picture, so every badge features the same character.
 - Proof second look on open weights: when SAM 3.1 misses, Muse Spark Open on Baseten now looks at the photo first, with Muse Spark as the backup, and the model tag shows which one decided.
+- Add to a badge: typing "glasses" on a finished badge only fed a full redraw. Now Muse Image edits the existing badge and changes only what was asked, and Draw a whole new one stays separate.
+- Clear a badge picture: the badge pop-up can now remove a custom picture, with a confirm tap. The badge stays earned and goes back to the standard look.

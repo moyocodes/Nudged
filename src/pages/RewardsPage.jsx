@@ -6,7 +6,7 @@ import Counter from '../components/Counter.jsx'
 import { useStore } from '../lib/store.jsx'
 import { BADGES, badgeStats, isEarned } from '../lib/mockData.js'
 import { confettiBurst } from '../lib/confetti.js'
-import { badgeContext, makeBadgeArt } from '../lib/badgeArt.js'
+import { badgeContext, editBadgeArt, makeBadgeArt } from '../lib/badgeArt.js'
 import { FlameIcon, StarIcon, TrophyIcon } from '../components/Icons.jsx'
 import { Link } from 'react-router-dom'
 import Mascot from '../components/Mascot.jsx'
@@ -31,15 +31,26 @@ function BadgeView({ badge, stats, onClose }) {
   const { name, tasks, streak, badgeArt, setBadgeArt } = useStore()
   const [making, setMaking] = useState(false)
   const [touch, setTouch] = useState('')
+  const [clearing, setClearing] = useState(false)
   const [error, setError] = useState('')
   const mine = badgeArt[badge.id]
 
   // One image per tap, only for earned badges. The result is kept, so it never costs twice.
-  async function create() {
+  // Back to the standard badge: only the picture goes, and the badge stays earned. Two taps, since it can't be undone.
+  function clearArt() {
+    if (!clearing) return setClearing(true)
+    setBadgeArt(({ [badge.id]: _gone, ...rest }) => rest)
+    setClearing(false)
+  }
+
+  async function create(addTo = false) {
+    setClearing(false)
     setMaking(true)
     setError('')
     try {
-      const art = await makeBadgeArt(badge.id, badgeContext(tasks, streak, touch), { fresh: !!mine })
+      const context = badgeContext(tasks, streak, touch)
+      const art = mine && addTo ? await editBadgeArt(badge.id, mine, context) : await makeBadgeArt(badge.id, context, { fresh: !!mine })
+      setTouch('')
       setBadgeArt((all) => ({ ...all, [badge.id]: art }))
       confettiBurst({ y: window.innerHeight * 0.45, count: 60 })
     } catch (err) {
@@ -103,19 +114,38 @@ function BadgeView({ badge, stats, onClose }) {
             value={touch}
             onChange={(e) => setTouch(e.target.value)}
             maxLength={40}
-            placeholder="Add your own touch: my dog, football, jollof…"
+            placeholder={mine ? 'Add to this badge: glasses, a hat, my dog…' : 'Add your own touch: my dog, football, jollof…'}
             aria-label="Your own touch for this badge"
             className="mt-3 w-full rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-primary/40"
           />
         )}
+        {earned && mine && touch.trim() && (
+          <button
+            type="button"
+            onClick={() => create(true)}
+            disabled={drawing}
+            className="mt-4 min-h-10 w-full rounded-full bg-soft px-3 text-sm font-semibold text-ink disabled:opacity-60"
+          >
+            {drawing ? 'Adding it…' : `✨ Add ${touch.trim()} to my badge`}
+          </button>
+        )}
         {earned && (
           <button
             type="button"
-            onClick={create}
+            onClick={() => create(false)}
             disabled={drawing}
-            className={`mt-4 min-h-10 w-full rounded-full text-sm font-semibold disabled:opacity-60 ${mine ? 'text-ink/60 hover:bg-ink/5' : 'bg-soft text-ink'}`}
+            className={`mt-2 min-h-10 w-full rounded-full text-sm font-semibold disabled:opacity-60 ${mine ? 'text-ink/60 hover:bg-ink/5' : 'bg-soft text-ink'}`}
           >
-            {drawing ? 'Drawing your badge…' : mine ? 'Make a new one' : '✨ Create my badge'}
+            {drawing ? 'Drawing your badge…' : mine ? 'Draw a whole new one' : '✨ Create my badge'}
+          </button>
+        )}
+        {earned && mine && !drawing && (
+          <button
+            type="button"
+            onClick={clearArt}
+            className={`mt-1 min-h-9 w-full rounded-full text-xs font-semibold hover:bg-ink/5 ${clearing ? 'text-accent' : 'text-ink/45'}`}
+          >
+            {clearing ? 'Tap again to clear it' : 'Clear my picture'}
           </button>
         )}
         {error && <p className="mt-2 text-sm text-accent">{error}</p>}

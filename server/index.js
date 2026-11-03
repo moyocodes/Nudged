@@ -388,8 +388,22 @@ app.post('/api/mascot', requireSession, trackJob, async (req, res) => {
 const MASCOT_LINE = 'Include the mascot from the attached picture on the badge, keeping its shape and friendly face, in the badge colours.'
 const mascotReference = () => `data:image/png;base64,${fs.readFileSync(path.join(import.meta.dirname, 'assets', 'mascot.png')).toString('base64')}`
 app.post('/api/badge', requireSession, trackJob, async (req, res) => {
-  const { badge, context, fresh } = req.body ?? {}
+  const { badge, context, fresh, editOf } = req.body ?? {}
   if (!BADGE_IDS.includes(badge)) return res.status(400).json({ error: 'Unknown badge' })
+  // "Add glasses" on a badge they already have: Muse Image edits that picture, changing only what they asked for.
+  if (typeof editOf === 'string' && editOf.startsWith('data:image/')) {
+    const extra = String(context?.touch ?? '').replace(/["\\\n\r]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 40)
+    if (!extra) return res.status(400).json({ error: 'What should I add?' })
+    if (!takeImageSlot()) return res.status(429).json({ error: "That's all the badge art for today. Try again tomorrow." })
+    try {
+      const prompt = `Edit the attached badge: add ${extra}. Keep everything else exactly as it is, including the layout, style, colours and any character. No text, no letters, no numbers.`
+      const image = `data:image/png;base64,${(await generateImage(prompt, { reference: editOf })).toString('base64')}`
+      return res.json({ image, via: 'Muse Image · Meta' })
+    } catch (err) {
+      console.error('[badge]', err.message)
+      return res.status(502).json({ error: "Couldn't change that just now. Try again in a bit." })
+    }
+  }
   const brief = badgePrompt(badge, context)
   if (!fresh && badgeCache.has(brief)) return res.json({ image: badgeCache.get(brief), via: artVia() })
   if (!takeImageSlot()) return res.status(429).json({ error: "That's all the badge art for today. Try again tomorrow." })

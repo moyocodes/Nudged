@@ -1,6 +1,6 @@
 // Asks the server (Muse Image) for this user's own version of a badge, then shrinks it so it stays small
 // in storage and sync. Called only when the user taps "Create my badge".
-import { guessPhrase } from './proof.js'
+import { guessPhrase, toJpeg } from './proof.js'
 import { resumeJobs, runJob } from './jobs.js'
 import { showModel } from '../components/ModelTag.jsx'
 
@@ -41,6 +41,12 @@ const finishArt = (json) => {
 
 export async function makeBadgeArt(badgeId, context, { fresh = false } = {}) {
   return finishArt(await runJob('badge', 'Muse Wonder + Muse Image', '/api/badge', { badge: badgeId, context, fresh }, { badgeId }))
+}
+
+// Changes the badge they already have, instead of drawing a new one.
+export async function editBadgeArt(badgeId, current, context) {
+  const editOf = await toJpeg(current, 1024, 0.9)
+  return finishArt(await runJob('badge', 'Muse Image', '/api/badge', { badge: badgeId, context, editOf }, { badgeId }))
 }
 
 // A badge still drawing when the page closed lands here once it's done.
