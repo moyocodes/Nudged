@@ -68,20 +68,22 @@ export function StoreProvider({ children }) {
   }
   const [snoozes, setSnoozes] = usePersisted('snoozes', {})
   const [joke, setJoke] = useState(null)
-  // The reminder picked to talk to Nudgy about (the @ chip in the brain dump), or null.
+  // The reminder picked to talk to Nudged about (the @ chip in the brain dump), or null.
   const [aboutTaskId, setAboutTaskId] = useState(null)
   const [buddy, setBuddy] = useState(null)
   const [voiceOn, setVoiceOn] = usePersisted('voiceOn', false)
   const [volume, setVolume] = usePersisted('volume', 0.6)
-  // What this user calls their Nudgy, e.g. "Moyo's Nudgy". Shown in the top bar and greetings, and told to the model.
-  const [buddyName, setBuddyName] = usePersisted('buddyName', 'Nudgy')
+  // What this user calls their Nudged, e.g. "Moyo's Nudged". Shown in the top bar and greetings, and told to the model.
+  const [savedBuddyName, setBuddyName] = usePersisted('buddyName', 'Nudged')
+  // Accounts from before the rename still hold the old name.
+  const buddyName = String(savedBuddyName ?? '').replace(/\bNudgy\b/, 'Nudged')
   // How often the rundown opens by itself: 'always' (every visit), '4h', 'daily' or 'never' (button only).
   const [rundownMode, setRundownMode] = usePersisted('rundownMode', '4h')
   // This user's own badge art from Muse Image: { badgeId: small image }. Saved, and synced with the account.
   const [badgeArt, setBadgeArt] = usePersisted('badgeArt', {})
-  // Nudgy's look from Restyle Nudgy, or null for the original.
+  // Nudged's look from Restyle Nudged, or null for the original.
   const [mascotArt, setMascotArt] = usePersisted('mascotArt', null)
-  // Master mute: "Sound off" silences everything (music, background sound, alarm, Nudgy's voice, notification sound).
+  // Master mute: "Sound off" silences everything (music, background sound, alarm, Nudged's voice, notification sound).
   const [muted, setMuted] = usePersisted('muted', false)
   // Whether the user has answered "talk out loud?" (yes or no), so the setup card stops asking.
   const [soundAsked, setSoundAsked] = usePersisted('soundAsked', false)
@@ -93,9 +95,9 @@ export function StoreProvider({ children }) {
   const [alarmOn, setAlarmOn] = usePersisted('alarmOn', false)
   // Which model writes nudge lines: 'auto' (each in turn), 'open' (Muse Spark Open on Baseten), 'modal' (the same on Modal) or 'spark' (Muse Spark on Meta).
   const [nudgeModel, setNudgeModel] = usePersisted('nudgeModel', 'auto')
-  // The device voice Nudgy speaks with; null means the nicest one on this device.
+  // The device voice Nudged speaks with; null means the nicest one on this device.
   const [voiceName, setVoiceName] = usePersisted('voiceName', null)
-  // Whether the Alarm sound row in "Set Nudgy up" has been answered.
+  // Whether the Alarm sound row in "Set Nudged up" has been answered.
   const [alarmAsked, setAlarmAsked] = usePersisted('alarmAsked', false)
   // Background music during the rundown (lib/music.js).
   const [musicOn, setMusicOn] = usePersisted('musicOn', true)
@@ -103,12 +105,12 @@ export function StoreProvider({ children }) {
   const [ambient, setAmbient] = usePersisted('ambient', null)
   // One volume for all sounds (lib/volume.js). Background sound plays at a quarter of it.
   const [ambientAsked, setAmbientAsked] = usePersisted('ambientAsked', false)
-  // Everything said to and by Nudgy in the brain dump, oldest first: { id, at, from: 'you'|'nudgy', text, taskIds? }.
+  // Everything said to and by Nudged in the brain dump, oldest first: { id, at, from: 'you'|'nudgy', text, taskIds? }.
   const [chat, setChat] = usePersisted('chat', [])
   const addChat = (...msgs) =>
     setChat((c) => [...c, ...msgs.map((m, i) => ({ id: `c${Date.now()}${i}`, at: new Date().toISOString(), ...m }))].slice(-500))
 
-  // Nudgy's on-screen voice: a speech bubble every time, out loud too when the user turns it on.
+  // Nudged's on-screen voice: a speech bubble every time, out loud too when the user turns it on.
   const say = (text) => setBuddy({ text, key: Date.now() })
   const [celebration, setCelebration] = useState(null)
   const [tutorialSeen, setTutorialSeen] = usePersisted('tutorialSeen', false)
@@ -238,7 +240,7 @@ export function StoreProvider({ children }) {
     if (account) taskDone(task.title).catch(() => {})
     const earned = POINTS_PER_TASK + (proof ? PROOF_BONUS : 0)
     setPoints((p) => p + earned)
-    // What kind of finish it was decides which lines Nudgy picks.
+    // What kind of finish it was decides which lines Nudged picks.
     const others = tasks.filter((t) => !t.done && t.id !== id).length
     // A repeating task comes straight back, so it never gets the "list is empty" lines.
     const context = others === 0 && !next ? 'allClear' : proof ? 'proof' : task.repeat ? 'recurring' : isOverdue(task) ? 'late' : isEarly(task) ? 'early' : 'plain'

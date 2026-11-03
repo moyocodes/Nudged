@@ -1,4 +1,4 @@
-// Restyle Nudgy: Muse Wonder directs, Muse Image draws, and the white background is cut away here so it sits on any page.
+// Restyle Nudged: Muse Wonder directs, Muse Image draws, and the white background is cut away here so it sits on any page.
 import { showModel } from '../components/ModelTag.jsx'
 import { resumeJobs, runJob } from './jobs.js'
 

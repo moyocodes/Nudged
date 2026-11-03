@@ -91,7 +91,7 @@ export default function ProofPage() {
               value={phrase}
               onChange={(e) => setPhrase(e.target.value)}
               maxLength={80}
-              aria-label="What Nudgy should find in the photo"
+              aria-label="What Nudged should find in the photo"
               className="min-w-0 flex-1 rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-1.5 text-[15px] font-medium text-ink outline-none focus:ring-2 focus:ring-primary/40"
             />
           </label>

@@ -16,10 +16,10 @@ const SEND_PHRASE = /\b(send it|send)[.!\s]*$/i
 const isPhone = () => window.matchMedia('(max-width: 639px)').matches
 
 // about: a reminder picked with @ (from here or a task card); the text is then instructions for it.
-// thinking: how many dumps Nudgy is still working on; they run in the background.
+// thinking: how many dumps Nudged is still working on; they run in the background.
 // Full screen: automatic when typing on a phone, or via the expand button anywhere.
-// question: Nudgy's open question about a reminder; answer it here in plain words.
-// Counts down to Nudgy's check-in, so it's clear one is coming.
+// question: Nudged's open question about a reminder; answer it here in plain words.
+// Counts down to Nudged's check-in, so it's clear one is coming.
 function QuietTimer({ until }) {
   const [now, setNow] = useState(Date.now())
   useEffect(() => {
@@ -38,7 +38,7 @@ function QuietTimer({ until }) {
   )
 }
 
-export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nudgy:', onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
+export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nudged:', onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
   const { muted, nudgeModel, setNudgeModel } = useStore()
   const [text, setText] = useState('')
   const [interim, setInterim] = useState('')
@@ -177,7 +177,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
       </div>
       {question && !about && (
         <p className="mb-1 flex flex-wrap items-start gap-x-2 gap-y-1 rounded-2xl rounded-bl-md bg-soft px-3 py-2 pr-9 text-sm leading-snug">
-          <span className={`shrink-0 font-semibold text-primary ${questionLabel === 'Nudgy:' ? '' : 'basis-full'}`}>{questionLabel}</span>
+          <span className={`shrink-0 font-semibold text-primary ${questionLabel === 'Nudged:' ? '' : 'basis-full'}`}>{questionLabel}</span>
           <span className="min-w-0 flex-1">{question}</span>
           {onDismissQuestion && (
             <button type="button" onClick={onDismissQuestion} className="-my-1 shrink-0 rounded-full px-2 py-1 text-xs font-semibold text-ink/50 hover:bg-ink/5 hover:text-ink">No thanks</button>
@@ -190,7 +190,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
                 window.speechSynthesis.cancel()
                 window.speechSynthesis.speak(makeLine(question))
               }}
-              aria-label="Hear Nudgy's question"
+              aria-label="Hear Nudged's question"
               title="Hear it"
               className="-my-1 shrink-0 rounded-full px-1.5 py-1 text-ink/50 hover:bg-ink/5 hover:text-ink"
             >
@@ -227,7 +227,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
         placeholder={
           about
             ? 'What should I do with it? "7pm", "every Monday", "high priority", "done"…'
-            : question ? 'Answer Nudgy, or add something new…'
+            : question ? 'Answer Nudged, or add something new…'
             : expanded ? "Call the dentist, buy oat milk, Yinka's tomorrow at 5…" : 'Add something, or brain-dump it all…'
         }
         className={`w-full resize-none bg-transparent p-2 leading-relaxed outline-none placeholder:text-ink/35 ${full ? 'flex-1 text-lg' : 'pr-9 text-base'}`}
@@ -284,7 +284,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
                 : 'Talk or type. Enter sends.'}
         </p>
         <Button size="sm" onClick={() => submit()} disabled={!text.trim()}>
-          {about ? 'Tell Nudgy' : 'Add tasks'} <ArrowIcon size={16} />
+          {about ? 'Tell Nudged' : 'Add tasks'} <ArrowIcon size={16} />
         </Button>
       </div>
       {picking && (
@@ -307,7 +307,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
     {thinking > 0 && (
       <p role="status" className="-mt-2 flex items-center gap-2 px-2 text-xs text-ink/50">
         <span className="h-2 w-2 animate-pulse rounded-full bg-primary" />
-        Nudgy's on it{thinking > 1 ? ` (${thinking})` : ''}… carry on, I'll shout when it's sorted.
+        On it{thinking > 1 ? ` (${thinking})` : ''}… carry on, I'll shout when it's sorted.
       </p>
     )}
     </>

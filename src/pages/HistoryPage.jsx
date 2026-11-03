@@ -10,7 +10,7 @@ const dayLabel = (iso) => {
   return diff === 0 ? 'Today' : diff === 1 ? 'Yesterday' : d.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'short' })
 }
 
-// Everything said to Nudgy, kept on this device, plus how it's going.
+// Everything said to Nudged, kept on this device, plus how it's going.
 export default function HistoryPage() {
   const { chat, tasks } = useStore()
   const end = useRef(null)

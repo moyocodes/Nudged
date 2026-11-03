@@ -1,12 +1,12 @@
-# Nudgy
+# Nudged
 
-**Nudgy is the reminder app that nudges back.** Say or type everything on your mind: Muse Spark turns it into reminders, asks follow-up questions, and Nudgy nudges you until it's done, with lines from the open-weights Muse Spark Open on Baseten or Modal. Voice by Muse Voice Transcribe, photo proof checked by SAM 3.1, personal badges drawn by Muse Image from art direction by Muse Wonder.
+**Nudged is the reminder app that nudges back.** Say or type everything on your mind: Muse Spark turns it into reminders, asks follow-up questions, and Nudged nudges you until it's done, with lines from the open-weights Muse Spark Open on Baseten or Modal. Voice by Muse Voice Transcribe, photo proof checked by SAM 3.1, personal badges drawn by Muse Image from art direction by Muse Wonder.
 
-Dump everything on your mind, messy, by voice or text. Nudgy turns it into tidy reminders, then nudges you, cheekily and with escalating drama, until each one is done.
+Dump everything on your mind, messy, by voice or text. Nudged turns it into tidy reminders, then nudges you, cheekily and with escalating drama, until each one is done.
 
 Live at [getnudged.chat](https://getnudged.chat). Problem statement: **Build for Your World**. It's for anyone who forgets things when busy and won't organise themselves first, so a reminder app has to do the organising and the chasing.
 
-Everything in this repo was built from scratch for the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026. The first commit is project setup only, made on Oct 26 after the kickoff session; features start on Oct 27. [NOTES.md](NOTES.md) and the commit history record each feature as it was built.
+Everything in this repo was built from scratch for the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026. It was called Pokey and then Nudgy during the build, so older commits and notes use those names, and the repo link still says nudgy. The first commit is project setup only, made on Oct 26 after the kickoff session; features start on Oct 27. [NOTES.md](NOTES.md) and the commit history record each feature as it was built.
 
 ## Built during the hackathon
 
@@ -31,19 +31,19 @@ Meta Model API usage from the project's dashboard, which is private, so these ar
 - **Nudges until it's done.** Due reminders get a fresh, model-written line, escalating from Nudge to Shove, until you tap Done or Snooze for 30 min, 1 hour or 90 min (snoozing is free). An overdue reminder has its Done and Snooze buttons on Today as soon as you open the app. During sleep hours only high-priority reminders nudge. Nudges show as browser notifications when the tab is in the background.
 - **Emails when you're away.** A reminder emails you when due, then at gaps of 30, 60, 120 and 240 minutes, with no model call. Nothing goes out during sleep hours, and one morning email lists the day's reminders.
 - **Choose the model, see the model.** A switch beside the mic, and on the Me page, picks who answers: Muse Spark Open on Baseten, Muse Spark Open on Modal, or Muse Spark on Meta. On Auto, each call takes the next one in turn. A tag stays on screen naming the model and host behind the latest call, and each nudge shows its own.
-- **It remembers the conversation.** Nudgy reads your last 30 dated messages, saved to your account, so a new visit or another device carries on where you left off.
-- **It notices when you go quiet.** 15 seconds after you type, talk or get a reply with nothing further, Nudgy sends one line that picks the conversation back up or nudges an unsent draft. Once per burst, and never in a hidden tab.
+- **It remembers the conversation.** Nudged reads your last 30 dated messages, saved to your account, so a new visit or another device carries on where you left off.
+- **It notices when you go quiet.** 15 seconds after you type, talk or get a reply with nothing further, Nudged sends one line that picks the conversation back up or nudges an unsent draft. Once per burst, and never in a hidden tab.
 - **Work carries on without you.** Brain dumps, Plan my day and badges finish on the server if you reload or lose connection. The app collects the result when you're back, and shows the model still working until then.
 - **Plan my day.** One tap and an agent works through your list: it checks your day, moves overdue reminders to free times and spreads out clashes. The server refuses past, sleep-hour and clashing times, so it has to try again. Each step shows on screen, and Undo reverses the run.
 - **Daily goals.** Recurring reminders show as a checklist on Today. A missed day is skipped instead of piling up as overdue.
-- **Pics or it didn't happen.** Errands marked as photo proof earn +15 points with a photo that passes the check, or can be skipped for the normal points. SAM 3.1 looks first; if it says no, Muse Spark looks at the photo before Nudgy rejects it, so a photo of a bank counts as "bank" while a photo of a parrot doesn't.
+- **Pics or it didn't happen.** Errands marked as photo proof earn +15 points with a photo that passes the check, or can be skipped for the normal points. SAM 3.1 looks first; if it says no, Muse Spark looks at the photo before Nudged rejects it, so a photo of a bank counts as "bank" while a photo of a parrot doesn't.
 - **Rewards.** Points, a daily streak and badges, with personal badge art directed by Muse Wonder and drawn by Muse Image. While it draws, a loader made from Muse Image frames plays.
-- **Restyle Nudgy.** Describe a look on the Me page. Muse Wonder writes the art direction, Muse Image draws it, the background is cut away, and that Nudgy appears across the app and follows your account. A button brings the original back.
+- **Restyle Nudged.** Describe a look on the Me page. Muse Wonder writes the art direction, Muse Image draws it, the background is cut away, and that Nudged appears across the app and follows your account. A button brings the original back.
 - **Its own voice.** A voice picker on the Me page lists the voices on your device, nicest first. A chime plays on every nudge.
 - **Every device.** Log in with just your email, and tasks, chat, points, streak and pictures sync. For the hackathon demo there is no emailed code, so judges can get straight in; a new device gets a login email, and `REQUIRE_SIGNUP_CODE` and `REQUIRE_LOGIN_CODE` turn codes back on.
 - **Four personalities.** Chill, Cheeky, Sassy and Night owl themes, each with its own font, look and colour choices.
 
-Nudgy is always warm and cheeky, and a nudge makes sense on first read. Never flirty, never mean, never medical.
+Nudged is always warm and cheeky, and a nudge makes sense on first read. Never flirty, never mean, never medical.
 
 ## How the AI is used
 
@@ -56,9 +56,9 @@ Nudgy is always warm and cheeky, and a nudge makes sense on first read. Never fl
 | Photo proof | SAM 3.1 finds the task's object in your photo, then Muse Spark takes a second look if SAM says no | You send a proof photo |
 | Plan my day | Muse Wonder as an agent, one tool per step, at most 5 calls | You tap Plan it |
 | Personal badge art | Muse Wonder writes the art prompt, Muse Image draws it | You tap Create my badge |
-| Restyle Nudgy | Muse Wonder writes the art prompt, Muse Image draws it | You tap Draw my new look |
+| Restyle Nudged | Muse Wonder writes the art prompt, Muse Image draws it | You tap Draw my new look |
 
-Model output is never trusted blindly. The server drops tasks with no title, turns an unreadable time into a "when?" question, ignores actions that point at reminders that don't exist, and Nudgy's confirmation ("Set: Call mum, today 6 PM") is built from what was really saved, so it can't claim a reminder it didn't make. If a call fails, a local parser and canned nudges keep the app working.
+Model output is never trusted blindly. The server drops tasks with no title, turns an unreadable time into a "when?" question, ignores actions that point at reminders that don't exist, and Nudged's confirmation ("Set: Call mum, today 6 PM") is built from what was really saved, so it can't claim a reminder it didn't make. If a call fails, a local parser and canned nudges keep the app working.
 
 ## Tech
 

@@ -64,10 +64,10 @@ export function tasksForMorning(tasks, timeZone, now = Date.now()) {
 export const reminderHtml = (url, tasks) => `<!doctype html><html><body style="margin:0;background:#faf6f0;padding:32px 16px;font-family:Geist,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#1b1726">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border-radius:20px;border:1px solid #ece6dc">
-<tr><td style="padding:32px 32px 8px"><a href="${url}"><img src="${url}/icon-192.png" width="56" height="56" alt="Nudgy" style="display:block;border-radius:14px;border:0"></a></td></tr>
-<tr><td style="padding:8px 32px 0"><h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">Knock knock, it's Nudgy 👋</h1></td></tr>
+<tr><td style="padding:32px 32px 8px"><a href="${url}"><img src="${url}/icon-192.png" width="56" height="56" alt="Nudged" style="display:block;border-radius:14px;border:0"></a></td></tr>
+<tr><td style="padding:8px 32px 0"><h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">Knock knock, it's Nudged 👋</h1></td></tr>
 <tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">You didn't think I'd let ${tasks.length === 1 ? 'this one' : 'these'} slide, did you?<ul style="margin:12px 0 0;padding-left:20px">${tasks.map((t) => `<li style="font-weight:600">${escapeHtml(t.title)}</li>`).join('')}</ul></td></tr>
-<tr><td style="padding:24px 32px 32px"><a href="${url}" style="display:inline-block;background:#5b4be8;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:999px">Open Nudgy</a></td></tr>
+<tr><td style="padding:24px 32px 32px"><a href="${url}" style="display:inline-block;background:#5b4be8;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:999px">Open Nudged</a></td></tr>
 </table></td></tr></table></body></html>`
 
 async function sendReminder(to, tasks, { morning = false, timeZone } = {}) {
@@ -77,11 +77,11 @@ async function sendReminder(to, tasks, { morning = false, timeZone } = {}) {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+      from: process.env.EMAIL_FROM || 'Nudged <onboarding@resend.dev>',
       to,
       subject: morning ? 'Morning! Your reminders for today' : tasks.length === 1 ? `Psst: ${tasks[0].title}` : `Psst: ${tasks.length} things are waiting`,
       html: reminderHtml(url, listed),
-      text: `Knock knock, it's Nudgy. You didn't think I'd let this slide, did you?\n\n${listed.map((t) => `- ${t.title}`).join('\n')}\n\nOpen Nudgy: ${url}`,
+      text: `Knock knock, it's Nudged. You didn't think I'd let this slide, did you?\n\n${listed.map((t) => `- ${t.title}`).join('\n')}\n\nOpen Nudged: ${url}`,
     }),
   })
   if (!r.ok) throw new Error(`${r.status} ${await r.text()}`)
@@ -107,16 +107,16 @@ export async function sendLoginEmail(to, deviceName) {
     const list = open.length
       ? `Here's what's still on your list:<ul style="margin:12px 0 0;padding-left:20px">${open.map((t) => `<li style="font-weight:600">${escapeHtml(line(t))}</li>`).join('')}</ul>`
       : "Your list is empty. Suspiciously tidy."
-    const html = reminderHtml(url, []).replace(/<h1[\s\S]*?<\/h1>/, '<h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">New login, same you? 👀</h1>').replace(/<tr><td style="padding:16px 32px 0[\s\S]*?<\/td><\/tr>/, () => `<tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">You just logged in on ${escapeHtml(deviceName)}.<br><br>${list}<br><br><span style="font-size:13px;opacity:.6">Not you? Open Nudgy and check your account.</span></td></tr>`)
+    const html = reminderHtml(url, []).replace(/<h1[\s\S]*?<\/h1>/, '<h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">New login, same you? 👀</h1>').replace(/<tr><td style="padding:16px 32px 0[\s\S]*?<\/td><\/tr>/, () => `<tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">You just logged in on ${escapeHtml(deviceName)}.<br><br>${list}<br><br><span style="font-size:13px;opacity:.6">Not you? Open Nudged and check your account.</span></td></tr>`)
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+        from: process.env.EMAIL_FROM || 'Nudged <onboarding@resend.dev>',
         to,
-        subject: 'New Nudgy login, and your list',
+        subject: 'New Nudged login, and your list',
         html,
-        text: `You just logged in on ${deviceName}.\n\n${open.length ? `Still on your list:\n${open.map((t) => `- ${line(t)}`).join('\n')}` : 'Your list is empty.'}\n\nOpen Nudgy: ${url}`,
+        text: `You just logged in on ${deviceName}.\n\n${open.length ? `Still on your list:\n${open.map((t) => `- ${line(t)}`).join('\n')}` : 'Your list is empty.'}\n\nOpen Nudged: ${url}`,
       }),
     })
     if (!r.ok) console.error('[auth] login email failed:', r.status, await r.text())
@@ -135,11 +135,11 @@ export async function sendDoneEmail(to, title) {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+        from: process.env.EMAIL_FROM || 'Nudged <onboarding@resend.dev>',
         to,
         subject: `Done: ${title}`,
         html,
-        text: `Done and dusted! You saw "${title}" through to the end. That one's off my list for now.\n\nOpen Nudgy: ${url}`,
+        text: `Done and dusted! You saw "${title}" through to the end. That one's off my list for now.\n\nOpen Nudged: ${url}`,
       }),
     })
     if (!r.ok) console.error('[reminders] done email failed:', r.status, await r.text())

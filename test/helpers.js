@@ -31,7 +31,7 @@ export async function startServer() {
 
   const url = `http://127.0.0.1:${port}`
   const started = Date.now()
-  while (!logs.includes('Nudgy server on')) {
+  while (!logs.includes('Nudged server on')) {
     if (child.exitCode !== null) throw new Error(`Server stopped while starting:\n${logs}`)
     if (Date.now() - started > 20000) throw new Error(`Server took too long to start:\n${logs}`)
     await new Promise((r) => setTimeout(r, 50))

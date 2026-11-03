@@ -9,7 +9,7 @@ const hasNotify = typeof Notification !== 'undefined'
 const hasMic = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
 const hasVoice = typeof window !== 'undefined' && 'speechSynthesis' in window
 
-// "Set Nudgy up": sound, notifications and mic, asked on a visit where any is still undecided.
+// "Set Nudged up": sound, notifications and mic, asked on a visit where any is still undecided.
 // Browsers only allow these prompts from a tap, so each row has its own Allow button.
 // "Not now" hides the card for this visit; it comes back next visit until everything is decided.
 export default function Permissions() {
@@ -68,7 +68,7 @@ export default function Permissions() {
       {open && (
         <motion.div
           role="dialog"
-          aria-label="Set Nudgy up"
+          aria-label="Set Nudged up"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

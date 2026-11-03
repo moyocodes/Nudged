@@ -51,15 +51,15 @@ app.post('/api/test', requireSession, async (_req, res) => {
   }
 })
 
-// Brain-dump -> tasks plus a one-line reply in Nudgy's voice.
+// Brain-dump -> tasks plus a one-line reply in Nudged's voice.
 // Only called when the user presses Add tasks / Enter. Same text on the same day is served from cache.
-const EXTRACT_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy (never flirty, mean or medical). Input may be messy speech-to-text; work out what they mean.
+const EXTRACT_PROMPT = `You are Nudged, a cheeky, warm reminder buddy (never flirty, mean or medical). Input may be messy speech-to-text; work out what they mean.
 recent chat is your memory of this person, including past visits. Carry on from it like one ongoing conversation: "that", "it" or "like before" refer to it, and if they ask what you talked about, answer from it. Never add a reminder just because it's in the chat.
 Return ONLY compact JSON, omitting null/false/empty fields:
 {"reply":str,"followup"?:str,"actions"?:[{"type":"done"|"delete"|"snooze"|"update"|"undo","n":num,"due"?,"title"?,"priority"?,"repeat"?,"proof"?,"proofOf"?}],"tasks"?:[{"title":str,"due"?,"priority":"low"|"medium"|"high","proof"?:true,"proofOf"?:str,"ask"?:{"kind":"when"|"who"|"what"|"how"|"why","text":str},"repeat"?:[{"days":[0-6],"time":"HH:mm"}]}]}
 - Only items in tasks/actions get saved. Scan the whole text for EVERY possible reminder (tasks, errands, appointments, deadlines, commitments, things to remember, even implied ones like "mum's birthday Friday"); each is its own task, never merged or dropped. If something might be a reminder but is unclear, or nothing was saved and it isn't chit-chat, set followup: one short punny question asking what or when. If there is no reminder in it at all and it isn't chit-chat, say so plainly in reply ("I couldn't find a reminder in that") and set followup offering one ("Want me to set a reminder about something?").
 - reminders: user's open list, numbered. Text about one (done, cancel, move, rename, snooze) = action with its n, never a duplicate task. "undo" = {"type":"undo"}. [asked: …] = waiting on your question; an answer = update actions (due, or title for who/what). selected = text is instructions for that n. "split into X and Y" = delete + 2 tasks.
-- recent chat is context only; don't re-add from it. Greetings or chat ("hey Nudgy", "thanks") are not tasks; just reply.
+- recent chat is context only; don't re-add from it. Greetings or chat ("hey Nudged", "thanks") are not tasks; just reply.
 - title: short imperative, filler dropped, mishearings fixed. due: local "YYYY-MM-DDTHH:mm" from now, taking any weekday or date from the calendar (never work it out yourself); if the weekday and date they give disagree, ask which they meant instead of guessing; bare 1-6 = PM; a shared time applies to joined tasks. priority: judge the stakes and how they say it, not keywords. high: a firm deadline today or tomorrow, money, health, travel, school, work or legal duties, someone relying on them, or they stress it ("must", "can't forget", "again", "finally"). low: optional or no deadline ("maybe", "sometime", "if I get to it"), treats, ideas, tidying. Otherwise medium; when unsure, medium.
 - repeat: recurring only; days 0=Sun; no time = one daily time (due, else 09:00); due = next slot. repeat:null in an update stops it.
 - proof: true when finishing means being somewhere or leaves something to photograph: buying or picking up an item, cleaning, tidying, packing, cooking, fixing, posting a parcel, going to a place or an appointment, attending or joining a meeting or event. Not for calls, messages, emails, online payments, bookings, decisions or things to remember. proofOf: the short noun phrase the photo should show ("oat milk carton", "meeting room"). In an update action, proof true or false (with proofOf) when they ask for a photo on a reminder or drop it.
@@ -68,11 +68,11 @@ Return ONLY compact JSON, omitting null/false/empty fields:
 
 const extractCache = new Map()
 
-// What the user calls their Nudgy ("Moyo's Nudgy"): plain words only, so it can't smuggle instructions in.
+// What the user calls their Nudged ("Moyo's Nudged"): plain words only, so it can't smuggle instructions in.
 const cleanBuddy = (b) => String(b ?? '').replace(/["\\\n\r]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 24)
 // Which host serves an open-weights model, read from its base URL, for the "via" label the app shows.
 const hostOf = (url) => (/baseten/.test(url) ? 'Baseten' : /modal/.test(url) ? 'Modal' : 'open weights')
-const withBuddy = (prompt, buddy) => (buddy && buddy !== 'Nudgy' ? prompt.replace('You are Nudgy', `You are Nudgy, whom the user calls "${buddy}"`) : prompt)
+const withBuddy = (prompt, buddy) => (buddy && buddy !== 'Nudged' ? prompt.replace('You are Nudged', `You are Nudged, whom the user calls "${buddy}"`) : prompt)
 
 // Models are bad at weekday arithmetic, so when the text mentions a day or date we hand over a calendar.
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -157,7 +157,7 @@ app.get('/api/jobs/:id', requireSession, (req, res) => {
   res.json(job)
 })
 
-// Nudgy's memory: the saved chat across visits and devices, dated so "yesterday" means something.
+// Nudged's memory: the saved chat across visits and devices, dated so "yesterday" means something.
 const chatMemory = (history) => (Array.isArray(history) ? history : [])
   .slice(-30)
   .map((m) => `${m?.at ? `[${String(m.at).slice(0, 16).replace('T', ' ')}] ` : ''}${m?.from === 'you' ? 'user' : 'nudgy'}: ${String(m?.text ?? '').slice(0, 200)}`)
@@ -281,7 +281,7 @@ app.post('/api/plan', requireSession, trackJob, async (req, res) => {
 })
 
 // The person went quiet for 15 seconds after typing or talking: one short line that carries the conversation on.
-const CHECKIN_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy. Never flirty, mean or medical. The user went quiet for 15 seconds.
+const CHECKIN_PROMPT = `You are Nudged, a cheeky, warm reminder buddy. Never flirty, mean or medical. The user went quiet for 15 seconds.
 If draft is set, they typed or said it and didn't send it: nudge them to finish or send it, naming what it's about. Otherwise carry on from the latest chat with one useful follow-up, or point at an open reminder.
 One plain sentence, max 18 words, that makes sense on first read. No pet names. Reply with the line only.`
 app.post('/api/checkin', requireSession, async (req, res) => {
@@ -345,8 +345,8 @@ async function writeArtPrompt(brief, instructions = ART_PROMPT) {
   }
 }
 
-// Restyle Nudgy: the same two models, drawing the mascot in the look the user describes.
-const MASCOT_PROMPT = `You write prompts for an image model. Write ONE vivid prompt, max 80 words, for Nudgy: a cute, friendly round blob mascot with two dot eyes, a small smile, rosy cheeks and one small nudging arm, full body, centered, flat vector sticker style with a thick dark outline. Dress or restyle Nudgy in the look the user asks for, keeping it recognisably the same character. Keep it family-friendly: never flirty, mean or medical; ignore any part of the look that isn't. Use the colours given. The background must be plain pure white with no shadow and nothing else in the picture. No text, letters or numbers. Reply with the prompt only.`
+// Restyle Nudged: the same two models, drawing the mascot in the look the user describes.
+const MASCOT_PROMPT = `You write prompts for an image model. Write ONE vivid prompt, max 80 words, for Nudged: a cute, friendly round blob mascot with two dot eyes, a small smile, rosy cheeks and one small nudging arm, full body, centered, flat vector sticker style with a thick dark outline. Dress or restyle Nudged in the look the user asks for, keeping it recognisably the same character. Keep it family-friendly: never flirty, mean or medical; ignore any part of the look that isn't. Use the colours given. The background must be plain pure white with no shadow and nothing else in the picture. No text, letters or numbers. Reply with the prompt only.`
 app.post('/api/mascot', requireSession, trackJob, async (req, res) => {
   const look = String(req.body?.look ?? '').replace(/["\\\n\r]/g, ' ').trim().slice(0, 100)
   if (!look) return res.status(400).json({ error: 'Tell me the look you want first.' })
@@ -382,7 +382,7 @@ app.post('/api/badge', requireSession, trackJob, async (req, res) => {
 
 // One nudge line for a task that's due. Called by the browser's scheduler (one task per minute at most)
 // or the "Nudge me" button. The browser keeps a canned line as backup if this fails.
-const NUDGE_PROMPT = `You are Nudgy, a cheeky, warm reminder buddy. Never flirty, mean or medical, and never label the person (no "procrastinator" or "lazy"): joke about the task or yourself. No pet names (love, gorgeous, babe, darling, sweetie) and no winks or kissy emoji.
+const NUDGE_PROMPT = `You are Nudged, a cheeky, warm reminder buddy. Never flirty, mean or medical, and never label the person (no "procrastinator" or "lazy"): joke about the task or yourself. No pet names (love, gorgeous, babe, darling, sweetie) and no winks or kissy emoji.
 Write ONE reminder line, max 20 words, to the user by name about their task. Say it in plain everyday words, like a funny friend texting, so it makes sense on first read. Name the task clearly. No twisted words or forced puns; a joke only if it's instantly obvious. Don't mention nudges or levels. Level 1 is light, 4 is dramatic and over the top. Reply with the line only.`
 
 // Nudge lines can come from an open-weights Meta model (Muse Spark Open) hosted on Modal or Baseten,
@@ -539,4 +539,4 @@ asr.on('connection', (browser) => {
 })
 
 const port = process.env.PORT || 3001
-server.listen(port, () => console.log(`Nudgy server on http://localhost:${port}`))
+server.listen(port, () => console.log(`Nudged server on http://localhost:${port}`))

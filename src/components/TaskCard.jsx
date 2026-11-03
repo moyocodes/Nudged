@@ -279,13 +279,13 @@ export default function TaskCard({ task }) {
       >
         <PencilIcon size={16} />
       </button>
-      {/* @: talk to Nudgy about this one; it lands as a chip in the brain dump. */}
+      {/* @: talk to Nudged about this one; it lands as a chip in the brain dump. */}
       {!task.done && (
         <button
           type="button"
           onClick={() => setAboutTaskId(task.id)}
-          aria-label={`Tell Nudgy what to do with ${task.title}`}
-          title="Tell Nudgy what to do with this"
+          aria-label={`Tell Nudged what to do with ${task.title}`}
+          title="Tell Nudged what to do with this"
           className={`grid h-8 w-8 place-items-center rounded-full text-[15px] font-semibold hover:bg-ink/5 ${aboutTaskId === task.id ? 'text-primary' : 'text-ink/40 hover:text-ink'}`}
         >
           @
@@ -304,7 +304,7 @@ export default function TaskCard({ task }) {
       </div>
       </>
       )}
-      {/* Nudgy's follow-up question when the model couldn't tell when/who/what. */}
+      {/* Nudged's follow-up question when the model couldn't tell when/who/what. */}
       {task.ask && !task.done && !editing && <AskRow task={task} onPick={() => setEditing(true)} />}
       {early && !task.done && (
         <div className="mt-2 flex basis-full flex-wrap items-center gap-2 border-t-[length:var(--bw)] border-line pt-3">

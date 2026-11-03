@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Practice Nudgy's intent-spotting on the conversations in scenarios.mjs.
+// Practice Nudged's intent-spotting on the conversations in scenarios.mjs.
 //
 //   npm run practice -- --list                  list scenarios (free)
 //   npm run practice -- --dry dentist           show the requests that would be sent (free)
@@ -81,7 +81,7 @@ function checks(expect = {}, got, open) {
     const has = fromTask ? !!fromTask.proof : fromAction ? !!fromAction.proof : null
     add(has === want, `"${w}" ${want ? 'needs' : 'does not need'} a photo (got ${has === null ? 'nothing' : has ? 'needs' : 'no'})`)
   }
-  if (expect.asks !== undefined) add(asked === expect.asks, expect.asks ? 'Nudgy asks a question' : 'Nudgy does not ask')
+  if (expect.asks !== undefined) add(asked === expect.asks, expect.asks ? 'Nudged asks a question' : 'Nudged does not ask')
   return out
 }
 

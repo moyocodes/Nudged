@@ -1,6 +1,6 @@
 {
-  "name": "Nudgy",
-  "short_name": "Nudgy",
+  "name": "Nudged",
+  "short_name": "Nudged",
   "description": "The reminder app that nudges back.",
   "start_url": "/",
   "display": "standalone",

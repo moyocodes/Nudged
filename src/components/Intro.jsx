@@ -3,11 +3,11 @@ import gsap from 'gsap'
 import Mascot from './Mascot.jsx'
 
 const MESSY = "ugh ok. dentist?? oat milk. also yinka's tmrw like 5pm"
-// What Nudgy makes of it: one tidy reminder per part of the messy line, same as the how-to slides.
+// What Nudged makes of it: one tidy reminder per part of the messy line, same as the how-to slides.
 const TIDY = [['Call the dentist', 'Today, 2:00 PM'], ['Buy oat milk', 'Today, 6:00 PM'], ["Go to Yinka's place", 'Tomorrow, 5:00 PM']]
 
 // Welcome intro, once per visit: a messy thought types itself out, falls apart, and snaps into a
-// tidy task card that Nudgy nudges. A Skip button counts down the seconds left; any key or tap skips too.
+// tidy task card that Nudged nudges. A Skip button counts down the seconds left; any key or tap skips too.
 export default function Intro({ onDone }) {
   const root = useRef(null)
   const done = useRef(onDone)
@@ -70,13 +70,13 @@ export default function Intro({ onDone }) {
     <div
       ref={root}
       role="dialog"
-      aria-label="Welcome to Nudgy"
+      aria-label="Welcome to Nudged"
       onPointerDown={() => done.current?.()}
       className="fixed inset-0 z-[80] flex cursor-pointer flex-col items-center justify-center gap-8 bg-bg px-6"
     >
       <div className="i-hero flex flex-col items-center gap-1">
         <Mascot size={104} wiggle />
-        <p className="font-display text-3xl text-primary">Nudgy</p>
+        <p className="font-display text-3xl text-primary">Nudged</p>
       </div>
 
       {/* The messy line and the tidy card share one spot, so the card appears where the words fell apart. */}

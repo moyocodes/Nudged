@@ -1,4 +1,4 @@
-// Nudgy's service worker: makes the app installable and opens it when a notification is tapped.
+// Nudged's service worker: makes the app installable and opens it when a notification is tapped.
 // No offline caching: reminders need the live server anyway.
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()))

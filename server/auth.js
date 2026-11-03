@@ -27,10 +27,10 @@ async function sendEmail(to, link, code) {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+      from: process.env.EMAIL_FROM || 'Nudged <onboarding@resend.dev>',
       to,
-      subject: `Your Nudgy code: ${code}`,
-      text: `Someone (hopefully you) wants to use Nudgy on a new device.\n\nConfirm it: ${link}\nOr type this code: ${code}\n\nNot you? Ignore this and nothing happens.`,
+      subject: `Your Nudged code: ${code}`,
+      text: `Someone (hopefully you) wants to use Nudged on a new device.\n\nConfirm it: ${link}\nOr type this code: ${code}\n\nNot you? Ignore this and nothing happens.`,
     }),
   })
   if (!r.ok) throw new Error(`Email failed: ${r.status} ${await r.text()}`)
@@ -41,9 +41,9 @@ async function sendEmail(to, link, code) {
 const welcomeHtml = (url) => `<!doctype html><html><body style="margin:0;background:#faf6f0;padding:32px 16px;font-family:Geist,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif;color:#1b1726">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;background:#ffffff;border-radius:20px;border:1px solid #ece6dc">
-<tr><td style="padding:32px 32px 8px"><a href="${url}"><img src="${url}/icon-192.png" width="56" height="56" alt="Nudgy" style="display:block;border-radius:14px;border:0"></a></td></tr>
+<tr><td style="padding:32px 32px 8px"><a href="${url}"><img src="${url}/icon-192.png" width="56" height="56" alt="Nudged" style="display:block;border-radius:14px;border:0"></a></td></tr>
 <tr><td style="padding:8px 32px 0"><h1 style="margin:0;font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-0.02em">Welcome aboard! 👋</h1></td></tr>
-<tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">I'm Nudgy, and I'll poke you about the things you'd rather not forget.<br><br>Tell me what's on your plate and I'll keep track. No judgement, just gentle nudges.</td></tr>
+<tr><td style="padding:16px 32px 0;font-size:16px;line-height:1.6">This is Nudged, and I'll poke you about the things you'd rather not forget.<br><br>Tell me what's on your plate and I'll keep track. No judgement, just gentle nudges.</td></tr>
 <tr><td style="padding:24px 32px 0"><a href="${url}" style="display:inline-block;background:#5b4be8;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;padding:12px 24px;border-radius:999px">Set your first reminder</a></td></tr>
 <tr><td style="padding:24px 32px 32px;font-size:13px;line-height:1.5;color:#1b1726;opacity:.6">You're all signed in, so just pick up where you left off.<br><a href="${url}" style="color:#5b4be8;text-decoration:underline">${url.replace(/^https?:\/\//, '')}</a></td></tr>
 </table></td></tr></table></body></html>`
@@ -55,11 +55,11 @@ async function sendWelcome(to) {
       method: 'POST',
       headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.EMAIL_FROM || 'Nudgy <onboarding@resend.dev>',
+        from: process.env.EMAIL_FROM || 'Nudged <onboarding@resend.dev>',
         to,
-        subject: 'Welcome to Nudgy',
+        subject: 'Welcome to Nudged',
         html: welcomeHtml(process.env.APP_URL || 'https://getnudged.chat'),
-        text: `Welcome aboard! I'm Nudgy, and I'll nudge you about the things you'd rather not forget.\n\nTell me what's on your plate and I'll keep track. No judgement, just gentle pokes.\n\nYou're all signed in, so just pick up where you left off.\n\nSet your first reminder: ${process.env.APP_URL || 'https://getnudged.chat'}`,
+        text: `Welcome aboard! This is Nudged, and I'll nudge you about the things you'd rather not forget.\n\nTell me what's on your plate and I'll keep track. No judgement, just gentle pokes.\n\nYou're all signed in, so just pick up where you left off.\n\nSet your first reminder: ${process.env.APP_URL || 'https://getnudged.chat'}`,
       }),
     })
     if (!r.ok) console.error('[auth] welcome email failed:', r.status, await r.text())
@@ -174,7 +174,7 @@ export function mountAuth(app) {
       confirmed.set(p.deviceId, { email: p.email, deviceName: p.deviceName, at: Date.now() })
     }
     res.type('html').send(`<!doctype html><meta name="viewport" content="width=device-width"><body style="font-family:system-ui;display:grid;place-items:center;min-height:90vh;text-align:center">
-      <div><h1>${ok ? 'Device confirmed 👉' : 'That link has expired'}</h1><p>${ok ? 'Head back to Nudgy on that device. It signs itself in.' : 'Ask Nudgy for a new one.'}</p></div>`)
+      <div><h1>${ok ? 'Device confirmed 👉' : 'That link has expired'}</h1><p>${ok ? 'Head back to Nudged on that device. It signs itself in.' : 'Ask Nudged for a new one.'}</p></div>`)
   }))
 
   // Step 2b: or the 6-digit code typed into the app.

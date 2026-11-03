@@ -34,7 +34,7 @@ export default function Joke() {
         <motion.div
           key={joke.key}
           role="alertdialog"
-          aria-label="Nudgy has stopped believing in you. Just kidding."
+          aria-label="Nudged has stopped believing in you. Just kidding."
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -45,9 +45,9 @@ export default function Joke() {
             {!kidding ? (
               <motion.div key="crash" exit={{ opacity: 0 }} className="mx-auto w-full max-w-md">
                 <p className="text-6xl">:/</p>
-                <p className="mt-6 text-xl leading-snug">Nudgy.exe has stopped believing in you.</p>
+                <p className="mt-6 text-xl leading-snug">Nudged.exe has stopped believing in you.</p>
                 <p className="mt-4 text-sm opacity-60">
-                  Error 0x5N00ZE: "{task?.title ?? 'that thing'}" snoozed 3 times. Nudgy is rebooting from the shock.
+                  Error 0x5N00ZE: "{task?.title ?? 'that thing'}" snoozed 3 times. Nudged is rebooting from the shock.
                 </p>
                 <p className="mt-6 text-sm">{percent}% complete</p>
               </motion.div>

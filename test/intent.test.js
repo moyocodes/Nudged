@@ -27,7 +27,7 @@ describe('INTENT_HINT', () => {
   })
 
   it('leaves plain chat alone', () => {
-    for (const text of ['hey Nudgy', 'thanks', 'what a day']) expect(INTENT_HINT.test(text)).toBe(false)
+    for (const text of ['hey Nudged', 'thanks', 'what a day']) expect(INTENT_HINT.test(text)).toBe(false)
   })
 })
 

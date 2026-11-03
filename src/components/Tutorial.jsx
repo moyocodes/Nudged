@@ -3,7 +3,7 @@ import { useStore } from '../lib/store.jsx'
 import Story from './Story.jsx'
 import { BellIcon, CameraIcon, CheckIcon, MicIcon, PencilIcon, TrophyIcon } from './Icons.jsx'
 
-// "How to use Nudgy", told in the same tap-through story format as the daily rundown.
+// "How to use Nudged", told in the same tap-through story format as the daily rundown.
 const SLIDES = [
   { kind: 'tip', Icon: MicIcon, scene: 'dump', try: 'tap the mic.', eyebrow: 'Step 1', title: 'Dump it all.', body: 'Tap the mic or type. "Tomorrow 5pm, go to Yinka\'s" is plenty. Say "send" when you\'re done.' },
   { kind: 'tip', Icon: CheckIcon, scene: 'tasks', try: 'tick the first one, or swipe it right.', eyebrow: 'Step 2', title: 'I sort it into tasks.', body: 'Each one gets a time and priority. Tap the circle when it\'s done.' },
@@ -18,7 +18,7 @@ export default function Tutorial() {
   const { tutorialOpen, closeTutorial } = useStore()
   return (
     <AnimatePresence>
-      {tutorialOpen && <Story slides={SLIDES} title="How Nudgy works" endLabel="Let's go" onClose={closeTutorial} />}
+      {tutorialOpen && <Story slides={SLIDES} title="How Nudged works" endLabel="Let's go" onClose={closeTutorial} />}
     </AnimatePresence>
   )
 }

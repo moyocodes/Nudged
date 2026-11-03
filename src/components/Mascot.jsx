@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import gsap from 'gsap'
 import { useStore } from '../lib/store.jsx'
 
-// Nudgy: a smiling blob that nudges you with its elbow. Colours come from the active theme;
+// Nudged: a smiling blob that nudges you with its elbow. Colours come from the active theme;
 // idle wiggle, blinking and nudging are GSAP timelines.
 const fill = (v) => ({ fill: `var(${v})` })
 const line = (v) => ({ stroke: `var(${v})` })
@@ -11,7 +11,7 @@ const LIGHT = 'color-mix(in srgb, var(--mascot) 55%, white)'
 const DARK = 'color-mix(in srgb, var(--mascot) 75%, var(--mascot-line))'
 const CHEEK = '#ff7a93'
 
-// Nudgy in the look from Restyle Nudgy. A picture has no mouth to move, so it bounces while talking.
+// Nudged in the look from Restyle Nudged. A picture has no mouth to move, so it bounces while talking.
 function ArtMascot({ src, size, nudging, wiggle, talking }) {
   const root = useRef(null)
   useEffect(() => {
@@ -23,7 +23,7 @@ function ArtMascot({ src, size, nudging, wiggle, talking }) {
     }, root)
     return () => ctx.revert()
   }, [talking, nudging, wiggle, size])
-  return <img ref={root} src={src} width={size} height={size} alt="Nudgy" className="object-contain" />
+  return <img ref={root} src={src} width={size} height={size} alt="Nudged" className="object-contain" />
 }
 
 export default function Mascot(props) {
@@ -78,7 +78,7 @@ function DrawnMascot({ size, nudging, wiggle, talking }) {
   }, [nudging, wiggle])
 
   return (
-    <svg ref={root} width={size} height={size} viewBox="0 0 120 120" role="img" aria-label="Nudgy, a friendly blob nudging with its elbow" className="shrink-0 overflow-visible">
+    <svg ref={root} width={size} height={size} viewBox="0 0 120 120" role="img" aria-label="Nudged, a friendly blob nudging with its elbow" className="shrink-0 overflow-visible">
       <ellipse cx="52" cy="111" rx="30" ry="4" style={fill('--mascot-line')} opacity=".12" />
       <g ref={body}>
         <g ref={arm}>

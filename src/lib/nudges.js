@@ -38,7 +38,7 @@ const chosenEngine = () => {
 }
 
 // count: how many nudges this task has had before this one.
-export async function makeNudge(task, level, name, count = 0, buddy = 'Nudgy') {
+export async function makeNudge(task, level, name, count = 0, buddy = 'Nudged') {
   const who = name || 'Friend'
   let text
   if (count >= MODEL_NUDGES) {
@@ -89,7 +89,7 @@ export function nextNudgeAt(t, nudges, schedule, now = new Date()) {
   return nextNudgeTime({ ...t, due: new Date(when).toISOString() }, schedule, now)
 }
 
-// While the mic is on or Nudgy is thinking, nudges wait and go out at the next check once it's over.
+// While the mic is on or Nudged is thinking, nudges wait and go out at the next check once it's over.
 let held = false
 export const holdNudges = (on) => { held = on }
 export const nudgesHeld = () => held
@@ -118,14 +118,14 @@ export function dueNudges(tasks, nudges, schedule, now = new Date()) {
 }
 
 // Shows a system notification when the tab isn't in view. Permission is asked for elsewhere, on a tap.
-// Goes through the service worker when there is one (needed on Android, and taps open Nudgy).
+// Goes through the service worker when there is one (needed on Android, and taps open Nudged).
 export async function notify(text, { silent = false } = {}) {
   try {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted' || !document.hidden) return
     const options = { body: text, icon: '/icon-192.png', badge: '/icon-192.png', tag: 'nudgy', renotify: true, requireInteraction: true, silent }
     const reg = await navigator.serviceWorker?.getRegistration()
-    if (reg) return reg.showNotification('Nudgy', options)
-    const n = new Notification('Nudgy', options)
+    if (reg) return reg.showNotification('Nudged', options)
+    const n = new Notification('Nudged', options)
     n.onclick = () => { window.focus(); n.close() }
   } catch {}
 }

@@ -14,7 +14,7 @@ import InstallButton from '../components/InstallButton.jsx'
 import { playAlarm } from '../lib/alarm.js'
 import SoundPicker from '../components/SoundPicker.jsx'
 
-// Restyle Nudgy: describe a look, Muse Wonder directs it and Muse Image draws it.
+// Restyle Nudged: describe a look, Muse Wonder directs it and Muse Image draws it.
 function RestyleCard() {
   const { mascotArt, setMascotArt, say } = useStore()
   const jobs = useJobs()
@@ -36,7 +36,7 @@ function RestyleCard() {
   }
   return (
     <Card>
-      <h2 className="font-display text-xl">Restyle Nudgy</h2>
+      <h2 className="font-display text-xl">Restyle Nudged</h2>
       <p className="mb-3 text-sm text-ink/60">Describe a look, and Muse Wonder and Muse Image will draw me in it.</p>
       <div className="flex items-center gap-3">
         <span className="shrink-0"><Mascot size={72} wiggle /></span>
@@ -46,7 +46,7 @@ function RestyleCard() {
           onKeyDown={(e) => { if (e.key === 'Enter' && look.trim() && !drawing) draw() }}
           maxLength={100}
           placeholder="A pirate hat, made of jollof…"
-          aria-label="Nudgy's new look"
+          aria-label="Nudged's new look"
           className="min-w-0 flex-1 rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2 text-base outline-none focus:ring-2 focus:ring-primary"
         />
       </div>
@@ -103,21 +103,21 @@ export default function SettingsPage() {
       </Card>
 
       <Card>
-        <label htmlFor="buddy" className="text-sm font-medium text-ink/70">What should your Nudgy be called?</label>
+        <label htmlFor="buddy" className="text-sm font-medium text-ink/70">What should your buddy be called?</label>
         <input
           id="buddy"
           value={buddyName}
           onChange={(e) => setBuddyName(e.target.value.slice(0, 24))}
-          placeholder="Nudgy"
+          placeholder="Nudged"
           className="mt-2 w-full rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2.5 text-base outline-none focus:ring-2 focus:ring-primary"
         />
         <div className="mt-2 flex flex-wrap gap-1.5">
           {name && (
-            <button type="button" onClick={() => setBuddyName(`${name}'s Nudgy`.slice(0, 24))} className="rounded-full bg-ink/5 px-3 py-1.5 text-sm font-semibold text-ink/70 hover:bg-ink/10">
-              Use {name}'s Nudgy
+            <button type="button" onClick={() => setBuddyName(`${name}'s Nudged`.slice(0, 24))} className="rounded-full bg-ink/5 px-3 py-1.5 text-sm font-semibold text-ink/70 hover:bg-ink/10">
+              Use {name}'s Nudged
             </button>
           )}
-          <button type="button" onClick={() => setBuddyName('Nudgy')} className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink/50 hover:bg-ink/5">Back to Nudgy</button>
+          <button type="button" onClick={() => setBuddyName('Nudged')} className="rounded-full px-3 py-1.5 text-sm font-semibold text-ink/50 hover:bg-ink/5">Back to Nudged</button>
         </div>
       </Card>
 
@@ -136,14 +136,14 @@ export default function SettingsPage() {
       <Card className="flex items-center justify-between gap-3">
         <span>
           <span className="block font-display text-xl">Alarm sound</span>
-          <span className="block text-sm text-ink/55">Plays on every nudge while Nudgy is open.</span>
+          <span className="block text-sm text-ink/55">Plays on every nudge while Nudged is open.</span>
           <button type="button" onClick={playAlarm} className="mt-1 text-xs font-semibold text-primary hover:underline">Play it</button>
         </span>
       </Card>
 
       <Card>
         <h2 className="font-display text-xl">Background sound</h2>
-        <p className="mt-1 text-sm text-ink/55">Keeps playing softly while you use Nudgy.</p>
+        <p className="mt-1 text-sm text-ink/55">Keeps playing softly while you use Nudged.</p>
         <SoundPicker />
       </Card>
 
@@ -151,14 +151,14 @@ export default function SettingsPage() {
 
       <Card className="flex items-center justify-between gap-3">
         <span>
-          <span className="block font-display text-xl">Nudgy talks out loud</span>
+          <span className="block font-display text-xl">Nudged talks out loud</span>
           <span className="block text-sm text-ink/55">Uses your device's voice. Off means speech bubbles only.</span>
         </span>
         <input
           type="checkbox"
           checked={voiceOn}
           onChange={(e) => { setVoiceOn(e.target.checked); if (e.target.checked) setTimeout(() => say(`Hi ${name || 'friend'}! This is my voice. Fancy, right?`), 50) }}
-          aria-label="Nudgy talks out loud"
+          aria-label="Nudged talks out loud"
           className="h-6 w-6 shrink-0 accent-[var(--primary)]"
         />
       </Card>
@@ -225,10 +225,10 @@ export default function SettingsPage() {
       <RestyleCard />
 
       <Card>
-        <h2 className="font-display text-xl">Nudgy's voice</h2>
+        <h2 className="font-display text-xl">Nudged's voice</h2>
         <p className="mb-3 text-sm text-ink/60">The nicest voices on this device come first.</p>
         <select
-          aria-label="Nudgy's voice"
+          aria-label="Nudged's voice"
           value={voiceName ?? voices[0]?.name ?? ''}
           onChange={(e) => { setVoiceName(e.target.value); hearVoice(e.target.value) }}
           className={timeField}
@@ -239,7 +239,7 @@ export default function SettingsPage() {
       </Card>
 
       <section>
-        <h2 className="font-display text-xl">Nudgy's personality</h2>
+        <h2 className="font-display text-xl">Nudged's personality</h2>
         <p className="mb-3 text-sm text-ink/60">Changes the look and the attitude.</p>
         <ul className="grid gap-2 sm:grid-cols-2">
           {THEMES.map((t) => (
@@ -296,7 +296,7 @@ export default function SettingsPage() {
       </section>
 
       <div className="grid grid-cols-2 gap-2">
-        <Button variant="ghost" onClick={openTutorial}>How to use Nudgy</Button>
+        <Button variant="ghost" onClick={openTutorial}>How to use Nudged</Button>
         <Button variant="ghost" onClick={() => setIntroSeen(false)}>Replay the intro</Button>
       </div>
       <Button variant="ghost" onClick={resetDemo}>Clear all my tasks</Button>

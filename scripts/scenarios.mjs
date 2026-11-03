@@ -1,5 +1,5 @@
-// Practice conversations for Nudgy's intent-spotting, taken from real cases that went wrong or felt off.
-// Each turn is what the user says plus what we expect Nudgy to pick up. The runner replays them against
+// Practice conversations for Nudged's intent-spotting, taken from real cases that went wrong or felt off.
+// Each turn is what the user says plus what we expect Nudged to pick up. The runner replays them against
 // /api/extract, carrying the chat history and reminder list between turns, like the app does.
 //
 // expect keys (all optional):
@@ -9,7 +9,7 @@
 //   actionOn: ['mum']          the non-update actions hit a reminder mentioning these words
 //   due: { word: 'YYYY-MM-DD'} the reminder mentioning word ends up due that day (new or updated)
 //   repeats: { word: 2 }       the reminder mentioning word repeats with that many time slots
-//   asks: true | false         Nudgy asks a follow-up question (or not)
+//   asks: true | false         Nudged asks a follow-up question (or not)
 //   proof: { word: true|false } the reminder mentioning word does (or doesn't) need a photo
 
 // "Now" for every scenario: a Tuesday, so Nov 3 is Tue, Nov 4 is Wed, Nov 5 is Thu.
@@ -35,7 +35,7 @@ export const scenarios = [
   },
   {
     id: 'work-visit',
-    title: 'Nudgy asks when, user answers for two things at once',
+    title: 'Nudged asks when, user answers for two things at once',
     turns: [
       { say: 'go to work tomorrow and visit Ayomide', expect: { tasks: 2, taskIncludes: ['work', 'ayomide'], asks: true } },
       { say: 'work is at 9, Ayomide 5:30', expect: { tasks: 0, actions: ['update'], due: { work: '2026-10-28', ayomide: '2026-10-28' } } },

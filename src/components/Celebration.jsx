@@ -3,7 +3,7 @@ import { useStore } from '../lib/store.jsx'
 import { celebrationLine } from '../lib/phrases.js'
 import { confettiBurst } from '../lib/confetti.js'
 
-// Confetti when a task is completed; Nudgy (the on-screen buddy) says the line.
+// Confetti when a task is completed; Nudged (the on-screen buddy) says the line.
 export default function Celebration() {
   const { celebration, setCelebration, name, say } = useStore()
 

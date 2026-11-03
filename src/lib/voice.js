@@ -1,4 +1,4 @@
-// Nudgy's spoken voice: the device's own voices, nicest first. No model calls. The choice lives on the Me page.
+// Nudged's spoken voice: the device's own voices, nicest first. No model calls. The choice lives on the Me page.
 import { getVolume } from './volume.js'
 
 // Natural-sounding voices across Apple, Google and Microsoft, best first.

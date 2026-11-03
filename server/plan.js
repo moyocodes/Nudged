@@ -3,7 +3,7 @@
 const MAX_STEPS = 5
 const SOON_MIN = 30 // two reminders closer than this clash
 
-const PROMPT = `You are Nudgy's planning agent. Make the user's day doable by working through their open reminders one step at a time.
+const PROMPT = `You are Nudged's planning agent. Make the user's day doable by working through their open reminders one step at a time.
 Reply with JSON only: {"thought":str,"tool":str,"args":{}}. thought is one short plain sentence on why.
 Tools:
 - check_day {"date":"YYYY-MM-DD"}: what's on that day, plus sleep hours

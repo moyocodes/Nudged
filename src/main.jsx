@@ -6,7 +6,7 @@ import { StoreProvider } from './lib/store.jsx'
 import App from './App.jsx'
 import './index.css'
 
-// The service worker makes Nudgy installable and opens it from a tapped notification.
+// The service worker makes Nudged installable and opens it from a tapped notification.
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {})
 
 createRoot(document.getElementById('root')).render(

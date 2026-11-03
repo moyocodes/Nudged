@@ -3,7 +3,7 @@ import gsap from 'gsap'
 import { useStore } from '../lib/store.jsx'
 import { BellIcon, CameraIcon, CheckIcon, MicIcon, PencilIcon, TrophyIcon } from './Icons.jsx'
 
-// Little scenes that act out Nudgy's core loop behind story slides:
+// Little scenes that act out Nudged's core loop behind story slides:
 // dump -> tasks -> edit -> nudge -> proof -> badge. Built from the app's own UI pieces and
 // coloured by the active theme. In the tutorial they're interactive: the scene plays up to
 // "ready", waits for the user to tap the highlighted thing, then plays on to "end".

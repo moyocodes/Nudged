@@ -67,7 +67,7 @@ export default function App() {
       )}
 
       {/* Home gets a right rail on wide screens; the other pages stay a single column. */}
-      {/* No scroll anchoring: when Nudgy talks the top bar grows, and the page has to move down with it, not stay under it. */}
+      {/* No scroll anchoring: when Nudged talks the top bar grows, and the page has to move down with it, not stay under it. */}
       <main className={`mx-auto px-4 pt-1 pb-24 [overflow-anchor:none] ${location.pathname === '/' ? 'max-w-xl lg:max-w-5xl' : location.pathname === '/welcome' ? 'max-w-5xl' : 'max-w-xl'}`}>
         <AnimatePresence mode="wait">
           <Routes location={location} key={location.pathname}>

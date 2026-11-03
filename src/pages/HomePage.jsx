@@ -20,7 +20,7 @@ import { pickEngine } from '../lib/engine.js'
 import { resumeJobs, runJob } from '../lib/jobs.js'
 
 
-// What Nudgy says while the model reads a brain dump. One at random each time.
+// What Nudged says while the model reads a brain dump. One at random each time.
 const THINKING = [
   'Untangling your thoughts. Bring snacks.',
   'Sorting the to-dos from the oh-nos…',
@@ -373,7 +373,7 @@ export default function HomePage() {
     resumeJobs('plan', applyPlan, (job, err) => say(err.message))
   }, [hydrated]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Quiet for 15 seconds after typing, talking or a reply: Nudgy picks the conversation back up, once per burst of activity.
+  // Quiet for 15 seconds after typing, talking or a reply: Nudged picks the conversation back up, once per burst of activity.
   const idleTimer = useRef(null)
   const [quietUntil, setQuietUntil] = useState(null)
   const [checkInLine, setCheckInLine] = useState(null)
@@ -467,7 +467,7 @@ export default function HomePage() {
       }
       if (a.type === 'delete') { deleteTask(task.id); said.push(`Binned "${task.title}".`) }
       if (a.type === 'snooze') {
-        // Nudgy asks how long, unless the message already said.
+        // Nudged asks how long, unless the message already said.
         const minutes = snoozeMinutes(text)
         if (minutes) { snoozeTask(task.id, minutes); said.push(`Snoozed "${task.title}" for ${snoozeName(minutes)}.`) }
         else { setPendingSnooze(task.id); said.push(`How long should I snooze "${task.title}"? 30 min, 1 hour or 90 min?`) }
@@ -485,7 +485,7 @@ export default function HomePage() {
           changes.repeat = a.repeat
           if (a.repeat && !a.due) changes.due = nextOccurrence(a.repeat)?.toISOString() ?? task.due
         }
-        // Setting a time or name answers any question Nudgy had about this task.
+        // Setting a time or name answers any question Nudged had about this task.
         if (changes.due || changes.title) changes.ask = null
         updateTask(task.id, changes)
         const title = a.title || task.title
@@ -503,7 +503,7 @@ export default function HomePage() {
     return said.join(' ')
   }
 
-  // Dumps still being worked on. The page stays usable meanwhile; this just shows a "Nudgy's on it" pill.
+  // Dumps still being worked on. The page stays usable meanwhile; this just shows a "Nudged's on it" pill.
   const [thinking, setThinking] = useState(0)
   // A question with no reminder to hang on ("what did you mean?"), kept above the box until answered.
   const [pendingQuestion, setPendingQuestion] = useState(null)
@@ -533,11 +533,11 @@ export default function HomePage() {
         return addChat({ from: 'you', text }, { from: 'nudgy', text: line })
       }
     }
-    // A bare greeting ("hey Nudgy", "hi Moyo", "good morning") gets a hello back, no model call.
+    // A bare greeting ("hey Nudged", "hi Moyo", "good morning") gets a hello back, no model call.
     if (isGreeting(text, [name, buddyName])) {
       const open = tasks.filter((t) => !t.done)
       const next = nextDue(tasks)
-      const hello = greetingLine(name || 'friend', buddyName || 'Nudgy', Date.now(), new Date().getHours())
+      const hello = greetingLine(name || 'friend', buddyName || 'Nudged', Date.now(), new Date().getHours())
       const status = open.length
         ? `${open.length} ${open.length === 1 ? 'thing' : 'things'} on${next ? `, next up: ${next.title}` : ''}. What's on your mind?`
         : 'Your list is empty. Suspicious. What are we remembering?'
@@ -625,7 +625,7 @@ export default function HomePage() {
 
   function dumpFailed(err, text, said, listed, about) {
       console.warn('[extract] falling back to local parser:', err.message)
-      // The local parser only handles simple lists. A reply to Nudgy's question, an @ instruction
+      // The local parser only handles simple lists. A reply to Nudged's question, an @ instruction
       // or a long sentence would just become a junk task, so say so instead.
       if (about || listed.some((t) => t.ask) || text.split(/\s+/).length > 12) {
         const line = `I couldn't reach my brain just now (${err.message}), so I didn't touch anything. Try again in a moment?`
@@ -777,7 +777,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <h2 className="text-sm font-semibold">Plan my day</h2>
-              <p className="text-xs text-ink/50">Nudgy's agent sorts out overdue and clashing reminders, step by step.</p>
+              <p className="text-xs text-ink/50">Nudged's agent sorts out overdue and clashing reminders, step by step.</p>
             </div>
             <button type="button" disabled={planning} onClick={planMyDay} className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-60">
               {planning ? 'Planning…' : 'Plan it'}
@@ -802,7 +802,7 @@ export default function HomePage() {
       <BrainDump
         onActivity={noteActivity}
         quietUntil={thinking > 0 ? null : quietUntil}
-        questionLabel={pendingQuestion && pendingQuestion === checkInLine ? 'Nudgy checked in:' : 'Nudgy:'}
+        questionLabel={pendingQuestion && pendingQuestion === checkInLine ? 'Nudged checked in:' : 'Nudged:'}
         onSubmit={handleDump}
         reminders={open}
         about={open.find((t) => t.id === aboutTaskId)}

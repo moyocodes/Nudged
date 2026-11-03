@@ -32,7 +32,7 @@ const post = async (route, body) => {
 }
 const extract = (text, extra) => post('/api/extract', { text, now: nowIso, name: 'Moyo', ...extra })
 
-// Nudgy's tone rules that can be checked by a program.
+// Nudged's tone rules that can be checked by a program.
 const PET_NAMES = /\b(love|gorgeous|babe|baby|darling|sweetie|sweetheart|honey)\b|😘|😉/i
 
 describe.each([
@@ -80,7 +80,7 @@ describe('understanding a brain dump', () => {
   })
 
   it('does not invent a reminder from small talk', async () => {
-    const r = await extract('hey Nudgy, thanks for yesterday', { engine: 'spark' })
+    const r = await extract('hey Nudged, thanks for yesterday', { engine: 'spark' })
     expect(r.tasks).toEqual([])
     expect(r.actions).toEqual([])
   })
@@ -146,7 +146,7 @@ describe('art', () => {
     expect(server.logs().split('[usage]').length).toBe(before)
   })
 
-  it('restyles Nudgy', async () => {
+  it('restyles Nudged', async () => {
     const r = await post('/api/mascot', { look: 'wearing a tiny party hat', palette: ['#5b4be8'] })
     expect(isPng(r.image)).toBe(true)
     expect(r.via).toMatch(/Muse Image/)

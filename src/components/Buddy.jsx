@@ -9,7 +9,7 @@ const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
 // Browsers load voices lazily, which delays the first line. Asking early warms them up.
 if (canSpeak) window.speechSynthesis.getVoices()
 
-// Nudgy as an on-screen buddy: pops up from the corner, talks in a bubble (mouth moving),
+// Nudged as an on-screen buddy: pops up from the corner, talks in a bubble (mouth moving),
 // and reads the line aloud with the browser's own voice when sound is on. No model calls.
 export default function Buddy() {
   const { buddy, setBuddy, voiceOn, setVoiceOn, muted, setMuted } = useStore()
@@ -59,7 +59,7 @@ export default function Buddy() {
     }
   }, [buddy]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tell the top bar how much room Nudgy needs, so the page moves down instead of sitting under the bubble.
+  // Tell the top bar how much room Nudged needs, so the page moves down instead of sitting under the bubble.
   const boxRef = useRef(null)
   const showing = !!buddy
   useLayoutEffect(() => {
@@ -127,7 +127,7 @@ export default function Buddy() {
           <motion.button
             type="button"
             onClick={() => setBuddy(null)}
-            aria-label="Dismiss Nudgy"
+            aria-label="Dismiss Nudged"
             animate={talking ? { y: [0, -4, 0], rotate: [0, -3, 0] } : { y: 0, rotate: 0 }}
             transition={talking ? { duration: 0.5, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
             className="pointer-events-auto shrink-0"

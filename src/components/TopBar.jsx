@@ -29,7 +29,7 @@ export default function TopBar() {
         <Link to="/" className="flex min-w-0 items-center gap-1.5">
           <Mascot size={28} />
           {/* On a phone the wordmark makes room for the back arrow. */}
-          <span className={`max-w-[10rem] truncate font-display text-xl ${canGoBack ? 'hidden sm:inline' : ''}`}>{buddyName || 'Nudgy'}</span>
+          <span className={`max-w-[10rem] truncate font-display text-xl ${canGoBack ? 'hidden sm:inline' : ''}`}>{buddyName || 'Nudged'}</span>
         </Link>
         <Link
           to="/rewards"
@@ -41,8 +41,8 @@ export default function TopBar() {
         <button
           type="button"
           onClick={openTutorial}
-          aria-label="How to use Nudgy"
-          title="How to use Nudgy"
+          aria-label="How to use Nudged"
+          title="How to use Nudged"
           className="hidden h-10 w-10 place-items-center rounded-full border-[length:var(--bw)] border-line bg-surface text-sm font-semibold text-ink/60 hover:text-ink sm:grid"
         >
           ?
@@ -52,7 +52,7 @@ export default function TopBar() {
         <ThemeSwitcher />
         <AccountMenu />
       </div>
-      {/* Room for the model tag, and for Nudgy while talking, so neither covers the page. Both are drawn in their own components. */}
+      {/* Room for the model tag, and for Nudged while talking, so neither covers the page. Both are drawn in their own components. */}
       <div className="h-7" aria-hidden />
       <div className="transition-[height] duration-200" style={{ height: 'var(--buddy-h, 0px)' }} aria-hidden />
     </header>

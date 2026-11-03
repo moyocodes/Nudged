@@ -1,5 +1,5 @@
-// Nudgy's stock lines, grouped by what just happened. Warm, cheeky and punny, and the joke is always on
-// the task or on Nudgy, never a label for the person (no "procrastinator", "lazy").
+// Nudged's stock lines, grouped by what just happened. Warm, cheeky and punny, and the joke is always on
+// the task or on Nudged, never a label for the person (no "procrastinator", "lazy").
 // Each context has a few lines; the caller's seed rotates through them.
 const line = (list, seed = 0) => list[Math.abs(seed) % list.length]
 
@@ -65,12 +65,12 @@ export function greetingLine(name, buddy, seed, hour) {
   return line(GREET[when], seed)(name, buddy)
 }
 
-// Is the message only a hello? "hey Nudgy", "hi Moyo's Nudgy", "good morning", "hello Moyo". The only words
+// Is the message only a hello? "hey Nudged", "hi Moyo's Nudged", "good morning", "hello Moyo". The only words
 // allowed after the greeting are the names it could be aimed at, so "hi buy milk" still goes to the model.
 const HELLOS = new Set(['hey', 'hi', 'hiya', 'hello', 'heya', 'yo', 'sup', 'howdy', 'hola'])
 const FILLER = ['there', 'friend', 'buddy', 'mate', 'pal', 'everyone']
 export function isGreeting(text, names = []) {
-  const allowed = new Set(['nudgy', ...FILLER])
+  const allowed = new Set(['nudged', 'nudgy', ...FILLER])
   for (const n of names) {
     for (const w of String(n ?? '').toLowerCase().split(/\s+/).filter(Boolean)) {
       allowed.add(w)

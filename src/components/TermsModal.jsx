@@ -2,12 +2,12 @@ import { useEffect } from 'react'
 import { Button } from './ui.jsx'
 
 const TERMS = [
-  ['What Nudgy is', 'Nudgy is a reminder helper, built as a hackathon project. It tries its best, but it can miss a reminder, so please don\'t rely on it for anything urgent, medical or safety-critical.'],
+  ['What Nudged is', 'Nudged is a reminder helper, built as a hackathon project. It tries its best, but it can miss a reminder, so please don\'t rely on it for anything urgent, medical or safety-critical.'],
   ['Your account', 'You sign in with just your email and no password, so anyone who knows your email could open your account. Don\'t store anything sensitive here.'],
   ['What we store', 'Your email, name, tasks, chat, settings, timezone and any proof photos, so they can sync across your devices.'],
   ['AI models', 'What you type or say, and photos you send as proof, are sent to AI models to work out your tasks, write nudges and check proof. AI can get things wrong.'],
   ['Emails', 'We email you when you sign up and when a task is overdue, repeating until you tick or snooze it, except during your quiet hours.'],
-  ['Fair use', 'Please don\'t misuse the service or try to break it. Nudgy is provided as is, and it may change or stop at any time.'],
+  ['Fair use', 'Please don\'t misuse the service or try to break it. Nudged is provided as is, and it may change or stop at any time.'],
 ]
 
 export default function TermsModal({ onClose }) {

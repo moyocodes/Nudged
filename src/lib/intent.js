@@ -2,12 +2,12 @@
 // cleanup elsewhere can't delete them by accident.
 import { friendlyDue } from './format.js'
 
-// Words that suggest a reminder. If a message has these but nothing got saved, Nudgy asks instead of shrugging.
+// Words that suggest a reminder. If a message has these but nothing got saved, Nudged asks instead of shrugging.
 export const INTENT_HINT = /\b(remind(er)?|remember|need to|have to|got to|gotta|don'?t forget|must|should|schedule|appointment|meeting|deadline|due|call|buy|pay|book|submit|send|tomorrow|tonight|today|next \w+|on (mon|tue|wed|thu|fri|sat|sun)\w*|at \d)\b/i
 export const BACKSTOP = 'That sounded like it might be a reminder. What should I nudge you about, and when?'
 // Nothing found at all (and the model said nothing either): say so and offer.
 export const OFFER = "I couldn't find a reminder in that. Want me to set one about something?"
-// Every reminder gets a time, or Nudgy asks for one ("Whenever" on the card skips it).
+// Every reminder gets a time, or Nudged asks for one ("Whenever" on the card skips it).
 export const whenAsk = (title) => ({ kind: 'when', text: `When should I nudge you about "${title}"?` })
 
 // "What do I have today?", "tell me all I have to do today", "show me everything due tomorrow".

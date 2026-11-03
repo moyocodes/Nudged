@@ -88,7 +88,7 @@ function cleanTitle(s) {
   return s
     .replace(/\s{2,}/g, ' ')
     .trim()
-    .replace(/^((hi|hey|hello|ok|okay|so|um|uh|ugh|yo)\b[,!.\s]*)+(nudgy\b[,!.\s]*)?/i, '')
+    .replace(/^((hi|hey|hello|ok|okay|so|um|uh|ugh|yo)\b[,!.\s]*)+(nudg(?:ed|y)\b[,!.\s]*)?/i, '')
     .replace(/^(please\s+)?(i want you to|i'?d like you to|can you|could you|pls|please)\s+/i, '')
     .replace(/^(also|then|plus|oh|and)\s+/i, '')
     .replace(/^i\s+(want to|wanna|might( just)?|may|will|'?ll|plan to|am going to|'?m gonna|gotta)\s+/i, '')

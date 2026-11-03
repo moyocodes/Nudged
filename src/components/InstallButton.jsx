@@ -42,7 +42,7 @@ export default function InstallButton({ className = '' }) {
           }}
           className="min-h-10 w-full rounded-full bg-primary px-4 text-sm font-semibold text-on-primary shadow-btn"
         >
-          Add Nudgy to your home screen
+          Add Nudged to your home screen
         </button>
       </div>
     )
@@ -53,7 +53,7 @@ export default function InstallButton({ className = '' }) {
       <div className={className}>
         {pitch}
         <button type="button" onClick={() => setShowSteps((s) => !s)} className="min-h-10 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary shadow-btn">
-          Add Nudgy to your home screen
+          Add Nudged to your home screen
         </button>
         {showSteps && (
           <p className="mt-2 text-sm text-ink/60">Tap <strong>Share</strong> (the square with the arrow) at the bottom of Safari, then <strong>Add to Home Screen</strong>.</p>

@@ -1,4 +1,4 @@
-// When Nudgy is allowed to nudge. Plain functions with no browser APIs, so the nudge agent
+// When Nudged is allowed to nudge. Plain functions with no browser APIs, so the nudge agent
 // on the server can import the same rules later.
 //
 // settings = { sleepStart: '00:00', sleepEnd: '07:00', checkIn: '10:00' }

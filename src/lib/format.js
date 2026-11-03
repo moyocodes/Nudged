@@ -12,7 +12,7 @@ export function friendlyDue(iso) {
   return `${d.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' })}, ${time}`
 }
 
-// What actually got saved, in words. Built from the real tasks so Nudgy never claims a reminder it didn't set.
+// What actually got saved, in words. Built from the real tasks so Nudged never claims a reminder it didn't set.
 export function savedSummary(tasks) {
   if (!tasks.length) return ''
   const one = (t) => `"${t.title}" ${t.due ? friendlyDue(t.due).toLowerCase() : '(no time yet)'}`
@@ -39,7 +39,7 @@ export function nextDue(tasks, now = Date.now()) {
     .sort((a, b) => new Date(a.due) - new Date(b.due))[0]
 }
 
-// Not due yet: finishing or binning it now earns a "sure?" from Nudgy.
+// Not due yet: finishing or binning it now earns a "sure?" from Nudged.
 export function isEarly(task) {
   return !task.done && task.due && new Date(task.due) > new Date()
 }

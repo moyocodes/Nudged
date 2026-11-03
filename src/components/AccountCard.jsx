@@ -5,7 +5,7 @@ import { deviceName, directLogin, loginStatus, startLogin, submitCode } from '..
 const field = 'w-full rounded-xl border-[length:var(--bw)] border-line bg-bg px-3 py-2.5 text-base outline-none focus:ring-2 focus:ring-primary'
 const primaryBtn = 'min-h-10 shrink-0 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary shadow-btn disabled:opacity-40'
 
-// Sign in with just an email, no password. If the server asks for a code (REQUIRE_SIGNUP_CODE=true), Nudgy emails a
+// Sign in with just an email, no password. If the server asks for a code (REQUIRE_SIGNUP_CODE=true), Nudged emails a
 // link and a code, and while waiting checks every few seconds in case the link was opened on another device.
 export default function AccountCard({ variant = 'sync' }) {
   const { account, setAccount, signOut } = useStore()

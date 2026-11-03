@@ -1,4 +1,4 @@
-// Each theme is a Nudgy personality. The look lives in index.css under [data-theme].
+// Each theme is a Nudged personality. The look lives in index.css under [data-theme].
 // accents: the main colour can be swapped within a theme. The first is the theme's own
 // (what index.css sets); picking another overrides just these four variables.
 export const THEMES = [
