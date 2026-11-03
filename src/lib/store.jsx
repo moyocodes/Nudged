@@ -122,6 +122,9 @@ export function StoreProvider({ children }) {
     setTutorialSeen(true)
   }
 
+  // The latest Plan my day result, so it can be reopened later and on other devices.
+  const [lastPlan, setLastPlan] = usePersisted('lastPlan', null)
+
   // The colour picked within each theme, e.g. { cheeky: 'teal' }. Missing means the theme's own.
   const [accents, setAccents] = usePersisted('accents', {})
   const setAccent = (themeId, accentId) => setAccents((a) => ({ ...a, [themeId]: accentId }))
@@ -142,8 +145,8 @@ export function StoreProvider({ children }) {
     wasSignedIn.current = !!account
   }, [account?.email]) // eslint-disable-line react-hooks/exhaustive-deps
   // timeZone lets the server keep reminder emails out of this person's sleep hours.
-  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, mascotArt, rundownMode, nudgeModel, voiceName, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, voiceDeclined, alarmOn, alarmAsked, musicOn, ambient, ambientAsked }
-  const setters = { name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, mascotArt: setMascotArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, voiceName: setVoiceName, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, voiceDeclined: setVoiceDeclined, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
+  const synced = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, name, tasks, nudges, points, streak, streakDay, theme, schedule, snoozes, chat, accents, tutorialSeen, badgeArt, mascotArt, rundownMode, nudgeModel, voiceName, buddyName, termsAcceptedAt, voiceOn, volume, muted, soundAsked, voiceDeclined, alarmOn, alarmAsked, musicOn, ambient, ambientAsked, lastPlan }
+  const setters = { lastPlan: setLastPlan, name: setName, tasks: setTasks, nudges: setNudges, points: setPoints, streak: setStreak, streakDay: setStreakDay, theme: setTheme, schedule: setSchedule, snoozes: setSnoozes, chat: setChat, accents: setAccents, tutorialSeen: setTutorialSeen, badgeArt: setBadgeArt, mascotArt: setMascotArt, rundownMode: setRundownMode, nudgeModel: setNudgeModel, voiceName: setVoiceName, buddyName: setBuddyName, termsAcceptedAt: setTermsAcceptedAt, voiceOn: setVoiceOn, volume: setVolume, muted: setMuted, soundAsked: setSoundAsked, voiceDeclined: setVoiceDeclined, alarmOn: setAlarmOn, alarmAsked: setAlarmAsked, musicOn: setMusicOn, ambient: setAmbient, ambientAsked: setAmbientAsked }
   const [hydrated, setHydrated] = useState(false)
 
   // On sign-in: the account's saved state wins if there is one; otherwise this device's state seeds it.
@@ -153,6 +156,8 @@ export function StoreProvider({ children }) {
     pullState()
       .then((saved) => {
         if (cancelled) return
+        // Another account's plan must not linger on this device, so a missing one clears it.
+        setLastPlan(saved?.state?.lastPlan ?? null)
         if (saved?.state) for (const [k, v] of Object.entries(saved.state)) setters[k]?.(v)
         else pushState(withoutInlineImages(synced)).catch(() => {})
         setHydrated(true)
@@ -289,6 +294,7 @@ export function StoreProvider({ children }) {
 
   function resetDemo() {
     setTasks([])
+    setLastPlan(null)
     setNudges([])
     setPoints(0)
     setStreak(0)
@@ -304,7 +310,7 @@ export function StoreProvider({ children }) {
         termsAcceptedAt, setTermsAcceptedAt, account, setAccount, signOut, hydrated, replaceTasks: setTasks, replacePoints: setPoints, spendPoints, aboutTaskId, setAboutTaskId,
         tutorialSeen, tutorialOpen, openTutorial, closeTutorial,
         schedule, setSchedule, introSeen, setIntroSeen, snoozeTask, joke, setJoke,
-        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, voiceDeclined, setVoiceDeclined, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, mascotArt, setMascotArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat,
+        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, voiceDeclined, setVoiceDeclined, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, mascotArt, setMascotArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat, lastPlan, setLastPlan,
       }}
     >
       {children}

@@ -45,6 +45,7 @@ function rundownDue(mode) {
 }
 
 const QUIET_MS = 15000
+const PLAN_OPEN_MS = 10000
 
 // At most once per page load (not on every return to Today), and only when the cap allows.
 let rundownShownThisLoad = false
@@ -429,12 +430,33 @@ export default function HomePage() {
 
   // Plan my day: the agent works on a copy on the server, and its changes land here in one undoable go.
   const [planning, setPlanning] = useState(false)
-  const [plan, setPlan] = useState(null)
+  const { lastPlan: plan, setLastPlan: setPlan } = useStore()
+  // A new plan shows its steps, then folds to the summary line after 10 seconds. Tapping it takes over from the timer.
+  // Closing only hides it: the last plan stays saved and can be reopened.
+  const [planShown, setPlanShown] = useState(false)
+  const [planOpen, setPlanOpen] = useState(false)
+  const planTimer = useRef(null)
+  useEffect(() => () => clearTimeout(planTimer.current), [])
+  function showPlan({ fold = false } = {}) {
+    clearTimeout(planTimer.current)
+    setPlanShown(true)
+    setPlanOpen(true)
+    if (fold) planTimer.current = setTimeout(() => setPlanOpen(false), PLAN_OPEN_MS)
+  }
+  function hidePlan() {
+    clearTimeout(planTimer.current)
+    setPlanShown(false)
+  }
+  function togglePlan() {
+    clearTimeout(planTimer.current)
+    setPlanOpen((o) => !o)
+  }
   function applyPlan(json) {
     showModel(json.via)
     if (json.changes.length) setLastChange({ before: tasks, points })
     json.changes.forEach((c) => updateTask(c.id, { due: c.due ? new Date(c.due).toISOString() : null, priority: c.priority, snoozedUntil: null }))
-    setPlan(json)
+    setPlan({ steps: json.steps, summary: json.summary })
+    showPlan({ fold: true })
     say(json.summary)
   }
   async function planMyDay() {
@@ -443,7 +465,7 @@ export default function HomePage() {
     const movable = tasks.filter((t) => !t.done && !t.repeat)
     const reminders = movable.map((t, i) => ({ n: i + 1, id: t.id, title: t.title, due: t.due ? localTime(t.due) : null, priority: t.priority ?? 'medium' }))
     if (!reminders.length) return say('Nothing to plan. Enjoy it while it lasts.')
-    setPlan(null)
+    hidePlan()
     setPlanning(true)
     holdNudges(true)
     try {
@@ -779,29 +801,32 @@ export default function HomePage() {
             <div className="min-w-0 flex-1">
               <h2 className="text-sm font-semibold">Plan my day</h2>
               <p className="text-xs text-ink/50">Nudged's agent sorts out overdue and clashing reminders, step by step.</p>
+              {plan && !planShown && !planning && (
+                <button type="button" onClick={() => showPlan()} className="mt-0.5 text-xs font-semibold text-primary hover:underline">See last plan</button>
+              )}
             </div>
             <button type="button" disabled={planning} onClick={planMyDay} className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-60">
-              {planning ? 'Planning…' : 'Plan it'}
+              {planning ? 'Planning…' : plan ? 'Plan new' : 'Plan it'}
             </button>
           </div>
-          {plan && (
+          {plan && planShown && (
             <div className="mt-3 border-t-[length:var(--bw)] border-line pt-3">
               <div className="flex items-start gap-2">
-                <p className="min-w-0 flex-1 text-sm font-semibold leading-snug">{plan.summary}</p>
-                <button type="button" onClick={() => setPlan(null)} aria-label="Close the plan" className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-lg leading-none text-ink/50 hover:bg-ink/5 hover:text-ink">×</button>
+                <button type="button" onClick={togglePlan} aria-expanded={planOpen} aria-label={planOpen ? 'Collapse the plan' : 'Expand the plan'} className="flex min-w-0 flex-1 items-start gap-1.5 text-left">
+                  <ChevronIcon size={16} className={`mt-0.5 shrink-0 text-ink/50 transition-transform ${planOpen ? '' : '-rotate-90'}`} />
+                  <span className={`min-w-0 flex-1 text-sm font-semibold leading-snug ${planOpen ? '' : 'truncate'}`}>{plan.summary}</span>
+                </button>
+                <button type="button" onClick={hidePlan} aria-label="Close the plan" className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-lg leading-none text-ink/50 hover:bg-ink/5 hover:text-ink">×</button>
               </div>
-              {plan.steps.length > 0 && (
-                <details className="mt-1">
-                  <summary className="cursor-pointer py-1 text-xs font-semibold text-ink/50">See the {plan.steps.length} {plan.steps.length === 1 ? 'step' : 'steps'}</summary>
-                  <ol className="mt-1 space-y-2">
-                    {plan.steps.map((s, i) => (
-                      <li key={i} className="text-sm leading-snug">
-                        <span className="font-medium">{i + 1}. {s.thought}</span>
-                        <span className="block text-xs text-ink/50">{s.result}</span>
-                      </li>
-                    ))}
-                  </ol>
-                </details>
+              {planOpen && plan.steps.length > 0 && (
+                <ol className="mt-2 space-y-2">
+                  {plan.steps.map((s, i) => (
+                    <li key={i} className="text-sm leading-snug">
+                      <span className="font-medium">{i + 1}. {s.thought}</span>
+                      <span className="block text-xs text-ink/50">{s.result}</span>
+                    </li>
+                  ))}
+                </ol>
               )}
             </div>
           )}
