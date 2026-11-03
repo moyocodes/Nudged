@@ -126,6 +126,7 @@ describe('guessPhrase', () => {
     expect(guessPhrase('Clean the kitchen')).toBe('kitchen')
     expect(guessPhrase('Pick up some flowers')).toBe('flowers')
     expect(guessPhrase('Go to the gym (with Sam)')).toBe('gym')
+    expect(guessPhrase('Do Wolf Hampton school work')).toBe('Wolf Hampton school work')
   })
 
   it('keeps the title when there is nothing to drop', () => {

@@ -125,3 +125,4 @@
 - Typing room in the drawer: with the keyboard up, the typing box got squashed to nothing. The box now keeps its height, the question scrolls, and the model switch hides until the keyboard goes.
 - Bye means bye: replies to "bye" or "thanks" could still ask something, and a draft could fire a check-in after it was sent. Closing words now end the conversation, sending cancels the wait, and there's at most one check-in in 5 minutes, counting from No thanks too.
 - One question at a time: answering a question popped up the next waiting one, plus any follow-up from the model. Now a reply to a check-in ends it, and reminders still waiting for a time ask on their own cards.
+- Proof and misheard names: a Wolverhampton email was rejected for "Do Wolf Hampton school work", which is how voice heard it. The second look now allows for misspellings and sound-alikes, and judges what the task is about, and "do" no longer counts as part of what to look for.

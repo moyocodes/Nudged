@@ -2,7 +2,7 @@
 import { showModel } from '../components/ModelTag.jsx'
 
 // "Buy oat milk" -> "oat milk". Only a first guess; the Proof page lets the user change it.
-const LEADING = /^(?:(?:buy|get|pick up|grab|bring|send|take|clean|wash|tidy|fix|collect|return|order|cook|make|water|feed|walk|pack|visit|call|book|pay for|put away|go to)\s+)(?:(?:the|a|an|some|my|our)\s+)?/i
+const LEADING = /^(?:(?:do|complete|finish|submit|buy|get|pick up|grab|bring|send|take|clean|wash|tidy|fix|collect|return|order|cook|make|water|feed|walk|pack|visit|call|book|pay for|put away|go to)\s+)(?:(?:the|a|an|some|my|our)\s+)?/i
 export const guessPhrase = (title) => title.replace(/\s*\(.*\)\s*$/, '').replace(LEADING, '').trim() || title
 
 // The photo as a JPEG no bigger than `max` pixels, so the upload stays small.

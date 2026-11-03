@@ -235,7 +235,7 @@ app.post('/api/extract', requireSession, trackJob, async (req, res) => {
 })
 
 // Photo proof: SAM 3.1 looks for the task's object in the photo. Called once, when a photo is added.
-const PROOF_PROMPT = 'Someone is proving they did a task with a photo. Does the photo show the thing or place named, directly or by clear signs of it such as a sign, a logo, the kind of building, or a document or screen that shows it? Reply with JSON only: {"match":true,"saw":"what you can see, in under 10 plain words","object":"laptop"} or {"match":false,"saw":"what you can see instead, in under 10 plain words"}. object is one short name for the clearest physical thing that shows it.'
+const PROOF_PROMPT = 'Someone is proving they did a task with a photo. Does the photo show the thing or place named, directly or by clear signs of it such as a sign, a logo, the kind of building, or a document or screen about it? The name may have been typed in a hurry or misheard by voice, so allow for misspellings and sound-alikes ("Wolf Hampton" can mean Wolverhampton) and judge by what the task is about. A photo clearly about something else is still a no. Reply with JSON only: {"match":true,"saw":"what you can see, in under 10 plain words","object":"laptop"} or {"match":false,"saw":"what you can see instead, in under 10 plain words"}. object is one short name for the clearest physical thing that shows it.'
 // The second look when SAM misses: Muse Spark Open first, since it can see images too, then Muse Spark if it can't answer.
 async function secondLook(image, what) {
   if (openEnabled()) {
