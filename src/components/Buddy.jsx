@@ -4,6 +4,7 @@ import { useStore } from '../lib/store.jsx'
 import Mascot from './Mascot.jsx'
 import { makeLine } from '../lib/voice.js'
 import { soundUnlocked, unlockSound } from '../lib/alarm.js'
+import { holdNudges } from '../lib/nudges.js'
 
 const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
 // Browsers load voices lazily, which delays the first line. Asking early warms them up.
@@ -87,6 +88,11 @@ export default function Buddy() {
   // Tell the top bar how much room Nudged needs, so the page moves down instead of sitting under the bubble.
   const boxRef = useRef(null)
   const showing = !!buddy
+  // One thing at a time: no nudge while Nudged is still saying something.
+  useEffect(() => {
+    holdNudges('talking', showing)
+    return () => holdNudges('talking', false)
+  }, [showing])
   useLayoutEffect(() => {
     const box = boxRef.current
     if (!showing || !box) return

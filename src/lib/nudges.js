@@ -89,10 +89,11 @@ export function nextNudgeAt(t, nudges, schedule, now = new Date()) {
   return nextNudgeTime({ ...t, due: new Date(when).toISOString() }, schedule, now)
 }
 
-// While the mic is on or Nudged is thinking, nudges wait and go out at the next check once it's over.
-let held = false
-export const holdNudges = (on) => { held = on }
-export const nudgesHeld = () => held
+// Nudges wait while something else is going on, and go out at the next check once it's all over.
+// Each reason holds on its own: the mic, a question on screen, typing, Nudged talking, a plan, the rundown.
+const holds = new Set()
+export const holdNudges = (reason, on) => { if (on) holds.add(reason); else holds.delete(reason) }
+export const nudgesHeld = () => holds.size > 0
 
 // Tasks that should be nudged right now, most urgent first.
 const dueOrder = (t) => (t.due ? new Date(t.due).getTime() : Number.MAX_SAFE_INTEGER)
@@ -101,6 +102,8 @@ export function dueNudges(tasks, nudges, schedule, now = new Date()) {
   return tasks
     .filter((t) => {
       if (t.done || !canNudge(t, now, schedule)) return false
+      // Nudged is already asking when this one should be: that question is the nudge.
+      if (!t.due && t.ask) return false
       if (t.snoozedUntil && new Date(t.snoozedUntil) > now) return false
       const mine = nudges.filter((p) => p.taskId === t.id)
       const last = mine.length ? new Date(mine[mine.length - 1].at) : null

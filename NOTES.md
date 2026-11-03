@@ -119,3 +119,4 @@
 - Photo brain dump fix: uploading a picture read out the to-do list instead. The fixed message sent with a picture matched the "what's on my list?" shortcut, so the image never reached the model. Pictures now skip the typed-word shortcuts.
 - Badge pop-up: the model tag sat on top of the badge, so the pop-up now starts below it, and scrolls if it's tall.
 - Microphone prompt: the set-up card asked on every reload, because iPhones can report the mic as undecided each time. The answer is now saved with the account, and there's a No button.
+- Nudges wait their turn: a nudge could cut in while Nudged was asking a question, even about the same task. Each reason now holds nudges on its own: the mic, thinking, a plan, the rundown, Nudged talking, a question on screen or a half-typed message. The last two stop after 2 minutes, so a forgotten question can't silence every nudge.

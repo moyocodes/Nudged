@@ -38,6 +38,8 @@ function QuietTimer({ until }) {
   )
 }
 
+const CONVERSATION_HOLD_MS = 2 * 60 * 1000
+
 export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nudged:', onSubmit, onImage, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
   const { muted, nudgeModel, setNudgeModel } = useStore()
   const [text, setText] = useState('')
@@ -46,9 +48,21 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
   const [connecting, setConnecting] = useState(false)
   const [micError, setMicError] = useState('')
   useEffect(() => {
-    holdNudges(listening || thinking > 0)
-    return () => holdNudges(false)
+    holdNudges('dump', listening || thinking > 0)
+    return () => holdNudges('dump', false)
   }, [listening, thinking])
+
+  // A question on screen or a half-typed message: don't cut in. Only for a couple of minutes, so leaving one there can't silence every nudge.
+  const inConversation = !!question || !!text.trim()
+  useEffect(() => {
+    if (!inConversation) return
+    holdNudges('conversation', true)
+    const id = setTimeout(() => holdNudges('conversation', false), CONVERSATION_HOLD_MS)
+    return () => {
+      clearTimeout(id)
+      holdNudges('conversation', false)
+    }
+  }, [inConversation, question, text])
   const [focused, setFocused] = useState(false)
   const [picking, setPicking] = useState(false)
   const [full, setFull] = useState(false)

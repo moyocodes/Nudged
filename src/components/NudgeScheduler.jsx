@@ -22,6 +22,8 @@ export default function NudgeScheduler() {
         const count = nudges.filter((p) => p.taskId === task.id).length
         const level = Math.min(MAX_LEVEL, count + 1)
         const nudge = await makeNudge(task, level, name, count, buddyName)
+        // Something may have started while the line was being written. It waits for the next check.
+        if (nudgesHeld()) return
         setNudges((ps) => [...ps, nudge])
         // Said out loud in the app (Done/Snooze sit on the Today banner and Nudges page), and as a
         // system notification if the tab is in the background.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dueNudges, nextNudgeAt } from '../src/lib/nudges.js'
+import { dueNudges, nextNudgeAt, holdNudges, nudgesHeld } from '../src/lib/nudges.js'
 
 const schedule = { sleepStart: '23:00', sleepEnd: '07:00', checkIn: '10:00' }
 const at = (h, m = 0, day = 10) => new Date(2026, 5, day, h, m)
@@ -59,6 +59,23 @@ describe('dueNudges for an undated task', () => {
     expect(dueNudges([t], [], schedule, at(10))).toEqual([t])
     expect(dueNudges([t], sent(iso(10, 1)), schedule, at(18))).toEqual([])
     expect(dueNudges([t], sent(iso(10, 1)), schedule, at(10, 0, 11))).toEqual([t])
+  })
+})
+
+describe('holding nudges', () => {
+  it('stays held until every reason has ended', () => {
+    holdNudges('plan', true)
+    holdNudges('talking', true)
+    holdNudges('plan', false)
+    expect(nudgesHeld()).toBe(true)
+    holdNudges('talking', false)
+    expect(nudgesHeld()).toBe(false)
+  })
+
+  it('does not nudge a task Nudged is already asking about', () => {
+    const asking = task({ ask: { text: 'When should I nudge you?' } })
+    expect(dueNudges([asking], [], schedule, at(11))).toEqual([])
+    expect(ids(dueNudges([task()], [], schedule, at(11)))).toEqual(['t1'])
   })
 })
 

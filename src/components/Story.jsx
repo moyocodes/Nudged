@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store.jsx'
+import { holdNudges } from '../lib/nudges.js'
 import { friendlyDue, isEarly, isOverdue } from '../lib/format.js'
 import { badgeStats, nextBadge } from '../lib/mockData.js'
 import Mascot from './Mascot.jsx'
@@ -65,7 +66,11 @@ export default function Story({ onClose, slides: custom, title = "Today's rundow
   const { name, tasks, streak, completeTask, setStoryOpen, musicOn, setMusicOn, ambient, setAmbient, muted, setMuted } = useStore()
   useEffect(() => {
     setStoryOpen(true)
-    return () => setStoryOpen(false)
+    holdNudges('rundown', true)
+    return () => {
+      setStoryOpen(false)
+      holdNudges('rundown', false)
+    }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Background music for the daily rundown only (not the tutorial), stopped when it closes.
