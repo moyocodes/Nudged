@@ -370,6 +370,8 @@ app.post('/api/mascot', requireSession, trackJob, async (req, res) => {
   }
 })
 
+const MASCOT_LINE = 'Include the mascot from the attached picture on the badge, keeping its shape and friendly face, in the badge colours.'
+const mascotReference = () => `data:image/png;base64,${fs.readFileSync(path.join(import.meta.dirname, 'assets', 'mascot.png')).toString('base64')}`
 app.post('/api/badge', requireSession, trackJob, async (req, res) => {
   const { badge, context, fresh } = req.body ?? {}
   if (!BADGE_IDS.includes(badge)) return res.status(400).json({ error: 'Unknown badge' })
@@ -378,7 +380,8 @@ app.post('/api/badge', requireSession, trackJob, async (req, res) => {
   if (!takeImageSlot()) return res.status(429).json({ error: "That's all the badge art for today. Try again tomorrow." })
   try {
     const prompt = await writeArtPrompt(brief)
-    const image = `data:image/png;base64,${(await generateImage(prompt)).toString('base64')}`
+    // Every badge is anchored on the same mascot, so they look like one set.
+    const image = `data:image/png;base64,${(await generateImage(`${prompt} ${MASCOT_LINE}`, { reference: mascotReference() })).toString('base64')}`
     badgeCache.set(brief, image)
     res.json({ image, via: artVia() })
   } catch (err) {

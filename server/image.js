@@ -16,7 +16,8 @@ function findImage(json) {
   return found
 }
 
-export async function generateImage(prompt) {
+// reference: an image to anchor the picture on, as a data URL.
+export async function generateImage(prompt, { reference } = {}) {
   const model = process.env.IMAGE_MODEL_NAME
   const key = process.env.MODEL_API_KEY
   if (!model || !key) throw new Error('Set MODEL_API_KEY and IMAGE_MODEL_NAME in .env')
@@ -26,7 +27,7 @@ export async function generateImage(prompt) {
     // No web or image search, no shell, low reasoning: the cost rules.
     body: JSON.stringify({
       model,
-      input: [{ type: 'message', role: 'user', content: [{ type: 'input_text', text: prompt }] }],
+      input: [{ type: 'message', role: 'user', content: [{ type: 'input_text', text: prompt }, ...(reference ? [{ type: 'input_image', image_url: reference }] : [])] }],
       // The most output tokens one badge may use. 2048 is what Meta's example uses and is known to work;
       // lower it (IMAGE_MAX_OUTPUT_TOKENS) once the [usage] lines show what a badge really takes.
       max_output_tokens: Number(process.env.IMAGE_MAX_OUTPUT_TOKENS) || 2048,
