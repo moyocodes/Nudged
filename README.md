@@ -6,7 +6,7 @@ Dump everything on your mind, messy, by voice or text. Nudgy turns it into tidy 
 
 Live at [getnudged.chat](https://getnudged.chat). Problem statement: **Build for Your World**. It's for anyone who forgets things when busy and won't organise themselves first, so a reminder app has to do the organising and the chasing.
 
-Everything in this repo was built from scratch for the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026. [NOTES.md](NOTES.md) and the commit history record each feature as it was built. 3-minute walkthrough: [DEMO.md](DEMO.md).
+Everything in this repo was built from scratch for the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026. [NOTES.md](NOTES.md) and the commit history record each feature as it was built.
 
 ## What it does
 
