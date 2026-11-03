@@ -14,7 +14,7 @@ const hasVoice = typeof window !== 'undefined' && 'speechSynthesis' in window
 // Browsers only allow these prompts from a tap, so each row has its own Allow button.
 // "Not now" hides the card for this visit; it comes back next visit until everything is decided.
 export default function Permissions() {
-  const { name, voiceOn, setVoiceOn, muted, setMuted, setSoundAsked, voiceDeclined, setVoiceDeclined, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked, hydrated, permsLater, setPermsLater } = useStore()
+  const { name, voiceOn, setVoiceOn, muted, setMuted, setSoundAsked, voiceDeclined, setVoiceDeclined, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked, hydrated, permsLater, setPermsLater, micAsked, setMicAsked } = useStore()
   // A short beat before the first check, so the rundown (which opens right after the intro) gets the screen first.
   const [settled, setSettled] = useState(false)
   useEffect(() => {
@@ -45,12 +45,13 @@ export default function Permissions() {
       choices: AMBIENT_SOUNDS.map(([id, emoji, label]) => ({ id, emoji, label, pick: () => { setAmbient(id); setAmbientAsked(true) } })),
       no: () => setAmbientAsked(true),
     },
-    mic === 'prompt' && {
+    mic === 'prompt' && !micAsked && {
       key: 'mic', icon: '🎙️', title: 'Microphone',
       body: 'Brain-dump by voice. Say "send" when done.',
       allow: () => navigator.mediaDevices.getUserMedia({ audio: true })
-        .then((s) => { s.getTracks().forEach((t) => t.stop()); setMic('granted') })
-        .catch(() => setMic('denied')),
+        .then((s) => { s.getTracks().forEach((t) => t.stop()); setMic('granted'); setMicAsked(true) })
+        .catch(() => { setMic('denied'); setMicAsked(true) }),
+      no: () => setMicAsked(true),
     },
   ].filter(Boolean)
 
