@@ -3,7 +3,7 @@ import { startTranscribing } from '../lib/museTranscribe.js'
 import { makeLine } from '../lib/voice.js'
 import { showModel } from './ModelTag.jsx'
 import { Button } from './ui.jsx'
-import { ArrowIcon, MicIcon } from './Icons.jsx'
+import { ArrowIcon, CameraIcon, MicIcon } from './Icons.jsx'
 import { friendlyDue } from '../lib/format.js'
 import { useStore } from '../lib/store.jsx'
 import { holdNudges } from '../lib/nudges.js'
@@ -38,7 +38,7 @@ function QuietTimer({ until }) {
   )
 }
 
-export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nudged:', onSubmit, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
+export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nudged:', onSubmit, onImage, reminders = [], about, onPickAbout, thinking = 0, question, onDismissQuestion }) {
   const { muted, nudgeModel, setNudgeModel } = useStore()
   const [text, setText] = useState('')
   const [interim, setInterim] = useState('')
@@ -262,6 +262,21 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
         >
           <MicIcon size={18} />
         </button>
+        {onImage && (
+          <label aria-label="Add a photo or screenshot" title="Add a photo or screenshot" className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-full bg-ink/5 text-ink/70 transition hover:bg-ink/10">
+            <CameraIcon size={18} />
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => {
+                const file = e.target.files?.[0]
+                e.target.value = ''
+                if (file) onImage(file)
+              }}
+            />
+          </label>
+        )}
         {reminders.length > 0 && (
           <button
             type="button"
@@ -281,7 +296,7 @@ export default function BrainDump({ onActivity, quietUntil, questionLabel = 'Nud
               ? "Your browser can't record. Type instead."
               : listening
                 ? connecting ? 'Connecting to Muse Voice Transcribe…' : 'Listening… say "send" when you\'re done.'
-                : 'Talk or type. Enter sends.'}
+                : 'Talk, type or add a photo.'}
         </p>
         <Button size="sm" onClick={() => submit()} disabled={!text.trim()}>
           {about ? 'Tell Nudged' : 'Add tasks'} <ArrowIcon size={16} />

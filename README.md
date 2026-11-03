@@ -59,6 +59,7 @@ Nudged is always warm and cheeky, and a nudge makes sense on first read. Never f
 | Turning a dump into reminders and actions, with chat memory | Muse Spark Open on Baseten or Modal, or Muse Spark on Meta, by the switch or Auto, with Muse Spark as backup | You press Add tasks / Enter |
 | Nudge lines | The same choice of models and backup | A nudge is actually due, or you tap Nudge me or Try a nudge |
 | Quiet check-ins | The same choice of models and backup | 15 seconds of quiet after you type, talk or get a reply |
+| Photo brain dump | Muse Spark reads a handwritten list, flyer, notice or screenshot in the same call as any message, and words in a picture can only add reminders | You add a photo or screenshot beside the mic |
 | Photo proof | SAM 3.1 finds the task's object in your photo, then Muse Spark takes a second look if SAM says no | You send a proof photo |
 | Plan my day | Muse Wonder as an agent, one tool per step, at most 5 calls | You tap Plan it |
 | Personal badge art | Muse Wonder writes the art prompt, Muse Image draws it | You tap Create my badge |

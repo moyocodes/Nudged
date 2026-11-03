@@ -18,6 +18,7 @@ import { SNOOZE_OPTIONS, holdNudges, makeNudge } from '../lib/nudges.js'
 import { ALARM_MS, playAlarm } from '../lib/alarm.js'
 import { pickEngine } from '../lib/engine.js'
 import { resumeJobs, runJob } from '../lib/jobs.js'
+import { toJpeg } from '../lib/proof.js'
 
 
 // What Nudged says while the model reads a brain dump. One at random each time.
@@ -548,6 +549,19 @@ export default function HomePage() {
   // A snooze waiting on "how long?", answered by the next message with no model call.
   const [pendingSnooze, setPendingSnooze] = useState(null)
   const snoozeName = (m) => (m === 30 ? '30 minutes' : m === 60 ? 'an hour' : m % 60 ? `${m} minutes` : `${m / 60} hours`)
+  // Photo brain dump: a handwritten list, flyer, notice or screenshot goes through the same flow as typing, with the image added.
+  async function handleImage(file) {
+    setPendingQuestion(null)
+    setThinking((n) => n + 1)
+    try {
+      const image = await toJpeg(URL.createObjectURL(file), 1600)
+      await processDump('This is a picture. Please read it and note down everything in it I should not forget.', { image, shown: '📷 Sent a picture' })
+    } catch {
+      say("Couldn't read that picture. Try another one?")
+    } finally {
+      setThinking((n) => n - 1)
+    }
+  }
   async function handleDump(text) {
     setPendingQuestion(null)
     setThinking((n) => n + 1)
@@ -558,7 +572,7 @@ export default function HomePage() {
     }
   }
 
-  async function processDump(text) {
+  async function processDump(text, { image = null, shown = text } = {}) {
     if (pendingSnooze) {
       const id = pendingSnooze
       setPendingSnooze(null)
@@ -601,14 +615,15 @@ export default function HomePage() {
     // Numbered for the model; actions come back as numbers and are matched to ids here.
     // A reminder picked with @ goes first, as number 1, and the text is about it.
     const about = tasks.find((t) => t.id === aboutTaskId && !t.done)
-    const listed = [...(about ? [about] : []), ...tasks.filter((t) => !t.done && t !== about)].slice(0, 25)
+    const listed = image ? [] : [...(about ? [about] : []), ...tasks.filter((t) => !t.done && t !== about)].slice(0, 25)
     setAboutTaskId(null)
-    const said = about ? `About "${about.title}": ${text}` : text
+    const said = about ? `About "${about.title}": ${text}` : shown
     try {
-      const engine = pickEngine(nudgeModel)
+      // Muse Spark reads the picture, in the same call as any other message.
+      const engine = image ? 'spark' : pickEngine(nudgeModel)
       const label = { open: 'Muse Spark Open · Baseten', modal: 'Muse Spark Open · Modal', spark: 'Muse Spark · Meta' }[engine]
       const json = await runJob('extract', label, '/api/extract', {
-          text, now, name, buddy: buddyName, engine,
+          text, now, name, buddy: buddyName, engine, image,
           history: chat.slice(-30).map(({ from, text, at }) => ({ from, text, at })),
           selected: about ? 1 : null,
           reminders: listed.map((t) => ({ title: t.title, due: t.due ? new Date(new Date(t.due).getTime() - local.getTimezoneOffset() * 60000).toISOString() : null, ask: t.ask?.text ?? null })),
@@ -853,6 +868,7 @@ export default function HomePage() {
         quietUntil={thinking > 0 ? null : quietUntil}
         questionLabel={pendingQuestion && pendingQuestion === checkInLine ? 'Nudged checked in:' : 'Nudged:'}
         onSubmit={handleDump}
+        onImage={handleImage}
         reminders={open}
         about={open.find((t) => t.id === aboutTaskId)}
         onPickAbout={setAboutTaskId}

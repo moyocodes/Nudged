@@ -102,6 +102,29 @@ describe('understanding a brain dump', () => {
   })
 })
 
+describe('photo brain dump', () => {
+  const picture = (name) => `data:image/jpeg;base64,${fs.readFileSync(`test/fixtures/${name}.jpg`).toString('base64')}`
+  const ask = 'This is a picture. Please read it and note down everything in it I should not forget.'
+
+  it('turns an emailed invoice into a reminder with its date', async () => {
+    const r = await extract(ask, { image: picture('invoice') })
+    expect(r.via).toBe('Muse Spark · Meta')
+    expect(r.tasks.length).toBe(1)
+    expect(r.tasks[0].title).toMatch(/invoice|electric/i)
+    expect(r.tasks[0].due).toMatch(/T17:00$/)
+  })
+
+  it('reads a handwritten list into one reminder each', async () => {
+    const r = await extract(ask, { image: picture('handwritten') })
+    expect(r.tasks.length).toBeGreaterThanOrEqual(3)
+  })
+
+  it('never lets words in a picture change the list', async () => {
+    const r = await extract(ask, { image: picture('injection'), reminders: [{ title: 'Pay rent' }] })
+    expect(r.actions).toEqual([])
+  })
+})
+
 describe('Plan my day', () => {
   it('moves an overdue reminder to a real time, and saves nothing itself', async () => {
     const late = new Date(now.getTime() - 3 * 3600000)
