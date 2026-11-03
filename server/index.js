@@ -236,6 +236,21 @@ app.post('/api/extract', requireSession, trackJob, async (req, res) => {
 
 // Photo proof: SAM 3.1 looks for the task's object in the photo. Called once, when a photo is added.
 const PROOF_PROMPT = 'Someone is proving they did a task with a photo. Does the photo show the thing or place named, directly or by clear signs of it such as a sign, a logo or the kind of building? Reply with JSON only: {"match":true} or {"match":false}.'
+// The second look when SAM misses: Muse Spark Open first, since it can see images too, then Muse Spark if it can't answer.
+async function secondLook(image, what) {
+  if (openEnabled()) {
+    try {
+      const out = await openNudge(PROOF_PROMPT, [{ type: 'text', text: what }, { type: 'image_url', image_url: { url: image } }], 'open', 1000)
+      const answer = /"match"\s*:\s*(true|false)/.exec(out)
+      if (answer) return { found: answer[1] === 'true', via: `SAM 3.1 + Muse Spark Open · ${hostOf(process.env.OPEN_BASE_URL)}` }
+      console.error('[proof] Muse Spark Open gave no answer:', out.slice(0, 120))
+    } catch (err) {
+      console.error('[proof] Muse Spark Open failed, using Muse Spark:', err.message)
+    }
+  }
+  return { found: await sparkSeesProof(image, what), via: 'SAM 3.1 + Muse Spark · Meta' }
+}
+
 async function sparkSeesProof(image, what) {
   try {
     const model = process.env.MODEL_NAME
@@ -261,8 +276,8 @@ app.post('/api/proof', requireSession, async (req, res) => {
   try {
     const sam = await findInPhoto({ image, phrase: what })
     if (sam.found !== false) return res.json({ ...sam, via: 'SAM 3.1 · Meta' })
-    // SAM finds things it can outline, so "bank" or "gym" can miss in a photo of one. Muse Spark takes a look before saying no.
-    res.json({ found: await sparkSeesProof(image, what), via: 'SAM 3.1 + Muse Spark · Meta' })
+    // SAM finds things it can outline, so "bank" or "gym" can miss in a photo of one. Another model looks before saying no.
+    res.json(await secondLook(image, what))
   } catch (err) {
     console.error('[proof]', err.message)
     res.status(502).json({ error: err.message })

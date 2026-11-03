@@ -150,6 +150,15 @@ describe('photo proof', () => {
     expect(typeof r.found === 'boolean' || r.found === null).toBe(true)
   })
 
+  it('gets a second look from Muse Spark Open when SAM misses', async () => {
+    const invoice = `data:image/jpeg;base64,${fs.readFileSync('test/fixtures/invoice.jpg').toString('base64')}`
+    const yes = await post('/api/proof', { image: invoice, phrase: 'electricity invoice' })
+    expect(yes.via).toMatch(/Muse Spark Open/)
+    expect(yes.found).toBe(true)
+    const no = await post('/api/proof', { image: invoice, phrase: 'a birthday cake' })
+    expect(no.found).toBe(false)
+  })
+
   it('says no to something clearly not in the picture', async () => {
     const r = await post('/api/proof', { image: icon, phrase: 'red double decker bus' })
     expect(r.found).toBe(false)

@@ -112,3 +112,4 @@
 - Prompt caching: every request started with the current time, which changed the start of the prompt each minute. The fixed prompt and persona now come first, then the history, with the time last, and the server logs cached tokens.
 - Proof highlight: the proof screen now outlines what SAM 3.1 found, so it's clear why a photo passed. It draws SAM's boxes, because Meta's docs page didn't explain how to decode the masks.
 - Badges as a set: Muse Image now gets the mascot as a reference picture, so every badge features the same character.
+- Proof second look on open weights: when SAM 3.1 misses, Muse Spark Open on Baseten now looks at the photo first, with Muse Spark as the backup, and the model tag shows which one decided.
