@@ -68,10 +68,7 @@ describe('dueNudges order', () => {
     expect(ids(dueNudges(list, [], schedule, at(12)))).toEqual(['sooner', 'later'])
   })
 
-  // Known bug. new Date(Infinity) is an invalid date, so comparing with an undated task gives NaN and the sort
-  // stops being reliable. Only the first task gets nudged each minute, so the wrong one goes out.
-  // it.fails flips to a failure once this is fixed: change it to a plain it then.
-  it.fails('puts dated tasks in order ahead of undated ones', () => {
+  it('puts dated tasks in order ahead of undated ones', () => {
     const list = [task({ id: 'later', due: iso(11) }), task({ id: 'undated' }), task({ id: 'sooner', due: iso(9) })]
     expect(ids(dueNudges(list, [], schedule, at(12)))).toEqual(['sooner', 'later', 'undated'])
   })

@@ -95,6 +95,8 @@ export const holdNudges = (on) => { held = on }
 export const nudgesHeld = () => held
 
 // Tasks that should be nudged right now, most urgent first.
+const dueOrder = (t) => (t.due ? new Date(t.due).getTime() : Number.MAX_SAFE_INTEGER)
+
 export function dueNudges(tasks, nudges, schedule, now = new Date()) {
   return tasks
     .filter((t) => {
@@ -111,7 +113,8 @@ export function dueNudges(tasks, nudges, schedule, now = new Date()) {
       const checkIn = at(now, schedule.checkIn)
       return now >= checkIn && (!last || last < checkIn)
     })
-    .sort((a, b) => new Date(a.due ?? Infinity) - new Date(b.due ?? Infinity))
+    // Longest overdue first, undated last. Only the first one gets nudged each minute, so the order matters.
+    .sort((a, b) => dueOrder(a) - dueOrder(b))
 }
 
 // Shows a system notification when the tab isn't in view. Permission is asked for elsewhere, on a tap.
