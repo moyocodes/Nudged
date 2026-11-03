@@ -18,6 +18,7 @@ export default function ProofPage() {
   // What happened with this visit's photo: verified by SAM, skipped (couldn't check), or restored (came back to it).
   const [note, setNote] = useState('restored')
   const [boxes, setBoxes] = useState([])
+  const [steps, setSteps] = useState([])
   const [phrase, setPhrase] = useState(() => task?.proofOf || (task ? guessPhrase(task.title) : ''))
 
   if (!task) return <p className="text-center">That task wandered off. <Link to="/" className="underline">Home</Link></p>
@@ -45,11 +46,13 @@ export default function ProofPage() {
     setPhoto(url)
     setState('checking')
     setBoxes([])
+    setSteps([])
     let found = null
     try {
       const check = await checkPhoto(await toJpeg(url), phrase.trim() || task.title)
       found = check.found
       setBoxes(check.boxes)
+      setSteps(check.steps)
     } catch {}
     // Saved only once it passes, so a rejected photo can't come back as proof on the next visit.
     if (found === false) updateTask(task.id, { photo: null })
@@ -138,6 +141,12 @@ export default function ProofPage() {
         )}
 
         {(state === 'found' || state === 'notfound') && <p className="pop-in text-center font-display text-lg">{message}</p>}
+        {/* What each model really did, so it's clear how the photo was judged. */}
+        {(state === 'found' || state === 'notfound') && steps.length > 0 && (
+          <ol className="pop-in w-full space-y-1 rounded-xl bg-ink/[0.04] px-3 py-2 text-xs leading-snug text-ink/60">
+            {steps.map((step) => <li key={step}>{step}</li>)}
+          </ol>
+        )}
       </Card>
 
       {claimed ? (

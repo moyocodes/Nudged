@@ -115,3 +115,4 @@
 - Proof second look on open weights: when SAM 3.1 misses, Muse Spark Open on Baseten now looks at the photo first, with Muse Spark as the backup, and the model tag shows which one decided.
 - Add to a badge: typing "glasses" on a finished badge only fed a full redraw. Now Muse Image edits the existing badge and changes only what was asked, and Draw a whole new one stays separate.
 - Clear a badge picture: the badge pop-up can now remove a custom picture, with a confirm tap. The badge stays earned and goes back to the standard look.
+- Proof with vague words: SAM can't outline "work", so there was no highlight. Muse Spark Open now names the thing it saw, like a laptop, SAM outlines that, and the screen shows what each model did and saw.

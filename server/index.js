@@ -235,20 +235,31 @@ app.post('/api/extract', requireSession, trackJob, async (req, res) => {
 })
 
 // Photo proof: SAM 3.1 looks for the task's object in the photo. Called once, when a photo is added.
-const PROOF_PROMPT = 'Someone is proving they did a task with a photo. Does the photo show the thing or place named, directly or by clear signs of it such as a sign, a logo or the kind of building? Reply with JSON only: {"match":true} or {"match":false}.'
+const PROOF_PROMPT = 'Someone is proving they did a task with a photo. Does the photo show the thing or place named, directly or by clear signs of it such as a sign, a logo, the kind of building, or a document or screen that shows it? Reply with JSON only: {"match":true,"saw":"what you can see, in under 10 plain words","object":"laptop"} or {"match":false,"saw":"what you can see instead, in under 10 plain words"}. object is one short name for the clearest physical thing that shows it.'
 // The second look when SAM misses: Muse Spark Open first, since it can see images too, then Muse Spark if it can't answer.
 async function secondLook(image, what) {
   if (openEnabled()) {
     try {
       const out = await openNudge(PROOF_PROMPT, [{ type: 'text', text: what }, { type: 'image_url', image_url: { url: image } }], 'open', 1000)
       const answer = /"match"\s*:\s*(true|false)/.exec(out)
-      if (answer) return { found: answer[1] === 'true', via: `SAM 3.1 + Muse Spark Open · ${hostOf(process.env.OPEN_BASE_URL)}` }
+      if (answer) {
+        const via = `SAM 3.1 + Muse Spark Open · ${hostOf(process.env.OPEN_BASE_URL)}`
+        const said = /"saw"\s*:\s*"([^"]{1,120})"/.exec(out)?.[1]?.trim()
+        const steps = [`SAM 3.1 looked for "${what}": nothing it could outline.`, `Muse Spark Open: ${said ? `I can see ${said.replace(/^i can see /i, '')}.` : answer[1] === 'true' ? 'yes, that matches.' : "no, that doesn't match."}`]
+        if (answer[1] === 'false') return { found: false, via, steps }
+        // "Work" isn't something SAM can outline, but the laptop that shows it is. So SAM gets another go at the thing that was seen.
+        const saw = /"object"\s*:\s*"([^"]{1,40})"/.exec(out)?.[1]?.trim()
+        const boxes = saw ? await findInPhoto({ image, phrase: saw }).then((r) => r.boxes ?? []).catch(() => []) : []
+        if (boxes.length) steps.push(`SAM 3.1 outlined the ${saw}.`)
+        return { found: true, via, boxes, steps }
+      }
       console.error('[proof] Muse Spark Open gave no answer:', out.slice(0, 120))
     } catch (err) {
       console.error('[proof] Muse Spark Open failed, using Muse Spark:', err.message)
     }
   }
-  return { found: await sparkSeesProof(image, what), via: 'SAM 3.1 + Muse Spark · Meta' }
+  const found = await sparkSeesProof(image, what)
+  return { found, via: 'SAM 3.1 + Muse Spark · Meta', steps: [`SAM 3.1 looked for "${what}": nothing it could outline.`, `Muse Spark: ${found ? 'yes, that matches.' : "no, that doesn't match."}`] }
 }
 
 async function sparkSeesProof(image, what) {
@@ -275,7 +286,7 @@ app.post('/api/proof', requireSession, async (req, res) => {
   if (!what || typeof image !== 'string') return res.status(400).json({ error: 'Need a photo and what to look for' })
   try {
     const sam = await findInPhoto({ image, phrase: what })
-    if (sam.found !== false) return res.json({ ...sam, via: 'SAM 3.1 · Meta' })
+    if (sam.found !== false) return res.json({ ...sam, via: 'SAM 3.1 · Meta', steps: sam.found ? [`SAM 3.1 found "${what}" and outlined it.`] : [] })
     // SAM finds things it can outline, so "bank" or "gym" can miss in a photo of one. Another model looks before saying no.
     res.json(await secondLook(image, what))
   } catch (err) {
