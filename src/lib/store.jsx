@@ -240,7 +240,8 @@ export function StoreProvider({ children }) {
     setPoints((p) => p + earned)
     // What kind of finish it was decides which lines Nudgy picks.
     const others = tasks.filter((t) => !t.done && t.id !== id).length
-    const context = others === 0 ? 'allClear' : proof ? 'proof' : task.repeat ? 'recurring' : isOverdue(task) ? 'late' : isEarly(task) ? 'early' : 'plain'
+    // A repeating task comes straight back, so it never gets the "list is empty" lines.
+    const context = others === 0 && !next ? 'allClear' : proof ? 'proof' : task.repeat ? 'recurring' : isOverdue(task) ? 'late' : isEarly(task) ? 'early' : 'plain'
     setCelebration({ task: task.title, earned, key: Date.now(), context })
     // Streak: the first finish of a day adds one if yesterday had one too, otherwise it starts again at 1.
     const today = new Date().toDateString()
