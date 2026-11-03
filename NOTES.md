@@ -100,3 +100,4 @@
 - Plan my day folds up: the finished plan shows its steps, then collapses to the summary line after 10 seconds. Tapping it opens or closes it, and stops the timer. The last plan is saved with the account, so See last plan reopens it after closing or reloading, and Plan new runs another.
 - Kickoff plan in the README: added a screenshot of the plan dated Oct 26 to the proof section, cropped to the document.
 - How it was built: the README now says plainly that a coding assistant was used, and that all the AI inside the app runs on Meta's models.
+- Greeting: an empty list said "nothing things on". It now says "nothing on".

@@ -691,7 +691,7 @@ export default function HomePage() {
         <div className="min-w-0 flex-1">
           <p className="text-sm text-ink/50">{today}</p>
           <h1 className="mt-1 font-display text-[1.75rem] leading-tight">
-            Hey {name || 'you'}, <em>{open.length || 'nothing'}</em> {open.length === 1 ? 'thing' : 'things'} on.
+            Hey {name || 'you'}, <em>{open.length || 'nothing'}</em> {open.length === 0 ? '' : open.length === 1 ? 'thing ' : 'things '}on.
           </h1>
           {overdue > 0 && <p className="mt-1 text-sm text-ink/60">{overdue} overdue. No judgement. Mostly.</p>}
           {upcoming && (
