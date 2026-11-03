@@ -30,9 +30,7 @@ describe('reschedule', () => {
     expect(items).toEqual(list())
   })
 
-  // Known bug: Date.parse is lenient and reads "tomorrow:00Z" as a real date, so the word gets saved as the due time.
-  // it.fails flips to a failure once this is fixed: change it to a plain it then.
-  it.fails('refuses a due time that is not YYYY-MM-DDTHH:MM', () => {
+  it('refuses a due time that is not YYYY-MM-DDTHH:MM', () => {
     const items = list()
     expect(run('reschedule', { n: 1, due: 'tomorrow' }, items)).toMatch(/use YYYY/)
     expect(items).toEqual(list())

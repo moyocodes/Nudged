@@ -33,7 +33,8 @@ export function runTool(tool, args, list, schedule, now) {
   if (tool === 'reschedule') {
     const due = String(args?.due ?? '').slice(0, 16)
     if (!item) return 'Refused: no reminder with that number.'
-    if (Number.isNaN(minutes(due))) return 'Refused: use YYYY-MM-DDTHH:MM.'
+    // The pattern as well as the parse: Date.parse is lenient and reads "tomorrow:00Z" as a real date.
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(due) || Number.isNaN(minutes(due))) return 'Refused: use YYYY-MM-DDTHH:MM.'
     if (due <= now) return 'Refused: that time has passed.'
     if (inSleep(due, schedule)) return 'Refused: that is during sleep hours.'
     const clash = list.find((t) => t !== item && t.due && Math.abs(minutes(t.due) - minutes(due)) < SOON_MIN)
