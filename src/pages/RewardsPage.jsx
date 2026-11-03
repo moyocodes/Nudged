@@ -79,7 +79,7 @@ function BadgeView({ badge, stats, onClose }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
-      className="fixed inset-0 z-[55] grid place-items-center bg-ink/40 p-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[55] grid items-start justify-items-center overflow-y-auto bg-ink/40 px-6 pb-6 pt-[5.5rem] backdrop-blur-sm"
     >
       <motion.div
         initial={{ scale: 0.85, y: 20 }}
