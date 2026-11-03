@@ -93,3 +93,5 @@
 - Repeating tasks: ticking the last one said "List cleared" while it was still on Today at its next time. A repeating task now gets its own "see you at the next one" line.
 - Share image: the link preview pointed at the old onrender address and an og.png that was never added. Added the image and moved the links to getnudged.chat.
 - Demo script: the scenes felt like separate features, so the bank and Yinka's now run through the whole video, with linking lines and steps to stop chimes and the rundown interrupting a take.
+- Plan my day on Muse Wonder: the planner is the app's real agent, so it now runs on the model built for agents. PLAN_MODEL_NAME sets it, and leaving that blank goes back to Muse Spark. The first three test runs failed with a 502 and the cause wasn't captured; the next four passed.
+- Build dates: the README now explains the Oct 26 setup commit, links to the public repo and commit history, and shows the Meta Model API usage charts for the first two days. The screenshots are cropped to the charts so account details stay private.
