@@ -4,6 +4,7 @@ import { useStore } from '../lib/store.jsx'
 import Mascot from './Mascot.jsx'
 import { AMBIENT_SOUNDS } from '../lib/ambient.js'
 import { playAlarm, unlockAlarm } from '../lib/alarm.js'
+import { makeLine } from '../lib/voice.js'
 
 const hasNotify = typeof Notification !== 'undefined'
 const hasMic = typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia
@@ -13,7 +14,7 @@ const hasVoice = typeof window !== 'undefined' && 'speechSynthesis' in window
 // Browsers only allow these prompts from a tap, so each row has its own Allow button.
 // "Not now" hides the card for this visit; it comes back next visit until everything is decided.
 export default function Permissions() {
-  const { name, voiceOn, setVoiceOn, muted, setMuted, setSoundAsked, voiceDeclined, setVoiceDeclined, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked } = useStore()
+  const { name, voiceOn, setVoiceOn, muted, setMuted, setSoundAsked, voiceDeclined, setVoiceDeclined, say, storyOpen, tutorialOpen, setAmbient, ambientAsked, setAmbientAsked, hydrated, permsLater, setPermsLater } = useStore()
   // A short beat before the first check, so the rundown (which opens right after the intro) gets the screen first.
   const [settled, setSettled] = useState(false)
   useEffect(() => {
@@ -22,9 +23,6 @@ export default function Permissions() {
   }, [])
   const [notify, setNotify] = useState(hasNotify ? Notification.permission : 'unsupported')
   const [mic, setMic] = useState(hasMic ? 'unknown' : 'unsupported')
-  const [hidden, setHidden] = useState(() => {
-    try { return sessionStorage.getItem('nudgy:permsLater') === '1' } catch { return false }
-  })
 
   useEffect(() => {
     if (!hasMic || !navigator.permissions?.query) return
@@ -34,7 +32,7 @@ export default function Permissions() {
   const rows = [
     hasVoice && (!voiceOn || muted) && !voiceDeclined && {
       key: 'sound', icon: '🔊', title: 'Talk out loud', body: 'I read my nudges and replies aloud.',
-      allow: () => { setVoiceOn(true); setMuted(false); setVoiceDeclined(false); setSoundAsked(true); setTimeout(() => say(`Hi ${name || 'friend'}! This is my voice.`), 50) },
+      allow: () => { try { sessionStorage.setItem('nudgy:greeted', '1') } catch {} setVoiceOn(true); setMuted(false); setVoiceDeclined(false); setSoundAsked(true); const hi = `Hi ${name || 'friend'}! This is my voice.`; window.speechSynthesis.cancel(); window.speechSynthesis.speak(makeLine(hi)); say(hi, { spoken: true }) },
       no: () => { setVoiceDeclined(true); setSoundAsked(true) },
     },
     notify === 'default' && {
@@ -57,12 +55,13 @@ export default function Permissions() {
   ].filter(Boolean)
 
   const later = () => {
-    setHidden(true)
+    setPermsLater(true)
     try { sessionStorage.setItem('nudgy:permsLater', '1') } catch {}
   }
 
   // Order on a visit: intro, then the how-to (first time) or rundown, then this card. Never two at once.
-  const open = settled && !hidden && rows.length > 0 && !!name && !storyOpen && !tutorialOpen
+  // Waits for the account's saved settings: asked too early, it can ask for what's already allowed, and the saved answer then overwrites a tap.
+  const open = settled && hydrated && !permsLater && rows.length > 0 && !!name && !storyOpen && !tutorialOpen
   return (
     <AnimatePresence>
       {open && (

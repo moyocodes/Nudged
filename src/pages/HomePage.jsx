@@ -334,7 +334,20 @@ function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upc
 
 export default function HomePage() {
   const { hydrated, nudgeModel, setNudges, schedule, name, buddyName, tasks, addTasks, introSeen, nudges, completeTask, snoozeTask, updateTask, deleteTask, replaceTasks, replacePoints, points, aboutTaskId, setAboutTaskId, streak, tutorialSeen, openTutorial, say, chat, addChat } = useStore()
-  const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen && hydrated)
+  const { voiceOn, muted: soundMuted, voiceDeclined, permsLater, say: sayLine } = useStore()
+  // Talk out loud gets asked first: the rundown waits until it's on, turned down, or put off for this visit.
+  const voiceSettled = !('speechSynthesis' in window) || (voiceOn && !soundMuted) || voiceDeclined || permsLater
+  const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen && hydrated && voiceSettled)
+  // Already allowed: a hello once per visit. Phones hold it until the first tap, then say it.
+  useEffect(() => {
+    if (!hydrated || !tutorialSeen || storyOpen) return
+    try {
+      if (sessionStorage.getItem('nudgy:greeted') === '1') return
+      sessionStorage.setItem('nudgy:greeted', '1')
+    } catch { return }
+    // Decided once, as the page opens: turning the voice on later mustn't talk over the line on screen.
+    if (voiceOn && !soundMuted) sayLine(greetingLine(name || 'friend', buddyName || 'Nudged', Date.now(), new Date().getHours()))
+  }, [hydrated, tutorialSeen, storyOpen]) // eslint-disable-line react-hooks/exhaustive-deps
   const [askingProof, setAskingProof] = useState(false)
   const [snoozingBanner, setSnoozingBanner] = useState(false)
   // A day picked from the week strip ("Wed Oct 28 2026"), or null for the full list.
@@ -347,8 +360,9 @@ export default function HomePage() {
 
   // First visit: show how things work before the daily rundown takes over.
   useEffect(() => {
-    if (!tutorialSeen) openTutorial()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    // After the account's settings load, or a returning user on a new device gets it again.
+    if (hydrated && !tutorialSeen) openTutorial()
+  }, [hydrated]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Prototype: local mock extraction. Swap for POST /api/extract later.
   // Muse Spark reads the dump and replies; the local parser is only a fallback if the call fails.

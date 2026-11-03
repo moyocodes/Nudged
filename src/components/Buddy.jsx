@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import Mascot from './Mascot.jsx'
 import { makeLine } from '../lib/voice.js'
-import { unlockSound } from '../lib/alarm.js'
+import { soundUnlocked, unlockSound } from '../lib/alarm.js'
 
 const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
 // Browsers load voices lazily, which delays the first line. Asking early warms them up.
@@ -12,12 +12,28 @@ if (canSpeak) window.speechSynthesis.getVoices()
 // Nudged as an on-screen buddy: pops up from the corner, talks in a bubble (mouth moving),
 // and reads the line aloud with the browser's own voice when sound is on. No model calls.
 export default function Buddy() {
-  const { buddy, setBuddy, voiceOn, setVoiceOn, muted, setMuted } = useStore()
+  const { buddy, setBuddy, voiceOn, setVoiceOn, muted, setMuted, voiceDeclined } = useStore()
   const [talking, setTalking] = useState(false)
+  // Voice is on, but the phone needs a first tap before this line can be heard.
+  const [needsTap, setNeedsTap] = useState(false)
 
+  // A line that had to wait, because phones stay silent until the first tap after a login or reload.
+  const waiting = useRef(null)
   useEffect(() => {
-    window.addEventListener('pointerdown', unlockSound, true)
-    return () => window.removeEventListener('pointerdown', unlockSound, true)
+    // Click and key, not pointerdown: iPhones don't count a pointerdown as permission to start speech.
+    const onTap = () => {
+      unlockSound()
+      if (!waiting.current || !canSpeak) return
+      window.speechSynthesis.speak(makeLine(waiting.current))
+      waiting.current = null
+      setNeedsTap(false)
+    }
+    window.addEventListener('click', onTap, true)
+    window.addEventListener('keydown', onTap, true)
+    return () => {
+      window.removeEventListener('click', onTap, true)
+      window.removeEventListener('keydown', onTap, true)
+    }
   }, [])
 
   useEffect(() => {
@@ -31,7 +47,7 @@ export default function Buddy() {
     setTalking(true)
 
     // Out loud only with the user's permission ("Talk out loud"). Sound off still wins.
-    if (voiceOn && canSpeak && !muted) {
+    if (voiceOn && canSpeak && !muted && soundUnlocked() && !buddy.spoken) {
       const synth = window.speechSynthesis
       // Only cancel a line that's really playing: Chrome can stall a speak() right after a cancel(), so give it a beat then.
       const interrupting = synth.speaking || synth.pending
@@ -39,8 +55,11 @@ export default function Buddy() {
       const line = makeLine(buddy.text)
       line.onend = () => {
         setTalking(false)
+        clearTimeout(hideTimer)
         hideTimer = setTimeout(() => setBuddy(null), 5000)
       }
+      // If the phone drops the line, onend never fires, and the bubble mustn't stay up for good.
+      hideTimer = setTimeout(() => setBuddy(null), stayMs + 5000)
       const start = () => {
         synth.resume()
         synth.speak(line)
@@ -48,9 +67,15 @@ export default function Buddy() {
       if (interrupting) startTimer = setTimeout(start, 60)
       else start()
     } else {
+      if (voiceOn && canSpeak && !muted && !buddy.spoken) {
+        waiting.current = buddy.text
+        setNeedsTap(true)
+      }
+      const held = voiceOn && canSpeak && !muted && !buddy.spoken
       const quiet = setTimeout(() => setTalking(false), speakMs)
-      hideTimer = setTimeout(() => setBuddy(null), stayMs)
-      return () => { clearTimeout(quiet); clearTimeout(hideTimer) }
+      // A line waiting for its first tap stays up longer, so there's time to see the button.
+      hideTimer = setTimeout(() => setBuddy(null), held ? Math.max(stayMs, 30000) : stayMs)
+      return () => { waiting.current = null; setNeedsTap(false); clearTimeout(quiet); clearTimeout(hideTimer) }
     }
     return () => {
       clearTimeout(hideTimer)
@@ -76,8 +101,13 @@ export default function Buddy() {
     }
   }, [showing])
 
+  // Shout about it when a tap would make Nudged audible, unless they've already said no to the voice.
+  const askForVoice = needsTap || ((!voiceOn || muted) && !voiceDeclined)
+
   // The tap itself has to start the speech (phones block it otherwise), and it reads the line already on screen.
   function toggleVoice() {
+    // The tap itself already started the waiting line.
+    if (needsTap) return
     const synth = window.speechSynthesis
     if (voiceOn && !muted) {
       setVoiceOn(false)
@@ -118,9 +148,12 @@ export default function Buddy() {
               <button
                 type="button"
                 onClick={toggleVoice}
-                className="pointer-events-auto mt-1 text-[11px] font-semibold text-ink/45 hover:text-ink"
+                style={askForVoice ? { animation: 'pulse-ring 1.6s ease-out infinite' } : undefined}
+                className={askForVoice
+                  ? 'pointer-events-auto mt-2 inline-flex min-h-10 items-center gap-1.5 rounded-full bg-primary px-4 text-sm font-semibold text-on-primary shadow-btn'
+                  : 'pointer-events-auto mt-1 text-[11px] font-semibold text-ink/45 hover:text-ink'}
               >
-                {voiceOn && !muted ? 'Sound on · mute' : 'Hear me say it'}
+                {needsTap ? <><span aria-hidden>🔊</span> Tap to hear me</> : voiceOn && !muted ? 'Sound on · mute' : askForVoice ? <><span aria-hidden>🔊</span> Turn my voice on</> : 'Turn my voice on'}
               </button>
             )}
           </motion.div>

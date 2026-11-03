@@ -101,3 +101,8 @@
 - Kickoff plan in the README: added a screenshot of the plan dated Oct 26 to the proof section, cropped to the document.
 - How it was built: the README now says plainly that a coding assistant was used, and that all the AI inside the app runs on Meta's models.
 - Greeting: an empty list said "nothing things on". It now says "nothing on".
+- Talk out loud: iPhones ignored the voice because sound was unlocked on a pointerdown, which they don't accept, and it was then marked unlocked for good. It now unlocks on a click, and a line that had to wait is spoken on the first tap. The set-up card waits for the account's settings, so it can't ask for what's already allowed or lose an Allow tap, and it comes before the rundown. An allowed voice says hello once per visit.
+- Live sync: other devices only got changes after a reload, and an old open tab could overwrite newer ones. Each device now pulls when it comes back into view and every 30 seconds, saves when leaving the page, and never pulls over unsaved changes.
+- Tutorial: it checked before the account's settings loaded, so returning users on a new device could get it again. It now waits for them.
+- Voice switch in the bubble: Allow now speaks inside the tap itself, so phones accept it. The bubble says Turn my voice on when the voice is off, and Tap to hear me when a phone is holding the line back.
+- Voice button: Tap to hear me was small grey text, easy to miss. It's now a pulsing button, and the line waits up to 30 seconds for the tap.

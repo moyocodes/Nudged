@@ -29,6 +29,8 @@ export function unlockSound() {
   } catch {}
 }
 
+export const soundUnlocked = () => voiceUnlocked
+
 // Returns true if the chime played.
 export function playAlarm() {
   try {

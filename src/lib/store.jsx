@@ -89,6 +89,10 @@ export function StoreProvider({ children }) {
   const [soundAsked, setSoundAsked] = usePersisted('soundAsked', false)
   // Said No to "talk out loud". Until then the setup card offers it whenever the voice is off.
   const [voiceDeclined, setVoiceDeclined] = usePersisted('voiceDeclined', false)
+  // "Not now" on the set-up card, for this visit only.
+  const [permsLater, setPermsLater] = useState(() => {
+    try { return sessionStorage.getItem('nudgy:permsLater') === '1' } catch { return false }
+  })
   // True while a full-screen story (rundown or tutorial) is showing, so other pop-ups wait.
   const [storyOpen, setStoryOpen] = useState(false)
   // Alarm chime when a nudge fires (lib/alarm.js).
@@ -111,7 +115,8 @@ export function StoreProvider({ children }) {
     setChat((c) => [...c, ...msgs.map((m, i) => ({ id: `c${Date.now()}${i}`, at: new Date().toISOString(), ...m }))].slice(-500))
 
   // Nudged's on-screen voice: a speech bubble every time, out loud too when the user turns it on.
-  const say = (text) => setBuddy({ text, key: Date.now() })
+  // spoken: the caller already started the speech, inside the tap that phones require.
+  const say = (text, { spoken = false } = {}) => setBuddy({ text, spoken, key: Date.now() })
   const [celebration, setCelebration] = useState(null)
   const [tutorialSeen, setTutorialSeen] = usePersisted('tutorialSeen', false)
   const [tutorialOpen, setTutorialOpen] = useState(false)
@@ -211,11 +216,50 @@ export function StoreProvider({ children }) {
 
   // After that, every change is saved to the account a moment later.
   const syncKey = JSON.stringify(synced)
+  const unsent = useRef(null) // the save still waiting to go, if any
+  const sending = useRef(0)
   useEffect(() => {
     if (!account || !hydrated) return
-    const id = setTimeout(() => pushState(withoutInlineImages(synced)).catch((err) => { if (err.status === 401) setAccount(null) }), 1500)
+    const send = () => {
+      if (unsent.current !== send) return
+      unsent.current = null
+      sending.current += 1
+      pushState(withoutInlineImages(synced))
+        .catch((err) => { if (err.status === 401) setAccount(null) })
+        .finally(() => { sending.current -= 1 })
+    }
+    unsent.current = send
+    const id = setTimeout(send, 1500)
     return () => clearTimeout(id)
   }, [syncKey, hydrated]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Changes from other devices arrive when this one comes back into view, and every 30 seconds while it's open.
+  // Saving first when leaving the page, and never pulling over unsaved changes or pictures still uploading.
+  const latest = useRef({})
+  latest.current = { syncKey }
+  useEffect(() => {
+    if (!account || !hydrated) return
+    let stopped = false
+    async function refresh() {
+      if (document.hidden || unsent.current || sending.current || uploading.current.size || latest.current.syncKey.includes('"data:')) return
+      const saved = await pullState().catch((err) => { if (err.status === 401) setAccount(null) })
+      if (stopped || !saved?.state || unsent.current || sending.current) return
+      for (const [k, v] of Object.entries(saved.state)) setters[k]?.(v)
+    }
+    const onVisible = () => {
+      if (document.hidden) unsent.current?.()
+      else refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', refresh)
+    const id = setInterval(refresh, 30000)
+    return () => {
+      stopped = true
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', refresh)
+      clearInterval(id)
+    }
+  }, [account?.email, hydrated]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function signOut() {
     try { await logout() } catch {}
@@ -310,7 +354,7 @@ export function StoreProvider({ children }) {
         termsAcceptedAt, setTermsAcceptedAt, account, setAccount, signOut, hydrated, replaceTasks: setTasks, replacePoints: setPoints, spendPoints, aboutTaskId, setAboutTaskId,
         tutorialSeen, tutorialOpen, openTutorial, closeTutorial,
         schedule, setSchedule, introSeen, setIntroSeen, snoozeTask, joke, setJoke,
-        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, voiceDeclined, setVoiceDeclined, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, mascotArt, setMascotArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat, lastPlan, setLastPlan,
+        buddy, setBuddy, say, voiceOn, setVoiceOn, soundAsked, setSoundAsked, voiceDeclined, setVoiceDeclined, permsLater, setPermsLater, alarmOn, setAlarmOn, alarmAsked, setAlarmAsked, musicOn, setMusicOn, ambient, setAmbient, volume, setVolume, muted, setMuted, badgeArt, setBadgeArt, mascotArt, setMascotArt, rundownMode, setRundownMode, nudgeModel, setNudgeModel, voiceName, setVoiceName, buddyName, setBuddyName, ambientAsked, setAmbientAsked, storyOpen, setStoryOpen, chat, addChat, lastPlan, setLastPlan,
       }}
     >
       {children}
