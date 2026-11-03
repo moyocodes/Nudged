@@ -87,4 +87,5 @@
 - Restyle Nudgy: describe a look on the Me page and Muse Wonder and Muse Image redraw the mascot across the app, with the background cut away. A picture can't move its mouth, so it bounces while talking.
 - Brain dump drawer: the full-screen chat is now a side drawer over the dimmed page, and tapping outside closes it. The close and back buttons were faint, so they're now solid and larger.
 - Talk out loud row: it vanished for good once answered, even with the voice off. It now shows whenever the voice is off or muted, unless the user tapped No.
+- Tests: npm test covers the app's logic and the real server with no model calls; npm run test:live makes real calls to every model. Both use a throwaway database, so real accounts are safe. They found three bugs, kept as expected failures until fixed: undated tasks break the nudge order, "1 hour 30 minutes" snoozes for 30, and the planner accepts "tomorrow" as a due time.
 - Sleep hours: medium reminders were nudging at night, so now only high priority gets through. The task card names any time that lands in sleep hours, and says to make it high priority or remove that time.
