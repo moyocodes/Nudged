@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import Mascot from './Mascot.jsx'
@@ -59,6 +59,23 @@ export default function Buddy() {
     }
   }, [buddy]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Tell the top bar how much room Nudgy needs, so the page moves down instead of sitting under the bubble.
+  const boxRef = useRef(null)
+  const showing = !!buddy
+  useLayoutEffect(() => {
+    const box = boxRef.current
+    if (!showing || !box) return
+    const root = document.documentElement
+    const fit = () => root.style.setProperty('--buddy-h', `${box.offsetHeight + 8}px`)
+    fit()
+    const observer = new ResizeObserver(fit)
+    observer.observe(box)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--buddy-h')
+    }
+  }, [showing])
+
   // The tap itself has to start the speech (phones block it otherwise), and it reads the line already on screen.
   function toggleVoice() {
     const synth = window.speechSynthesis
@@ -79,11 +96,12 @@ export default function Buddy() {
       {buddy && (
         <motion.div
           key="buddy"
+          ref={boxRef}
           initial={{ y: -40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -40, opacity: 0, transition: { duration: 0.2, ease: [0.23, 1, 0.32, 1] } }}
           transition={{ type: 'spring', duration: 0.5, bounce: 0.35 }}
-          className="pointer-events-none fixed top-[6.25rem] right-3 z-50 flex max-w-[min(22rem,calc(100vw-1.5rem))] items-end gap-1"
+          className="pointer-events-none fixed top-[5.25rem] right-3 z-50 flex max-w-[min(22rem,calc(100vw-1.5rem))] items-end gap-1"
           role="status"
           aria-live="polite"
         >
@@ -93,7 +111,7 @@ export default function Buddy() {
             animate={{ opacity: 1, scale: 1, x: 0 }}
             transition={{ type: 'spring', duration: 0.35, bounce: 0.3 }}
             style={{ transformOrigin: '100% 100%' }}
-            className="mb-8 rounded-2xl rounded-br-md border-[length:var(--bw)] border-line bg-surface px-3.5 py-2.5 shadow-card"
+            className="mb-4 rounded-2xl rounded-br-md border-[length:var(--bw)] border-line bg-surface px-3.5 py-2.5 shadow-card"
           >
             <p className="text-sm leading-snug">{buddy.text}</p>
             {canSpeak && (
@@ -114,7 +132,7 @@ export default function Buddy() {
             transition={talking ? { duration: 0.5, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
             className="pointer-events-auto shrink-0"
           >
-            <Mascot size={72} talking={talking} />
+            <Mascot size={56} talking={talking} />
           </motion.button>
         </motion.div>
       )}

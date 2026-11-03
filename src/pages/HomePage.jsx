@@ -828,7 +828,7 @@ export default function HomePage() {
 
 
 
-      <div ref={listRef} className="flex scroll-mt-20 flex-col gap-4">
+      <div ref={listRef} className="flex scroll-mt-24 flex-col gap-4">
       {day ? (
         <DayView day={day} tasks={tasks} onClear={() => setDay(null)} />
       ) : (
@@ -848,7 +848,7 @@ export default function HomePage() {
       </div>
       </div>
 
-      <aside className="sticky top-20 hidden flex-col gap-3 lg:flex"><RailContent {...rail} /></aside>
+      <aside className="sticky top-[calc(6rem+var(--buddy-h,0px))] hidden flex-col gap-3 lg:flex"><RailContent {...rail} /></aside>
     </div>
   )
 }

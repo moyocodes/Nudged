@@ -52,6 +52,9 @@ export default function TopBar() {
         <ThemeSwitcher />
         <AccountMenu />
       </div>
+      {/* Room for the model tag, and for Nudgy while talking, so neither covers the page. Both are drawn in their own components. */}
+      <div className="h-7" aria-hidden />
+      <div className="transition-[height] duration-200" style={{ height: 'var(--buddy-h, 0px)' }} aria-hidden />
     </header>
   )
 }
