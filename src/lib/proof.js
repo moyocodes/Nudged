@@ -27,9 +27,9 @@ export async function checkPhoto(image, phrase) {
   try {
     const r = await fetch('/api/proof', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image, phrase }) })
     if (!r.ok) throw new Error(r.statusText)
-    const { found, via } = await r.json()
+    const { found, via, boxes } = await r.json()
     showModel(via)
-    return { found: typeof found === 'boolean' ? found : null }
+    return { found: typeof found === 'boolean' ? found : null, boxes: Array.isArray(boxes) ? boxes : [] }
   } catch (err) {
     console.warn('[proof] could not check the photo:', err.message)
     return { found: null }

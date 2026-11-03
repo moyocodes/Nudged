@@ -17,6 +17,7 @@ export default function ProofPage() {
   const [state, setState] = useState(task?.photo ? 'found' : 'idle') // idle | checking | found | notfound
   // What happened with this visit's photo: verified by SAM, skipped (couldn't check), or restored (came back to it).
   const [note, setNote] = useState('restored')
+  const [boxes, setBoxes] = useState([])
   const [phrase, setPhrase] = useState(() => task?.proofOf || (task ? guessPhrase(task.title) : ''))
 
   if (!task) return <p className="text-center">That task wandered off. <Link to="/" className="underline">Home</Link></p>
@@ -43,9 +44,12 @@ export default function ProofPage() {
     const url = URL.createObjectURL(file)
     setPhoto(url)
     setState('checking')
+    setBoxes([])
     let found = null
     try {
-      found = (await checkPhoto(await toJpeg(url), phrase.trim() || task.title)).found
+      const check = await checkPhoto(await toJpeg(url), phrase.trim() || task.title)
+      found = check.found
+      setBoxes(check.boxes)
     } catch {}
     // Saved only once it passes, so a rejected photo can't come back as proof on the next visit.
     if (found === false) updateTask(task.id, { photo: null })
@@ -100,6 +104,15 @@ export default function ProofPage() {
         {photo ? (
           <div className="relative w-full overflow-hidden rounded-2xl">
             <img src={photo} alt="Your proof" className="w-full" />
+            {/* Where SAM 3.1 found it, so it's clear why the photo passed. */}
+            {state === 'found' && boxes.map((b, i) => (
+              <span
+                key={i}
+                aria-hidden
+                className="pop-in pointer-events-none absolute rounded-lg border-[3px] border-primary bg-primary/20 shadow-card"
+                style={{ left: `${b.left * 100}%`, top: `${b.top * 100}%`, width: `${b.width * 100}%`, height: `${b.height * 100}%` }}
+              />
+            ))}
             {state === 'found' && <ProofBadge complete className="absolute left-3 top-3" />}
             {(state === 'found' || state === 'notfound') && !claimed && (
               <label className="absolute bottom-3 right-3 cursor-pointer rounded-full bg-surface/90 px-3 py-1.5 text-xs font-semibold shadow-card backdrop-blur">

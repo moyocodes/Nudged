@@ -110,3 +110,4 @@
 - Voice button: Tap to hear me was small grey text, easy to miss. It's now a pulsing button, and the line waits up to 30 seconds for the tap.
 - Photo brain dump: a camera button in the brain dump takes a handwritten list, flyer, school notice or screenshot of an email, and Muse Spark turns it into reminders in the same extract call, with the image added. SAM 3.1 was tried first, but it finds objects and not writing, so it stays on photo proof. Words in a picture can only add reminders, and the image isn't kept.
 - Prompt caching: every request started with the current time, which changed the start of the prompt each minute. The fixed prompt and persona now come first, then the history, with the time last, and the server logs cached tokens.
+- Proof highlight: the proof screen now outlines what SAM 3.1 found, so it's clear why a photo passed. It draws SAM's boxes, because Meta's docs page didn't explain how to decode the masks.

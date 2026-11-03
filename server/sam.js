@@ -22,11 +22,18 @@ export function parseEvents(text) {
   return events
 }
 
+// Where each match is, from the finished text: <|box;x1=;y1=;x2=;y2=;w=;h=|>, with w and h the image's size and x2, y2 inclusive.
+export function readBoxes(events) {
+  const text = events.find((e) => e.type === 'response.output_text.done')?.text ?? ''
+  const boxes = [...text.matchAll(/<\|box;x1=(\d+);y1=(\d+);x2=(\d+);y2=(\d+);w=(\d+);h=(\d+)/g)].map((m) => m.slice(1).map(Number))
+  return boxes.slice(0, 12).map(([x1, y1, x2, y2, w, h]) => ({ left: x1 / w, top: y1 / h, width: (x2 - x1 + 1) / w, height: (y2 - y1 + 1) / h }))
+}
+
 // Did it find the thing? A match comes back in the text stream as <|box;...|><|mask;...|>; no match finishes with empty text.
 // found: true (a box), false (finished with none), null (cut off before finishing, so we can't tell).
 export function interpret(events) {
   const hasBox = (value) => typeof value === 'string' ? value.includes('<|box;') : !!value && typeof value === 'object' && Object.values(value).some(hasBox)
-  if (events.some(hasBox)) return { found: true }
+  if (events.some(hasBox)) return { found: true, boxes: readBoxes(events) }
   return { found: events.some((e) => e.type === 'response.completed') ? false : null }
 }
 
