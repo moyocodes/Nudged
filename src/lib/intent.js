@@ -77,6 +77,12 @@ export const looksPhysical = (title) => !DIGITAL.test(title) && PHYSICAL.test(ti
 export function snoozeMinutes(text, bare = false) {
   const t = String(text).toLowerCase().trim()
   const only = (re) => bare && new RegExp(`^(${re})[.!\\s]*$`).test(t)
+  // Hours and minutes together come first, or the rules below would only see one half ("1 hour 30 minutes" as 30).
+  const both = t.match(/\b(\d+|one|two|an?)\s*(?:h|hrs?|hours?)\s*(?:and\s*)?(\d+|thirty)\s*(?:m|mins?|minutes?)\b/)
+  if (both) {
+    const count = (word) => ({ a: 1, an: 1, one: 1, two: 2, thirty: 30 })[word] ?? Number(word)
+    return count(both[1]) * 60 + count(both[2])
+  }
   if (/\b(30|thirty)\s*(m|mins?|minutes?)\b|half( an)? hour/.test(t) || only('30|thirty')) return 30
   if (/\b(90|ninety)\s*(m|mins?|minutes?)\b|\b(an? )?hour and a half\b/.test(t) || only('90|ninety')) return 90
   if (/\b(2|two)\s*(h|hrs?|hours?)\b/.test(t) || only('2|two')) return 120

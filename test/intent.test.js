@@ -112,10 +112,11 @@ describe('snoozeMinutes', () => {
     expect(snoozeMinutes('5', true)).toBeNull()
   })
 
-  // Known bug: the 30 minute rule runs first and sees only the "30 minutes" part.
-  // it.fails flips to a failure once this is fixed: change it to a plain it then.
-  it.fails('reads "1 hour 30 minutes" as 90', () => {
+  it('reads hours and minutes together', () => {
     expect(snoozeMinutes('1 hour 30 minutes')).toBe(90)
+    expect(snoozeMinutes('an hour and 30 mins')).toBe(90)
+    expect(snoozeMinutes('1h30m')).toBe(90)
+    expect(snoozeMinutes('2 hours 15 minutes')).toBe(135)
   })
 })
 

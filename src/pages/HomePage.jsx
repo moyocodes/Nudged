@@ -509,7 +509,7 @@ export default function HomePage() {
   const [pendingQuestion, setPendingQuestion] = useState(null)
   // A snooze waiting on "how long?", answered by the next message with no model call.
   const [pendingSnooze, setPendingSnooze] = useState(null)
-  const snoozeName = (m) => (m === 30 ? '30 minutes' : m === 60 ? 'an hour' : m === 90 ? '90 minutes' : `${m / 60} hours`)
+  const snoozeName = (m) => (m === 30 ? '30 minutes' : m === 60 ? 'an hour' : m % 60 ? `${m} minutes` : `${m / 60} hours`)
   async function handleDump(text) {
     setPendingQuestion(null)
     setThinking((n) => n + 1)
