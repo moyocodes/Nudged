@@ -28,8 +28,9 @@ export default function TopBar() {
         )}
         <Link to="/" className="flex min-w-0 items-center gap-1.5">
           <Mascot size={28} />
-          {/* On a phone the wordmark makes room for the back arrow. */}
-          <span className={`max-w-[10rem] truncate font-display text-xl ${canGoBack ? 'hidden sm:inline' : ''}`}>{buddyName || 'Nudged'}</span>
+          {/* A long buddy name can't fit beside the buttons on a phone, so phones show the app name, or just the mascot if there's a back arrow or too little room. */}
+          {!canGoBack && <span className="hidden font-display text-xl min-[380px]:inline sm:hidden">Nudged</span>}
+          <span className="hidden max-w-[10rem] truncate font-display text-xl sm:inline">{buddyName || 'Nudged'}</span>
         </Link>
         <Link
           to="/rewards"

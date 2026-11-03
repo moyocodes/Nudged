@@ -153,6 +153,15 @@
   --hero-glow: 0.15;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+/* Everything is sized in rem, so this scales text and spacing together on phones. */
+@media (max-width: 480px) {
+  html { font-size: 15px; }
+}
+
 body {
   @apply bg-bg text-ink font-sans antialiased;
   transition: background-color 0.2s, color 0.2s;

@@ -443,6 +443,7 @@ export default function HomePage() {
     const movable = tasks.filter((t) => !t.done && !t.repeat)
     const reminders = movable.map((t, i) => ({ n: i + 1, id: t.id, title: t.title, due: t.due ? localTime(t.due) : null, priority: t.priority ?? 'medium' }))
     if (!reminders.length) return say('Nothing to plan. Enjoy it while it lasts.')
+    setPlan(null)
     setPlanning(true)
     holdNudges(true)
     try {
@@ -785,15 +786,23 @@ export default function HomePage() {
           </div>
           {plan && (
             <div className="mt-3 border-t-[length:var(--bw)] border-line pt-3">
-              <ol className="space-y-2">
-                {plan.steps.map((s, i) => (
-                  <li key={i} className="text-sm leading-snug">
-                    <span className="font-medium">{i + 1}. {s.thought}</span>
-                    <span className="block text-xs text-ink/50">{s.result}</span>
-                  </li>
-                ))}
-              </ol>
-              <p className="mt-2 text-sm font-semibold">{plan.summary}</p>
+              <div className="flex items-start gap-2">
+                <p className="min-w-0 flex-1 text-sm font-semibold leading-snug">{plan.summary}</p>
+                <button type="button" onClick={() => setPlan(null)} aria-label="Close the plan" className="-mr-1 -mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full text-lg leading-none text-ink/50 hover:bg-ink/5 hover:text-ink">×</button>
+              </div>
+              {plan.steps.length > 0 && (
+                <details className="mt-1">
+                  <summary className="cursor-pointer py-1 text-xs font-semibold text-ink/50">See the {plan.steps.length} {plan.steps.length === 1 ? 'step' : 'steps'}</summary>
+                  <ol className="mt-1 space-y-2">
+                    {plan.steps.map((s, i) => (
+                      <li key={i} className="text-sm leading-snug">
+                        <span className="font-medium">{i + 1}. {s.thought}</span>
+                        <span className="block text-xs text-ink/50">{s.result}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </details>
+              )}
             </div>
           )}
         </div>
