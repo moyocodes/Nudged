@@ -445,33 +445,34 @@ export default function HomePage() {
   // Plan my day: the agent works on a copy on the server, and its changes land here in one undoable go.
   const [planning, setPlanning] = useState(false)
   const { lastPlan: plan, setLastPlan: setPlan } = useStore()
-  // A new plan shows its steps, then folds to the summary line after 10 seconds. Tapping it takes over from the timer.
+  // An open plan folds to the summary line after 10 seconds without a touch on it, every time it's opened.
   // Closing only hides it: the last plan stays saved and can be reopened.
   const [planShown, setPlanShown] = useState(false)
   const [planOpen, setPlanOpen] = useState(false)
   const planTimer = useRef(null)
-  useEffect(() => () => clearTimeout(planTimer.current), [])
-  function showPlan({ fold = false } = {}) {
+  const planLine = (summary) => `Here's how I planned it, ${name || 'friend'}. ${summary}`
+  function foldPlanLater() {
     clearTimeout(planTimer.current)
+    planTimer.current = setTimeout(() => setPlanOpen(false), PLAN_OPEN_MS)
+  }
+  useEffect(() => {
+    if (!planShown || !planOpen) return
+    foldPlanLater()
+    return () => clearTimeout(planTimer.current)
+  }, [planShown, planOpen, plan]) // eslint-disable-line react-hooks/exhaustive-deps
+  function showPlan() {
     setPlanShown(true)
     setPlanOpen(true)
-    if (fold) planTimer.current = setTimeout(() => setPlanOpen(false), PLAN_OPEN_MS)
   }
-  function hidePlan() {
-    clearTimeout(planTimer.current)
-    setPlanShown(false)
-  }
-  function togglePlan() {
-    clearTimeout(planTimer.current)
-    setPlanOpen((o) => !o)
-  }
+  const hidePlan = () => setPlanShown(false)
+  const togglePlan = () => setPlanOpen((o) => !o)
   function applyPlan(json) {
     showModel(json.via)
     if (json.changes.length) setLastChange({ before: tasks, points })
     json.changes.forEach((c) => updateTask(c.id, { due: c.due ? new Date(c.due).toISOString() : null, priority: c.priority, snoozedUntil: null }))
     setPlan({ steps: json.steps, summary: json.summary })
-    showPlan({ fold: true })
-    say(json.summary)
+    showPlan()
+    say(planLine(json.summary))
   }
   async function planMyDay() {
     const localTime = (d) => new Date(new Date(d).getTime() - new Date(d).getTimezoneOffset() * 60000).toISOString().slice(0, 16)
@@ -816,7 +817,7 @@ export default function HomePage() {
               <h2 className="text-sm font-semibold">Plan my day</h2>
               <p className="text-xs text-ink/50">Nudged's agent sorts out overdue and clashing reminders, step by step.</p>
               {plan && !planShown && !planning && (
-                <button type="button" onClick={() => showPlan()} className="mt-0.5 text-xs font-semibold text-primary hover:underline">See last plan</button>
+                <button type="button" onClick={() => { showPlan(); say(planLine(plan.summary)) }} className="mt-0.5 text-xs font-semibold text-primary hover:underline">See last plan</button>
               )}
             </div>
             <button type="button" disabled={planning} onClick={planMyDay} className="shrink-0 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-on-primary disabled:opacity-60">
@@ -824,7 +825,7 @@ export default function HomePage() {
             </button>
           </div>
           {plan && planShown && (
-            <div className="mt-3 border-t-[length:var(--bw)] border-line pt-3">
+            <div onPointerDown={() => { if (planOpen) foldPlanLater() }} className="mt-3 border-t-[length:var(--bw)] border-line pt-3">
               <div className="flex items-start gap-2">
                 <button type="button" onClick={togglePlan} aria-expanded={planOpen} aria-label={planOpen ? 'Collapse the plan' : 'Expand the plan'} className="flex min-w-0 flex-1 items-start gap-1.5 text-left">
                   <ChevronIcon size={16} className={`mt-0.5 shrink-0 text-ink/50 transition-transform ${planOpen ? '' : '-rotate-90'}`} />
