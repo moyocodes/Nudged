@@ -4,9 +4,11 @@
 
 Dump everything on your mind, messy, by voice or text. Nudged turns it into tidy reminders, then nudges you, cheekily and with escalating drama, until each one is done.
 
+**[Watch the demo video](https://youtu.be/zXS2TIlwPY0)**
+
 Live at [getnudged.chat](https://getnudged.chat). Problem statement: **Build for Your World**. It's for anyone who forgets things when busy and won't organise themselves first, so a reminder app has to do the organising and the chasing.
 
-Everything in this repo was built from scratch for the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026. It was called Pokey and then Nudgy during the build, so older commits and notes use those names, and the repo link still says nudgy. The first commit is project setup only, made on Oct 26 after the kickoff session; features start on Oct 27. [NOTES.md](NOTES.md) and the commit history record each feature as it was built.
+Everything in this repo was built from scratch for the Meta Global AI Developer Hackathon, Oct 26 – Nov 4, 2026. It was called Pokey and then Nudgy during the build, so older commits and notes use those names. The first commit is project setup only, made on Oct 26 after the kickoff session; features start on Oct 27. [NOTES.md](NOTES.md) and the commit history record each feature as it was built.
 
 ## Built during the hackathon
 
@@ -15,11 +17,11 @@ Built by James Moyosore, using Claude Code as a coding assistant. All the AI ins
 Check it yourself, no login needed:
 
 - **Live app:** [getnudged.chat](https://getnudged.chat)
-- **Source code:** [github.com/moyocodes/nudgy](https://github.com/moyocodes/nudgy)
-- **Every commit, with dates:** [commit history](https://github.com/moyocodes/nudgy/commits/main)
-- **First commit, project setup on Oct 26:** [a4925ee](https://github.com/moyocodes/nudgy/commit/a4925eead997cdc13356f883ac847728c538d7d7)
-- **First full version of the app, Oct 27:** [3629b5b](https://github.com/moyocodes/nudgy/commit/3629b5bd31a0a52b4976f32b8d53009c43a8d791)
-- **What was built, feature by feature:** [NOTES.md](https://github.com/moyocodes/nudgy/blob/main/NOTES.md)
+- **Source code:** [github.com/moyocodes/nudged](https://github.com/moyocodes/nudged)
+- **Every commit, with dates:** [commit history](https://github.com/moyocodes/nudged/commits/main)
+- **First commit, project setup on Oct 26:** [a4925ee](https://github.com/moyocodes/nudged/commit/a4925eead997cdc13356f883ac847728c538d7d7)
+- **First full version of the app, Oct 27:** [3629b5b](https://github.com/moyocodes/nudged/commit/3629b5bd31a0a52b4976f32b8d53009c43a8d791)
+- **What was built, feature by feature:** [NOTES.md](https://github.com/moyocodes/nudged/blob/main/NOTES.md)
 
 Meta Model API usage from the project's dashboard, which is private, so these are screenshots. The 30-day view shows requests on the first two days: 98 on Oct 26 and 65 on Oct 27.
 
@@ -66,6 +68,12 @@ Nudged is always warm and cheeky, and a nudge makes sense on first read. Never f
 | Restyle Nudged | Muse Wonder writes the art prompt, Muse Image draws it | You tap Draw my new look |
 
 Model output is never trusted blindly. The server drops tasks with no title, turns an unreadable time into a "when?" question, ignores actions that point at reminders that don't exist, and Nudged's confirmation ("Set: Call mum, today 6 PM") is built from what was really saved, so it can't claim a reminder it didn't make. If a call fails, a local parser and canned nudges keep the app working.
+
+## Tested with Muse Code
+
+I used the Muse Code coding agent to add 32 tests to [`test/nudges.test.js`](test/nudges.test.js), covering edge cases in the nudge logic: snoozes, gaps between nudges, sleep hours, backup lines and notifications. It only edited the test file. Run them with `npx vitest run`.
+
+![Muse Code's summary of the new nudge tests, all 47 passing](docs/muse-code-tests.png)
 
 ## Tech
 
