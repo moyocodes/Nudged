@@ -272,6 +272,7 @@ export default function PlayPage() {
                   Distractions are +1.{proofTasks.length > 0 && ' Your proof tasks are +3, and I\'ll line them up for a photo after.'}
                 </p>
                 <Button onClick={start} disabled={!canAfford}>Start nudging · {GAME_COST} coins</Button>
+                <Link to="/" className="min-h-9 px-3 py-1.5 text-sm font-semibold text-ink/60 hover:text-ink">Not now</Link>
                 {!canAfford && <p className="text-xs text-ink/50">You have {points}. Finish a task to earn 10.</p>}
               </>
             ) : (

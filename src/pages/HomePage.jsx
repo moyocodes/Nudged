@@ -274,6 +274,7 @@ function DayView({ day, tasks, onClear }) {
 // The panels beside the list: rundown, next badge, recent nudges, the week, nudge break.
 // A right rail on desktop; below the list on mobile.
 function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upcoming, now, day, onPickDay }) {
+  const { breakHidden, setBreakHidden } = useStore()
   const recent = [...nudges].reverse().slice(0, 3)
   return (
     <>
@@ -324,13 +325,18 @@ function RailContent({ open, overdue, nudges, tasks, next, stats, onRundown, upc
         <SoundPicker compact />
       </div>
 
-      <Link to="/play" className={`${card} flex items-center gap-3 hover:bg-ink/[0.02]`}>
-        <span className="flex-1">
-          <span className="block text-sm font-semibold">Nudge break</span>
-          <span className="block text-xs text-ink/50">30 seconds of whack-a-nudge.</span>
-        </span>
-        <span className="text-sm font-semibold text-primary">Play</span>
-      </Link>
+      {!breakHidden && (
+        <div className="relative">
+          <Link to="/play" className={`${card} flex items-center gap-3 !pr-10 hover:bg-ink/[0.02]`}>
+            <span className="flex-1">
+              <span className="block text-sm font-semibold">Nudge break</span>
+              <span className="block text-xs text-ink/50">30 seconds of whack-a-nudge.</span>
+            </span>
+            <span className="text-sm font-semibold text-primary">Play</span>
+          </Link>
+          <button type="button" onClick={() => setBreakHidden(true)} aria-label="No thanks, hide Nudge break" title="No thanks" className="absolute right-1 top-1 grid h-8 w-8 place-items-center rounded-full text-lg leading-none text-ink/40 hover:bg-ink/5 hover:text-ink">×</button>
+        </div>
+      )}
     </>
   )
 }
@@ -340,6 +346,7 @@ export default function HomePage() {
   const { voiceOn, muted: soundMuted, voiceDeclined, permsLater, say: sayLine } = useStore()
   // Talk out loud gets asked first: the rundown waits until it's on, turned down, or put off for this visit.
   const voiceSettled = !('speechSynthesis' in window) || (voiceOn && !soundMuted) || voiceDeclined || permsLater
+  const { breakHidden, setBreakHidden } = useStore()
   const [storyOpen, openStory, closeStory] = useDailyStory(tutorialSeen && introSeen && hydrated && voiceSettled)
   // Already allowed: a hello once per visit. Phones hold it until the first tap, then say it.
   useEffect(() => {
@@ -757,11 +764,16 @@ export default function HomePage() {
       {/* On phones: a short block up top with nothing to scroll. The rundown button is in the header,
           sound is in the top bar, so that card isn't repeated. */}
       <section aria-label="Your day" className="grid grid-cols-2 gap-3 lg:hidden">
-        {next && <NextBadge next={next} stats={stats} className="!px-3" />}
-        <Link to="/play" className={`${card} flex flex-col justify-center !p-3 hover:bg-ink/[0.02] ${next ? '' : 'col-span-2'}`}>
-          <span className="text-sm font-semibold">Nudge break</span>
-          <span className="text-xs text-ink/50">30-second game</span>
-        </Link>
+        {next && <NextBadge next={next} stats={stats} className={`!px-3 ${breakHidden ? 'col-span-2' : ''}`} />}
+        {!breakHidden && (
+          <div className={`relative ${next ? '' : 'col-span-2'}`}>
+            <Link to="/play" className={`${card} flex h-full flex-col justify-center !p-3 !pr-8 hover:bg-ink/[0.02]`}>
+              <span className="text-sm font-semibold">Nudge break</span>
+              <span className="text-xs text-ink/50">30-second game</span>
+            </Link>
+            <button type="button" onClick={() => setBreakHidden(true)} aria-label="No thanks, hide Nudge break" title="No thanks" className="absolute right-1 top-1 grid h-8 w-8 place-items-center rounded-full text-lg leading-none text-ink/40 hover:bg-ink/5 hover:text-ink">×</button>
+          </div>
+        )}
         <div className="col-span-2"><WeekGlance tasks={tasks} day={day} onPickDay={pickDay} /></div>
         {nudges.length > 0 && (
           <div className={`${card} col-span-2 !py-3`}>
