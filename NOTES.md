@@ -133,3 +133,6 @@
 - Swipe to delete, and a tidier card: slide a reminder either way to uncover Delete, with no need to open the editor. On phones the buttons sit in their own row so titles keep the full width, and the Done prompt is now a clear stack of full-width buttons.
 - Nudge banner on phones: tapping Done squeezed the nudge into one thin column beside three buttons. The buttons now have their own row.
 - No to Nudge break: the card on Today has an × that hides it for good, saved with the account, and the game screen has Not now. The game stays on the Rewards page.
+
+- Added 32 nudge edge-case tests with the Muse Code coding agent: snoozes, gaps, sleep hours, backup lines and notifications. It only edited the test file; no bugs turned up.
+- Added the demo video and a Muse Code testing section to the README, and updated repo links after the rename to nudged.
