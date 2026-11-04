@@ -120,7 +120,7 @@ export default function ProofPage() {
             {(state === 'found' || state === 'notfound') && !claimed && (
               <label className="absolute bottom-3 right-3 cursor-pointer rounded-full bg-surface/90 px-3 py-1.5 text-xs font-semibold shadow-card backdrop-blur">
                 Retake
-                <input type="file" accept="image/*" capture="environment" onChange={pick} className="sr-only" />
+                <input type="file" accept="image/*" onChange={pick} className="sr-only" />
               </label>
             )}
             {state === 'checking' && (
@@ -136,7 +136,7 @@ export default function ProofPage() {
               <span className="mt-2 block font-display text-xl">Snap proof</span>
               <span className="block text-sm text-ink/50">+{PROOF_BONUS} bonus coins</span>
             </span>
-            <input type="file" accept="image/*" capture="environment" onChange={pick} className="sr-only" />
+            <input type="file" accept="image/*" onChange={pick} className="sr-only" />
           </label>
         )}
 

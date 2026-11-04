@@ -129,3 +129,4 @@
 - Tap to hear me: on a real phone the tap also counted as Sound on · mute, so it spoke the line and then turned the voice off. That tap now only speaks.
 - Nudge me picks better: it chased the highest priority reminder even with another overdue. Overdue now comes first, then priority. The proof screen also keeps only the three biggest outlines from a second look.
 - Overdue is red: it used each theme's accent colour, so it was blue or pink depending on the theme. It's now red in every theme.
+- Proof photos from the gallery: the proof screen forced the camera open. Phones now offer the photo library as well.
