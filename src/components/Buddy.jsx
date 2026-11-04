@@ -20,6 +20,7 @@ export default function Buddy() {
 
   // A line that had to wait, because phones stay silent until the first tap after a login or reload.
   const waiting = useRef(null)
+  const spokeOnTap = useRef(0)
   useEffect(() => {
     // Click and key, not pointerdown: iPhones don't count a pointerdown as permission to start speech.
     const onTap = () => {
@@ -27,6 +28,7 @@ export default function Buddy() {
       if (!waiting.current || !canSpeak) return
       window.speechSynthesis.speak(makeLine(waiting.current))
       waiting.current = null
+      spokeOnTap.current = Date.now()
       setNeedsTap(false)
     }
     window.addEventListener('click', onTap, true)
@@ -112,8 +114,8 @@ export default function Buddy() {
 
   // The tap itself has to start the speech (phones block it otherwise), and it reads the line already on screen.
   function toggleVoice() {
-    // The tap itself already started the waiting line.
-    if (needsTap) return
+    // This tap already started the waiting line. By now the button may have changed to "mute", and it must not count as one.
+    if (needsTap || Date.now() - spokeOnTap.current < 800) return
     const synth = window.speechSynthesis
     if (voiceOn && !muted) {
       setVoiceOn(false)
