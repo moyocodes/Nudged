@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { dueNudges, nextNudgeAt, holdNudges, nudgesHeld } from '../src/lib/nudges.js'
+import { dueNudges, nextNudgeAt, holdNudges, nudgesHeld, mostUrgent } from '../src/lib/nudges.js'
 
 const schedule = { sleepStart: '23:00', sleepEnd: '07:00', checkIn: '10:00' }
 const at = (h, m = 0, day = 10) => new Date(2026, 5, day, h, m)
@@ -59,6 +59,18 @@ describe('dueNudges for an undated task', () => {
     expect(dueNudges([t], [], schedule, at(10))).toEqual([t])
     expect(dueNudges([t], sent(iso(10, 1)), schedule, at(18))).toEqual([])
     expect(dueNudges([t], sent(iso(10, 1)), schedule, at(10, 0, 11))).toEqual([t])
+  })
+})
+
+describe('mostUrgent', () => {
+  it('picks overdue over important', () => {
+    const list = [task({ id: 'later', priority: 'high', due: iso(15) }), task({ id: 'late', priority: 'low', due: iso(9) })]
+    expect(mostUrgent(list, at(12)).id).toBe('late')
+  })
+
+  it('then the most important, skipping finished ones', () => {
+    const list = [task({ id: 'done', priority: 'high', due: iso(9), done: true }), task({ id: 'low', priority: 'low', due: iso(15) }), task({ id: 'high', priority: 'high', due: iso(16) })]
+    expect(mostUrgent(list, at(12)).id).toBe('high')
   })
 })
 

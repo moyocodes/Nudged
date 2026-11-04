@@ -249,7 +249,8 @@ async function secondLook(image, what) {
         if (answer[1] === 'false') return { found: false, via, steps }
         // "Work" isn't something SAM can outline, but the laptop that shows it is. So SAM gets another go at the thing that was seen.
         const saw = /"object"\s*:\s*"([^"]{1,40})"/.exec(out)?.[1]?.trim()
-        const boxes = saw ? await findInPhoto({ image, phrase: saw }).then((r) => r.boxes ?? []).catch(() => []) : []
+        // The biggest few, so a street of small signs doesn't become a pile of outlines.
+        const boxes = saw ? await findInPhoto({ image, phrase: saw }).then((r) => (r.boxes ?? []).sort((a, b) => b.width * b.height - a.width * a.height).slice(0, 3)).catch(() => []) : []
         if (boxes.length) steps.push(`SAM 3.1 outlined the ${saw}.`)
         return { found: true, via, boxes, steps }
       }

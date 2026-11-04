@@ -14,7 +14,7 @@ import Story from '../components/Story.jsx'
 import Mascot from '../components/Mascot.jsx'
 import { showModel } from '../components/ModelTag.jsx'
 import { BellIcon, ChevronIcon, TrophyIcon } from '../components/Icons.jsx'
-import { SNOOZE_OPTIONS, holdNudges, makeNudge } from '../lib/nudges.js'
+import { SNOOZE_OPTIONS, holdNudges, makeNudge, mostUrgent } from '../lib/nudges.js'
 import { ALARM_MS, playAlarm } from '../lib/alarm.js'
 import { pickEngine } from '../lib/engine.js'
 import { resumeJobs, runJob } from '../lib/jobs.js'
@@ -438,8 +438,7 @@ export default function HomePage() {
   // Try a nudge: a real one on demand, so a first-timer hears what's coming. Gone once they've had any nudge.
   const [tryingNudge, setTryingNudge] = useState(false)
   async function tryNudge() {
-    const rank = { high: 0, medium: 1, low: 2 }
-    const task = tasks.filter((t) => !t.done).sort((a, b) => (rank[a.priority] ?? 1) - (rank[b.priority] ?? 1))[0]
+    const task = mostUrgent(tasks)
     if (!task || tryingNudge) return
     setTryingNudge(true)
     const nudge = await makeNudge(task, 1, name, 0, buddyName)

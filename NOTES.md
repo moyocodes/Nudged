@@ -127,3 +127,4 @@
 - One question at a time: answering a question popped up the next waiting one, plus any follow-up from the model. Now a reply to a check-in ends it, and reminders still waiting for a time ask on their own cards.
 - Proof and misheard names: a Wolverhampton email was rejected for "Do Wolf Hampton school work", which is how voice heard it. The second look now allows for misspellings and sound-alikes, and judges what the task is about, and "do" no longer counts as part of what to look for.
 - Tap to hear me: on a real phone the tap also counted as Sound on · mute, so it spoke the line and then turned the voice off. That tap now only speaks.
+- Nudge me picks better: it chased the highest priority reminder even with another overdue. Overdue now comes first, then priority. The proof screen also keeps only the three biggest outlines from a second look.

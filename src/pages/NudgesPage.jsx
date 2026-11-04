@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
-import { MAX_LEVEL, makeNudge } from '../lib/nudges.js'
+import { MAX_LEVEL, makeNudge, mostUrgent } from '../lib/nudges.js'
 import { ALARM_MS, playAlarm } from '../lib/alarm.js'
 import NudgeBubble from '../components/NudgeBubble.jsx'
 import { Button } from '../components/ui.jsx'
@@ -40,10 +40,8 @@ export default function NudgesPage() {
 
   // Nudges the most important open task right now, with a model-written line.
   async function nudgeMeNow() {
-    const open = tasks.filter((t) => !t.done)
-    if (!open.length || nudging) return
-    const rank = { high: 0, medium: 1, low: 2 }
-    const task = [...open].sort((a, b) => rank[a.priority] - rank[b.priority])[0]
+    const task = mostUrgent(tasks)
+    if (!task || nudging) return
     const level = Math.min(MAX_LEVEL, nudges.filter((p) => p.taskId === task.id).length + 1)
     setNudging(true)
     const nudge = await makeNudge(task, level, name, 0, buddyName)

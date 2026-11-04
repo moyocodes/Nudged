@@ -95,6 +95,13 @@ const holds = new Set()
 export const holdNudges = (reason, on) => { if (on) holds.add(reason); else holds.delete(reason) }
 export const nudgesHeld = () => holds.size > 0
 
+// Which reminder a manual "nudge me" is about: overdue first, then the most important, then the soonest.
+export function mostUrgent(tasks, now = new Date()) {
+  const rank = { high: 0, medium: 1, low: 2 }
+  const late = (t) => (t.due && new Date(t.due) < now ? 0 : 1)
+  return tasks.filter((t) => !t.done).sort((a, b) => late(a) - late(b) || (rank[a.priority] ?? 1) - (rank[b.priority] ?? 1) || dueOrder(a) - dueOrder(b))[0]
+}
+
 // Tasks that should be nudged right now, most urgent first.
 const dueOrder = (t) => (t.due ? new Date(t.due).getTime() : Number.MAX_SAFE_INTEGER)
 
