@@ -73,7 +73,7 @@ Model output is never trusted blindly. The server drops tasks with no title, tur
 - **Backend:** Express, with the OpenAI SDK pointed at the Meta Model API (`https://api.meta.ai/v1`), Baseten and Modal, and a WebSocket relay for live transcription. Long calls keep their result under a job id for an hour, so the app can collect it after an interruption.
 - **The API key stays on the server.** Vite proxies `/api` to Express, so the browser never sees it.
 - **Accounts:** passwordless email login, with email sent through Resend. The session is an HTTP-only cookie, stored hashed, and every route that calls a model requires it. Data lives in Postgres or MySQL when `DATABASE_URL` is set (users, devices, synced state, images), or a git-ignored JSON file locally.
-- **Hosting:** Render (`render.yaml`), with the Postgres database on Neon and the domain getnudged.chat.
+- **Hosting:** Render (`render.yaml`), with the Postgres database on Supabase and the domain getnudged.chat.
 
 ## Setup
 
