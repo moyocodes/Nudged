@@ -127,7 +127,7 @@ function TaskGroup({ label, list, collapsed = false }) {
           {label} · {list.length}
         </button>
       ) : (
-        <h2 className={`mb-2 text-xs font-semibold uppercase tracking-wider ${label === 'Overdue' ? 'text-accent' : 'text-ink/45'}`}>
+        <h2 className={`mb-2 text-xs font-semibold uppercase tracking-wider ${label === 'Overdue' ? 'text-overdue' : 'text-ink/45'}`}>
           {label} · {list.length}
         </h2>
       )}

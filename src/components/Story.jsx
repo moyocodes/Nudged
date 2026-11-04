@@ -245,7 +245,7 @@ export default function Story({ onClose, slides: custom, title = "Today's rundow
                 </span>
               )}
               {slide.eyebrow && (
-                <p className={`text-xs font-semibold uppercase tracking-wider ${slide.eyebrow === 'Overdue' ? 'text-accent' : 'text-ink/45'}`}>
+                <p className={`text-xs font-semibold uppercase tracking-wider ${slide.eyebrow === 'Overdue' ? 'text-overdue' : 'text-ink/45'}`}>
                   {slide.eyebrow}
                 </p>
               )}
@@ -257,7 +257,7 @@ export default function Story({ onClose, slides: custom, title = "Today's rundow
                   {slide.items.map((it) => (
                     <li key={it.id} className="flex items-baseline justify-between gap-3 rounded-xl bg-surface px-3 py-2">
                       <span className="min-w-0 truncate text-[15px] font-medium">{it.title}</span>
-                      <span className={`shrink-0 text-xs ${it.late ? 'text-accent' : 'text-ink/50'}`}>{it.when}</span>
+                      <span className={`shrink-0 text-xs ${it.late ? 'text-overdue' : 'text-ink/50'}`}>{it.when}</span>
                     </li>
                   ))}
                 </ul>

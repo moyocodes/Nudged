@@ -16,6 +16,7 @@
   --color-highlight: var(--highlight);
   --color-soft: var(--soft);
   --color-success: var(--success);
+  --color-overdue: var(--overdue);
 
   --radius-2xl: var(--r-inner);
   --radius-3xl: var(--r-card);
@@ -40,6 +41,8 @@
   --primary-dark: #4637c9;
   --on-primary: #ffffff;
   --accent: #d6478a;
+  /* Overdue is red in every theme, whatever its accent colour. */
+  --overdue: #d92d20;
   --highlight: #fcd34d;
   --soft: #fbe3ee;
   --success: #1f9d6b;
@@ -136,6 +139,7 @@
   --primary-dark: #9cc41f;
   --on-primary: #0e1116;
   --accent: #8b7bff;
+  --overdue: #ff6b5e;
   --highlight: #f2b84b;
   --soft: #222936;
   --success: #3ddc97;

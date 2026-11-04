@@ -235,7 +235,7 @@ export default function TaskCard({ task }) {
             type="button"
             onClick={() => setEditing(true)}
             aria-label={`Change time for ${task.title}`}
-            className={`text-left text-[13px] underline-offset-2 hover:underline ${overdue ? 'text-accent' : 'text-ink/50'}`}
+            className={`text-left text-[13px] underline-offset-2 hover:underline ${overdue ? 'text-overdue' : 'text-ink/50'}`}
           >
             {task.done ? (task.proof ? 'Done · proof accepted' : 'Done') : task.due ? friendlyDue(task.due) : `No date · nudge at ${formatClock(schedule.checkIn)}`}
           </button>
