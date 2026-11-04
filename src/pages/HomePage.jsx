@@ -790,23 +790,24 @@ export default function HomePage() {
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, height: 0 }}
-            className="flex items-center gap-3 rounded-2xl border-[length:var(--bw)] border-line bg-soft/60 px-4 py-3"
+            className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border-[length:var(--bw)] border-line bg-soft/60 px-4 py-3"
           >
             <BellIcon size={18} className="shrink-0 text-primary" />
             <Link to="/nudges" className="min-w-0 flex-1 text-sm leading-snug">{bannerNudge?.text ?? `Psst, "${bannerTask.title}" is overdue. Done, or snooze?`}{bannerNudge?.via && <span className="mt-0.5 block text-xs font-semibold text-primary">⚡ {bannerNudge.via}</span>}</Link>
+            {/* The buttons get their own row, so they never squeeze the line above into a thin column. */}
             {/* Proof tasks ask first, same as the task card. */}
             {askingProof ? (
-              <span className="flex shrink-0 items-center gap-1">
-                <button type="button" onClick={() => setAskingProof(false)} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
+              <span className="grid basis-full grid-cols-3 gap-2">
+                <button type="button" onClick={() => setAskingProof(false)} className="min-h-10 rounded-full bg-ink/5 px-2 text-sm font-semibold text-ink/70">
                   Not now
                 </button>
-                <button type="button" onClick={() => { completeTask(bannerTask.id); setAskingProof(false) }} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
+                <button type="button" onClick={() => { completeTask(bannerTask.id); setAskingProof(false) }} className="min-h-10 rounded-full bg-ink/5 px-2 text-sm font-semibold text-ink/70">
                   Skip photo
                 </button>
-                <Link to={`/proof/${bannerTask.id}`} className="rounded-full bg-primary px-3 py-1 text-sm font-semibold text-on-primary">Snap +15</Link>
+                <Link to={`/proof/${bannerTask.id}`} className="grid min-h-10 place-items-center rounded-full bg-primary px-2 text-sm font-semibold text-on-primary">Snap +15</Link>
               </span>
             ) : snoozingBanner ? (
-              <span className="flex shrink-0 items-center">
+              <span className="flex basis-full flex-wrap items-center justify-end">
                 {SNOOZE_OPTIONS.map((o) => (
                   <button key={o.minutes} type="button" onClick={() => { snoozeTask(bannerTask.id, o.minutes); setSnoozingBanner(false) }} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/60 hover:bg-ink/5">
                     {o.label}
@@ -814,7 +815,7 @@ export default function HomePage() {
                 ))}
               </span>
             ) : (
-              <span className="flex shrink-0 items-center">
+              <span className="flex basis-full items-center justify-end">
                 <button type="button" onClick={() => setSnoozingBanner(true)} className="rounded-full px-2 py-1 text-sm font-semibold text-ink/50 hover:bg-ink/5">
                   Snooze
                 </button>

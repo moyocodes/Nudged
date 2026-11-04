@@ -131,3 +131,4 @@
 - Overdue is red: it used each theme's accent colour, so it was blue or pink depending on the theme. It's now red in every theme.
 - Proof photos from the gallery: the proof screen forced the camera open. Phones now offer the photo library as well.
 - Swipe to delete, and a tidier card: slide a reminder either way to uncover Delete, with no need to open the editor. On phones the buttons sit in their own row so titles keep the full width, and the Done prompt is now a clear stack of full-width buttons.
+- Nudge banner on phones: tapping Done squeezed the nudge into one thin column beside three buttons. The buttons now have their own row.
