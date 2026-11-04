@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import { useStore } from '../lib/store.jsx'
 import { friendlyDue, isEarly, isOverdue } from '../lib/format.js'
 import { canNudge, describeRepeat, formatClock, nextOccurrence } from '../lib/schedule.js'
@@ -100,6 +100,8 @@ function TaskEditor({ task, onClose }) {
   )
 }
 
+const DELETE_WIDTH = 88
+
 // Quick answers for a "when" question; anything else gets a one-line answer box.
 // who/what answers go into the title; how/why become a note under it.
 const ASK_PLACEHOLDER = { who: 'Who?', how: 'How?', why: 'Why? Humour me', what: 'Tell me more' }
@@ -187,6 +189,16 @@ export default function TaskCard({ task }) {
   const finish = () => { setEarly(false); task.physical ? setAsking(true) : completeTask(task.id) }
   const overdue = isOverdue(task)
 
+  // Slide the card either way to uncover Delete. A tap on an uncovered card closes it again.
+  const slide = useAnimationControls()
+  const [uncovered, setUncovered] = useState(0)
+  const dragged = useRef(false)
+  const settle = (side) => {
+    setUncovered(side)
+    slide.start({ x: side * DELETE_WIDTH, transition: { type: 'spring', stiffness: 420, damping: 36 } })
+  }
+  const canSlide = !editing && !asking && !early
+
   return (
     <motion.li
       layout
@@ -194,7 +206,40 @@ export default function TaskCard({ task }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: 40, transition: { duration: 0.2 } }}
       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-      className="flex flex-wrap items-center gap-x-3 rounded-2xl bg-surface px-4 py-3 shadow-card border-[length:var(--bw)] border-line">
+      className="relative overflow-hidden rounded-2xl bg-overdue shadow-card border-[length:var(--bw)] border-line">
+      {[-1, 1].map((side) => (
+        <button
+          key={side}
+          type="button"
+          onClick={() => deleteTask(task.id)}
+          tabIndex={uncovered === side * -1 ? 0 : -1}
+          aria-label={`Delete ${task.title}`}
+          style={{ width: DELETE_WIDTH }}
+          className={`absolute inset-y-0 ${side < 0 ? 'right-0' : 'left-0'} flex flex-col items-center justify-center gap-0.5 text-xs font-semibold text-white`}
+        >
+          <TrashIcon size={18} /> Delete
+        </button>
+      ))}
+      <motion.div
+        animate={slide}
+        drag={canSlide ? 'x' : false}
+        dragDirectionLock
+        dragMomentum={false}
+        dragElastic={0.08}
+        dragConstraints={{ left: -DELETE_WIDTH, right: DELETE_WIDTH }}
+        style={{ touchAction: 'pan-y' }}
+        onDragStart={() => { dragged.current = true }}
+        onDragEnd={(_, info) => {
+          const reached = uncovered * DELETE_WIDTH + info.offset.x
+          settle(Math.abs(reached) > DELETE_WIDTH / 2 ? Math.sign(reached) : 0)
+          setTimeout(() => { dragged.current = false }, 0)
+        }}
+        onClickCapture={(e) => {
+          if (dragged.current) { e.preventDefault(); e.stopPropagation(); return }
+          if (uncovered) { e.preventDefault(); e.stopPropagation(); settle(0) }
+        }}
+        className="relative flex flex-wrap items-center gap-x-3 bg-surface px-4 py-3"
+      >
       {editing ? <TaskEditor task={task} onClose={() => setEditing(false)} /> : (
       <>
       <motion.button
@@ -249,7 +294,8 @@ export default function TaskCard({ task }) {
         </div>
         {!task.done && <NextNudge task={task} />}
       </div>
-      <div className="-mr-2 flex shrink-0 items-center">
+      {/* On a phone the buttons get their own row, so the title keeps the card's full width. */}
+      <div className="-mr-2 ml-9 mt-1 flex basis-full items-center justify-end sm:ml-0 sm:mt-0 sm:basis-auto sm:shrink-0">
       {/* Once a task is done, a bin pops out beside it so it can be cleared in one tap. */}
       <AnimatePresence initial={false}>
         {task.done && (
@@ -270,6 +316,18 @@ export default function TaskCard({ task }) {
           </motion.button>
         )}
       </AnimatePresence>
+      {/* Without a finger to slide with, the bin stays in reach. */}
+      {!task.done && (
+        <button
+          type="button"
+          onClick={() => deleteTask(task.id)}
+          aria-label={`Delete ${task.title}`}
+          title="Delete"
+          className="hidden h-8 w-8 place-items-center rounded-full text-ink/40 hover:bg-ink/5 hover:text-overdue sm:grid"
+        >
+          <TrashIcon size={16} />
+        </button>
+      )}
       <button
         type="button"
         onClick={() => setEditing(true)}
@@ -307,10 +365,12 @@ export default function TaskCard({ task }) {
       {/* Nudged's follow-up question when the model couldn't tell when/who/what. */}
       {task.ask && !task.done && !editing && <AskRow task={task} onPick={() => setEditing(true)} />}
       {early && !task.done && (
-        <div className="mt-2 flex basis-full flex-wrap items-center gap-2 border-t-[length:var(--bw)] border-line pt-3">
-          <span className="mr-auto text-sm font-medium">Done already? It's not due till {friendlyDue(task.due).toLowerCase()}.</span>
-          <button type="button" onClick={() => setEarly(false)} className="min-h-9 rounded-full px-3 text-sm font-semibold text-ink/60 hover:bg-ink/5">Oops, not yet</button>
-          <button type="button" onClick={finish} className="min-h-9 rounded-full bg-primary px-3 text-sm font-semibold text-on-primary">Yes, done</button>
+        <div className="mt-3 basis-full border-t-[length:var(--bw)] border-line pt-3">
+          <p className="text-sm font-medium">Done already? It's not due till {friendlyDue(task.due).toLowerCase()}.</p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => setEarly(false)} className="min-h-10 rounded-full bg-ink/5 px-3 text-sm font-semibold text-ink/70">Oops, not yet</button>
+            <button type="button" onClick={finish} className="min-h-10 rounded-full bg-primary px-3 text-sm font-semibold text-on-primary">Yes, done</button>
+          </div>
         </div>
       )}
       {/* Proof tasks ask, they don't insist. */}
@@ -323,21 +383,20 @@ export default function TaskCard({ task }) {
             transition={{ duration: 0.18, ease: [0.23, 1, 0.32, 1] }}
             className="basis-full"
           >
-            <div className="mt-2 flex flex-wrap items-center gap-2 border-t-[length:var(--bw)] border-line pt-3">
-              <span className="mr-auto text-sm font-medium">Snap a photo for the bonus? Pics or it didn't happen.</span>
-              <button type="button" onClick={() => setAsking(false)} className="min-h-9 rounded-full px-3 text-sm font-semibold text-ink/60 hover:bg-ink/5">
-                Not now
-              </button>
-              <button type="button" onClick={() => { completeTask(task.id); setAsking(false) }} className="min-h-9 rounded-full px-3 text-sm font-semibold text-ink/60 hover:bg-ink/5">
-                Skip photo
-              </button>
-              <button type="button" onClick={() => navigate(`/proof/${task.id}`)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-primary px-3 text-sm font-semibold text-on-primary">
+            <div className="mt-3 border-t-[length:var(--bw)] border-line pt-3">
+              <p className="text-sm font-medium">Snap a photo for the bonus? Pics or it didn't happen.</p>
+              <button type="button" onClick={() => navigate(`/proof/${task.id}`)} className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-full bg-primary px-3 text-sm font-semibold text-on-primary">
                 <CameraIcon size={15} /> Snap it +15
               </button>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => setAsking(false)} className="min-h-10 rounded-full bg-ink/5 px-3 text-sm font-semibold text-ink/70">Not now</button>
+                <button type="button" onClick={() => { completeTask(task.id); setAsking(false) }} className="min-h-10 rounded-full bg-ink/5 px-3 text-sm font-semibold text-ink/70">Skip photo</button>
+              </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+      </motion.div>
     </motion.li>
   )
 }
